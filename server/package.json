@@ -1,0 +1,29 @@
+{
+  "name": "expressfirebase",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server.js",
+    "client": "cd ../client && npm start",
+    "dev": "nodemon src/server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.5.0",
+    "firebase": "^10.8.0",
+    "firebase-admin": "^12.0.0",
+    "nodemon": "^2.0.3",
+    "openai": "^4.29.2",
+    "path": "^0.12.7",
+    "pdf-parse": "^1.1.1"
+  },
+  "description": ""
+}

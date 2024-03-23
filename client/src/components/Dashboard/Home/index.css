@@ -1,0 +1,17 @@
+.item {
+    border: 2px solid #000; /* Adjust the color as needed */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-direction: column;
+    padding: 1rem;
+    border-radius: 0.25rem; /* Rounded corners */
+}
+
+
+.item:hover {
+    background-color: lightblue;
+    cursor: pointer;
+    /* Add any other styles you want to apply when hovered */
+  }
