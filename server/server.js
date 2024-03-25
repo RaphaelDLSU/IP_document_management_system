@@ -64,31 +64,6 @@ app.post("/summary", async function (req, res) {
                 text: completion.choices[0].message.content,
             });
         });
-        // pdf(dataBuffer).then(async function (data) {
-        //     await openai.completions.create({
-
-        //         model: "davinci-002",
-        //         prompt: tanong+'\n\n'+data.text,
-        //         temperature: 0.7,
-        //         max_tokens: Math.floor(data.text?.length / 2),
-        //         top_p: 1.0,
-        //         frequency_penalty: 0.0,
-        //         presence_penalty: 1,
-        //     })
-
-        //         .then((response) => {
-        //             fs.unlinkSync(uploadPath);
-
-        //             res.json({
-        //                 id: new Date().getTime(),
-        //                 text: response.choices[0].text,
-        //             });
-        //         })
-        //         .catch((err) => {
-        //             console.log("ERROR:", err);
-        //             res.status(500).send("An error has occured");
-        //         });
-        // });
     });
     console.log('Hell 2')
 });
