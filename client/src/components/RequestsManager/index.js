@@ -9,7 +9,7 @@ import Navbar from "../Navbar";
 import Home from "./Home";
 
 
-const Employees = () => {
+const RequestsManager = () => {
     const history = useHistory();
     const { path } = useRouteMatch();
     const database = getFirestore()
@@ -26,10 +26,6 @@ const Employees = () => {
             history.push("/login");
         }
         if(user){
-
-          const getRole = ()=>{
-            
-          }
             let role
             const q = query(collection(database, "users"), where("email", "==", user.data.uid));
             const querySnapshot = await getDocs(q);
@@ -37,7 +33,7 @@ const Employees = () => {
               role = doc.data().role
             });
         
-            if (role =='Requestor' || role =='Employee'){
+            if (role =='Requestor'){
               history.push("/")
             }
           }
@@ -59,4 +55,4 @@ const Employees = () => {
     );
 };
 
-export default Employees;
+export default RequestsManager;

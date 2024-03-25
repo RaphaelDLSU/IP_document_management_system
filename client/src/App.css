@@ -75,3 +75,7 @@
     background-color: transparent !important; 
     border-color: #ccc;
   }
+
+  .button-overlap{
+    z-index: 1001;
+  }

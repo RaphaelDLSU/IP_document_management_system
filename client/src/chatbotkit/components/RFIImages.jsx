@@ -10,7 +10,7 @@ import './styles.css'
 const RFIImages = props => {
     const { setState, actionProvider, project, rfiDesc } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
-    const [task, setTask] = useState('');
+    const [category, setCategory] = useState('');
     const [textBoxes, setTextBoxes] = useState(['']);
     const database = getFirestore()
     const dispatch = useDispatch();
@@ -31,6 +31,12 @@ const RFIImages = props => {
 
     const addImageInput = () => {
         setImageButton([...imageButton, { id: imageButton.length }]);
+    };
+
+    const removeImageInput = (index) => {
+        const updatedTextBoxes = [...imageButton];
+        updatedTextBoxes.splice(index, 1);
+        setImageButton(updatedTextBoxes);
     };
 
     const handleImageUpload = (index, event) => {
@@ -80,9 +86,22 @@ const RFIImages = props => {
 
             })
         })
-     
+
 
         bar.then(() => {
+
+            let projectCat
+            if (project == 'Miramonti') {
+                projectCat = 'MIR'
+            } else if (project == "Monumento") {
+                projectCat = 'MNU'
+            } else if (project == 'Montecristo') {
+                projectCat = 'MNT'
+            } else if (project == 'Muramana') {
+                projectCat = 'MUR'
+            }
+
+            const data = snapshot.data().count + 1
             console.log('URL 1: ' + newArray)
             dispatch(
                 createRFI({
@@ -93,10 +112,10 @@ const RFIImages = props => {
                     images: newArray,
                     submitter: '',
                     date: '',
-                    response:'',
-                    id:'RFI-'+toString(snapshot.data().count +1),
-                    step:1,
-                    nameEmail:user.data.uid
+                    response: '',
+                    id: 'RFI-' + projectCat + '-' + category + '-' + data.toString(),
+                    step: 1,
+                    nameEmail: user.data.uid
                 })
             );
         });
@@ -116,16 +135,27 @@ const RFIImages = props => {
                                 />
                             </div>
                         ))}
+                        <p></p>
+                        <select id="mySelect" onChange={(e) => setCategory(e.target.value)}>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Arch">Arch</option>
+                            <option value="CS">CS</option>
+                        </select>
 
                         {/* Button to add more image upload inputs */}
-                        <button onClick={addImageInput}>Add Image</button>
+                        <button className="airport-button-confirm" onClick={addImageInput}>Add Image</button>
+
+
+                        <button className="airport-button-confirm" onClick={removeImageInput}>
+                            Remove
+                        </button>
                         <button className="airport-button-confirm" onClick={handleSubmit}>Confirm</button>
                     </>
                 }
                 elseShow={
                     <>
                         <p>
-                            Great! You have included your images for the RFI!
+                            Great! You have included your images and category for the RFI!
                         </p>
                     </>
                 }

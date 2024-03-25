@@ -52,7 +52,7 @@ const TaskRequirement = props => {
       console.log('Requirements" '+JSON.stringify(requirements))
 
       for (let i = 0; i < 30; i++) {
-        const q = query(collection(database, "users"), where("tasks", "==", i));
+        const q = query(collection(database, "users"), where("tasks", "==", i),where('role','==','Employee'));
 
         if(q){
           const querySnapshot = await getDocs(q);
@@ -75,8 +75,8 @@ const TaskRequirement = props => {
               workflowname:'',
               approvalTo:'',
               project:project,
-              requester:user.data.uid,
-              requestername:user.data.displayName,
+              requestor:user.data.uid,
+              requestorname:user.data.displayName,
               isRequest: true
             })
             const userRef = doc(database, "users", doc1.id);
@@ -92,6 +92,8 @@ const TaskRequirement = props => {
         
 
       }
+
+      
       actionProvider.finishTaskCreator()
        
     };

@@ -9,9 +9,9 @@ export const createRFA =
       const storage = getStorage();
       let storageRef
       if (step==1){
-        storageRef = ref(storage, 'rfiFiles/before');
+        storageRef = ref(storage, 'rfiFiles/before/'+id);
       }else if (step==2){
-        storageRef = ref(storage, 'rfiFiles/after');
+        storageRef = ref(storage, 'rfiFiles/after/'+id);
       }
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
@@ -82,7 +82,23 @@ export const createRFA =
      
    
     
-  
+      function isPng(url) {
+
+        console.log('URL: '+url)
+        // Remove any query parameters from the URL
+        const cleanUrl = url.split('?')[0];
+      
+        // Split the URL by dots to get the file extension
+        const parts = cleanUrl.split('.');
+        const extension = parts[parts.length - 1].toLowerCase();
+      
+        // Define the image extensions to test against
+        const imageExtensions = ['png'];
+      
+        // Check if the extension matches any in the list
+        return imageExtensions.includes(extension);
+      }
+
   
 
 
@@ -92,7 +108,12 @@ export const createRFA =
         const imgUrl = image
         const imgBytes = await fetch(imgUrl).then((res) => res.arrayBuffer())
 
-        const imageByte = await pdfDoc.embedPng(imgBytes)
+        let imageByte
+        if(isPng(imgUrl)){
+          imageByte = await pdfDoc.embedPng(imgBytes)
+        }else{
+          imageByte = await pdfDoc.embedJpg(imgBytes)
+        }
         const page = pdfDoc.addPage()
 
         const imgDims = imageByte.scale(0.25)

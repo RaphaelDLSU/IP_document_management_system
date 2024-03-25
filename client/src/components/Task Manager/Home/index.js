@@ -140,16 +140,14 @@ const Home = () => {
     const submitTask = async (e) => {
 
         e.preventDefault();
-        console.log('WHAT THE FUCK LOL')
-
-
+        toast.info('Creating Task. Please wait')
         console.log('INPUTS' + JSON.stringify(inputs))
         for (const input of inputs) {
-            console.log(input.employee)
+            console.log('here')
             const taskRef = collection(database, "tasks");
             let q
-            if (input.employee == ' Automatic') {
-
+            if (input.employee == 'Automatic') {
+                console.log('here 2')
                 //workload algorithm
                 for (let i = 0; i < 30; i++) {
                     let r = query(collection(database, "users"), where('tasks', '==', i), where('role', '==', 'Employee'))
@@ -163,12 +161,15 @@ const Home = () => {
                 }
 
             } else {
+                console.log('here 3')
                 q = query(collection(database, "users"), where("email", "==", input.employee));
             }
 
 
             const querySnapshot = await getDocs(q);
             querySnapshot.forEach(async (user) => {
+
+                console.log('here 4')
 
                 let isApproval = true
                 if (approval == '') {
@@ -198,7 +199,7 @@ const Home = () => {
             });
 
         }
-        console.log('finished')
+        toast.success('Task Created!')
     }
     //Delete Handler
     const deleteTask = async (id, employeeId) => {
@@ -255,6 +256,7 @@ const Home = () => {
                 };
 
                 if (task.approval) {
+                    toast.info('Submitting to the Manager for Approval')
 
                     console.log('WITH APPROVAL')
                     const storageRef = ref(storage, 'approvalfiles/' + selectedFile.req.id + '/' + file.name);
@@ -295,7 +297,7 @@ const Home = () => {
                                     filePath: 'approvalfiles/' + selectedFile.req.id + '/' + file.name,
                                     fileName: file.name
                                 }
-
+                                toast.success('Submitted')
                                 setReqArray([...reqArray, newObject])
                             });
                         }
@@ -370,9 +372,9 @@ const Home = () => {
                                     outputs: arrayUnion({ url: downloadURL, requirement: selectedFile.req.value })
                                 })
                             });
+
+
                             const docsRef = collection(database, "docs");
-
-
                             const q = query(docsRef, where("name", "==", task.project));
                             const querySnapshot = await getDocs(q);
                             querySnapshot.forEach((doc) => {
@@ -390,13 +392,26 @@ const Home = () => {
                                     updatedAt: new Date()
                                 })
                             }
+
+                            let folderParent
+                            const q1 = query(collection(database, "docs"), where("name", "==", task.project));
+
+                            const querySnapshot1 = await getDocs(q1);
+                            querySnapshot1.forEach((doc) => {
+                                folderParent = doc.id
+                            });
+
                             let f
+                            let folderName
                             if (task.isRequest) {
-                                f = query(docsRef, where("name", "==", 'Task Requests'));
+                                f = query(docsRef, where("name", "==", 'Task Requests'), where('parent', '==', folderParent));
+                                folderName = 'Task Requests'
                             } else if (task.workflowname == '' || !task.workflowname) {
-                                f = query(docsRef, where("name", "==", 'Miscellaneous'));
+                                f = query(docsRef, where("name", "==", 'Miscellaneous'), where('parent', '==', folderParent));
+                                folderName = 'Miscellaneous'
                             } else {
-                                f = query(docsRef, where("name", "==", task.workflowname));
+                                f = query(docsRef, where("name", "==", task.workflowname), where('parent', '==', folderParent));
+                                folderName = task.workflowname
                             }
 
                             const d = query(docsRef, where("name", "==", task.project));
@@ -409,7 +424,7 @@ const Home = () => {
                                         createdAt: new Date(),
                                         createdBy: task.workflow,
                                         lastAccessed: new Date(),
-                                        name: task.workflowname,
+                                        name: folderName,
                                         parent: doc.id,
                                         path: [{ id: doc.id }],
                                         updatedAt: new Date()
@@ -421,7 +436,7 @@ const Home = () => {
                             if (querySnapshot2.empty) {
                                 console.log('empty')
                             }
-                            const g = query(docsRef, where("name", "==", task.workflowname));
+                            const g = query(docsRef, where("name", "==", folderName));
                             const querySnapshot5 = await getDocs(g);
                             querySnapshot5.forEach((doc) => {
                                 setFolderId2(doc.id)
@@ -461,14 +476,17 @@ const Home = () => {
 
     const approveSubmission = async () => {
         if (task.approvalTo == 'Manager and CEO' && task.employeeId == 'manager@gmail.com') {
-            console.log('Giving approval to CEO')
+            toast.info('Giving approval to CEO')
             const taskRef = doc(database, "tasks", task.id);
             await updateDoc(taskRef, {
                 employeeId: 'ceo@gmail.com',
+            }).then(() => {
+                toast.success('Approval Given to CEO')
             });
         } else {
             console.log('Approving Submission')
 
+            toast.info('Finishing Approval')
 
             reqs.forEach(async req => {
 
@@ -491,7 +509,12 @@ const Home = () => {
                     console.log('BLOB2' + blobObj)
                     const uploadTask = uploadBytesResumable(storageRef, blobObj, metadata);
 
-                    const workflowRef = doc(database, "workflows", task.workflow);
+                    let workflowRef
+                    if (task.workflow != '') {
+                        workflowRef = doc(database, "workflows", task.workflow);
+                    }
+
+
 
 
                     let urlUpdate
@@ -523,12 +546,15 @@ const Home = () => {
                                 console.log('File available at', downloadURL);
                                 setUrl(downloadURL)
                                 urlUpdate = url
+                                if (task.workflow != '') {
+                                    let reqOutput = task.stage + ': ' + req.value
+                                    // Outputs workflow
+                                    await updateDoc(workflowRef, {
+                                        outputs: arrayUnion({ url: downloadURL, requirement: reqOutput })
 
-                                // Outputs workflow
-                                await updateDoc(workflowRef, {
-                                    outputs: arrayUnion({ url: downloadURL, requirement: req.value })
+                                    })
+                                }
 
-                                })
 
                                 const desertRef = ref(storage, req.filePath);
 
@@ -554,8 +580,27 @@ const Home = () => {
                                 })
 
                             }
+                            let folderParent
+                            const q1 = query(collection(database, "docs"), where("name", "==", task.project));
 
-                            const f = query(docsRef, where("name", "==", task.workflowname));
+                            const querySnapshot1 = await getDocs(q1);
+                            querySnapshot1.forEach((doc) => {
+                                folderParent = doc.id
+                            });
+
+                            let f
+                            let folderName
+                            if (task.isRequest) {
+                                f = query(docsRef, where("name", "==", 'Task Requests'), where('parent', '==', folderParent));
+                                folderName = 'Task Requests'
+                            } else if (task.workflowname == '' || !task.workflowname) {
+                                f = query(docsRef, where("name", "==", 'Miscellaneous'), where('parent', '==', folderParent));
+                                folderName = 'Miscellaneous'
+                            } else {
+                                f = query(docsRef, where("name", "==", task.workflowname), where('parent', '==', folderParent));
+                                folderName = task.workflowname
+                            }
+
                             const d = query(docsRef, where("name", "==", task.project));
                             const querySnapshot3 = await getDocs(f);
                             const querySnapshot4 = await getDocs(d);
@@ -568,7 +613,7 @@ const Home = () => {
                                         createdAt: new Date(),
                                         createdBy: task.workflow,
                                         lastAccessed: new Date(),
-                                        name: task.workflowname,
+                                        name: folderName,
                                         parent: doc.id,
                                         path: [{ id: doc.id }],
                                         updatedAt: new Date()
@@ -578,7 +623,7 @@ const Home = () => {
                             });
                             setEffectFile(req.fileName)
                             const querySnapshot2 = await getDocs(q)
-                            const g = query(docsRef, where("name", "==", task.workflowname));
+                            const g = query(docsRef, where("name", "==", folderName));
                             const querySnapshot5 = await getDocs(g);
                             querySnapshot5.forEach((doc) => {
                                 setFolderId2(doc.id)
@@ -667,7 +712,7 @@ const Home = () => {
 
     const setStageAndWorkflow = async (stageId) => {
 
-        if (stageId == 'None') {
+        if (stageId != 'None') {
             const docRef = doc(database, "stages", stageId);
             const docSnap = await getDoc(docRef);
 
@@ -687,7 +732,7 @@ const Home = () => {
 
     };
 
-    const approveAndEndSubmission = (task) =>{
+    const approveAndEndSubmission = (task) => {
 
     }
 
@@ -821,7 +866,7 @@ const Home = () => {
                     })
                 } else {
                     updateTaskArray.push({
-                        active: false,
+                        active: true,
                         manualTasks: task1.manualTasks,
                         name: task1.name,
                         parentId: task1.parentId,
@@ -829,7 +874,7 @@ const Home = () => {
                         workflowname: task1.workflowname
                     })
 
-                    await deleteDoc(doc(database, 'stages', task1.parentId))
+
                 }
 
 
@@ -861,6 +906,10 @@ const Home = () => {
                         workflow: task1.workflow,
                         workflowname: task1.workflowname
                     })
+
+                    await updateDoc(workflowRef, {
+                        inStage: false
+                    })
                 } else {
                     updateTaskArray.push({
                         active: true,
@@ -869,6 +918,10 @@ const Home = () => {
                         parentId: task1.parentId,
                         workflow: task1.workflow,
                         workflowname: task1.workflowname
+                    })
+
+                    await updateDoc(workflowRef, {
+                        inStage: true
                     })
                 }
                 isTaskActive = false
@@ -889,13 +942,25 @@ const Home = () => {
             await updateDoc(doc(database, "tasks", task.id), {
                 status: 'done'
             });
+
+            //workload minus
+            const q = query(collection(database, "users"), where('email', '==', task.employeeId))
+            const querySnapshot = await getDocs(q);
+
+
+            querySnapshot.forEach(async (doc1) => {
+                console.log('EMPLOYEE ID: ' + doc1.id)
+                await updateDoc(doc(database, 'users', doc1.id), {
+                    tasks: doc1.data().tasks - 1
+                })
+            });
         } else {
             await updateDoc(doc(database, "tasks", task.id), {
                 assignTo: task.origUser,
                 status: 'for submission'
             });
         }
-        console.log('updated task = ' + JSON.stringify(updateTaskArray))
+
         await updateDoc(workflowRef, {
             tasks: updateTaskArray
         })
@@ -971,34 +1036,37 @@ const Home = () => {
                         <p></p>
                         <div className='cards-container'>
                             {tasks.map((task, index) => {
-                                {
-                                    task.status == 'for approval' && (
+                                if (user.data.uid === task.employeeId && task.status != 'done' && !task.manualTasks) {
+                                    return (
                                         <>
-                                            <Card className='card' border="secondary" style={{ width: '18rem' }} key={index}>
-                                                <Card.Header>{task.project}</Card.Header>
-                                                <Card.Body>
-                                                    <Card.Title>{task.task}</Card.Title>
-                                                    {task.status === 'for submission' ?
-                                                        <Button variant="primary" onClick={() => submitRequirements(task)}>Submit</Button>
-                                                        :
-                                                        <Button variant="primary" onClick={() => viewSubmission(task)}>View</Button>
-                                                    }
-                                                </Card.Body>
-                                                <ListGroup className="list-group-flush">
-                                                    <ListGroup.Item>Deadline : {task.deadline}</ListGroup.Item>
-                                                    <ListGroup.Item>Date : {new Date(task.timestamp.seconds * 1000).toLocaleString()}</ListGroup.Item>
-                                                    <ListGroup.Item>Assigned To : {task.employee}</ListGroup.Item>
-                                                </ListGroup>
-                                            </Card>
+                                            {task.status == 'for approval' && (
+                                                <>
 
+                                                    <Card className='card' border="secondary" style={{ width: '18rem' }} key={index}>
+                                                        <Card.Header>{task.project}</Card.Header>
+                                                        <Card.Body>
+                                                            <Card.Title>{task.task}</Card.Title>
+                                                            {task.status === 'for submission' ?
+                                                                <Button variant="primary" onClick={() => submitRequirements(task)}>Submit</Button>
+                                                                :
+                                                                <Button variant="primary" onClick={() => viewSubmission(task)}>View</Button>
+                                                            }
+                                                        </Card.Body>
+                                                        <ListGroup className="list-group-flush">
+                                                            <ListGroup.Item>Deadline : {task.deadline}</ListGroup.Item>
+                                                            <ListGroup.Item>Date : {new Date(task.timestamp.seconds * 1000).toLocaleString()}</ListGroup.Item>
+                                                            <ListGroup.Item>Assigned To : {task.employee}</ListGroup.Item>
+                                                        </ListGroup>
+                                                    </Card>
+
+                                                </>
+                                            )}
 
                                         </>
                                     )
                                 }
-
-
-
-                            })}
+                            }
+                            )}
                         </div>
 
                         <h5>Ongoing Stages</h5>
@@ -1017,7 +1085,7 @@ const Home = () => {
 
                     </div>
 
-                </div>
+                </div >
 
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
@@ -1083,9 +1151,12 @@ const Home = () => {
                                                             <option value="" disabled selected hidden>Select Employee </option>
                                                             <option value="Automatic">Automatic</option>
                                                             {users.map((users, index) => (
-                                                                <option key={index} value={users.email}>
-                                                                    {users.name} &#40;Tasks: {users.tasks}&#41;
-                                                                </option>
+                                                                users.role === 'Employee' && (
+                                                                    <option key={index} value={users.email}>
+                                                                        {users.name} &#40;Tasks: {users.tasks}&#41;
+                                                                    </option>
+                                                                )
+
                                                             ))}
                                                         </Form.Select>
                                                     </Col>
@@ -1131,25 +1202,36 @@ const Home = () => {
                             </Form.Group>
                             {reqs.map((req, index) =>
                                 <>
-                                    <p>
-                                        {req.value}:
-                                        {task.status === 'for submission' ?
-                                            <input
-                                                type="file"
-                                                onChange={(e) => handleUploadReq(e, req)}
-                                                multiple /> :
-                                            <a href={req.url} target="_blank">View</a>}
+                                    <Form>
+                                        <Form.Group as={Row} className="mb-3" controlId="formPlaintextEmail">
+                                            <Form.Label column sm="2">
+                                                {req.value}
+                                            </Form.Label>
+                                            <Col sm="10">
+                                                {task.status === 'for submission' ?
+                                                    <Form.Control type="file" onChange={(e) => handleUploadReq(e, req)} />
+                                                    :
+                                                    <Button href={req.url} target="_blank">View </Button>}
+                                            </Col>
+                                        </Form.Group>
                                         {task.reason && task.status == 'for submission' && (
-                                            <p> Reason for Disapproval : {task.reason}</p>
+                                            <>
+                                                <Form.Label>
+                                                    Reason for Disapproval : {task.reason}
+                                                </Form.Label>
+                                            </>
+
                                         )}
-                                    </p>
+
+                                    </Form>
+
                                 </>
                             )}
                             <Modal.Footer>
                                 <Button variant='secondary' onClick={() => setShow2(false)}>Close</Button>
-                                {task && task.status === 'for submission' ? <Button variant="primary" onClick={() => handleSubmitReq()}>Submit</Button> : (<><Button variant="primary" onClick={() => approveSubmission(task)}>Approve</Button><Button variant="tertiary" onClick={() => setShow3(true)}>Decline</Button></>)}
+                                {task && task.status === 'for submission' ? <Button variant="primary" onClick={() => handleSubmitReq()}>Submit</Button> : (<><Button variant="primary" onClick={() => approveSubmission(task)}>Approve</Button><Button variant="danger" onClick={() => setShow3(true)}>Decline</Button></>)}
 
-                                {task && task.status === 'for approval' && task.recurring === true &&  <Button onClick={() => approveAndEndSubmission(task)} >Approve and End </Button>}
+                                {task && task.status === 'for approval' && task.recurring === true && <Button onClick={() => approveAndEndSubmission(task)} >Approve and End </Button>}
                             </Modal.Footer>
                         </Form>
                     </Modal.Body>

@@ -25,16 +25,21 @@ const Home = () => {
     const [loading, setLoading] = useState(true)
     const database = getFirestore()
 
-    useEffect(async () => {
+    useEffect( () => {
         const q = query(collection(database, "users"), where("role", "==", 'Employee'));
 
-        await getDocs(q).then((employees) => {
-            let employeeData = employees.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setEmployees(employeeData)
-            setLoading(false)
-        }).catch((err) => {
-            console.log(err);
-        })
+        const getEmployees = async ()=>{
+            await getDocs(q).then((employees) => {
+                let employeeData = employees.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                setEmployees(employeeData)
+                setLoading(false)
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+        getEmployees()
+
+     
     }, []);
 
 

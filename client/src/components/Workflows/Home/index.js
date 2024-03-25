@@ -94,7 +94,6 @@ const Home = () => {
             preset: docSnap.data().name,
             description: docSnap.data().description,
             tasks: docSnap.data().tasks,
-            init: docSnap.data().init,
             project: project,
             started: false,
             outputs: [],
@@ -315,12 +314,13 @@ const Home = () => {
                     tasks: statusTask
                 }).then(() => {
                     toast.success(workflow.data().name + ' started')
+                    window.location.reload()
                 })
             }
             if (started) {
                 const newArray = []
                 const workflowRef = doc(database, "workflows", id)
-                const workflow = getDoc(workflowRef)
+                const workflow = await getDoc(workflowRef)
 
                 toast.info('Stopping ' + workflow.data().name)
                 for (const task of tasks) {
@@ -343,10 +343,11 @@ const Home = () => {
                     tasks: newArray
                 }).then(() => {
                     toast.success(workflow.data().name + ' Stopped')
+                    window.location.reload()
                 })
                 console.log('Array HERE: ' + JSON.stringify(newArray))
             }
-            window.location.reload()
+           
         } catch (err) {
             console.log(err);
         }
@@ -477,6 +478,10 @@ const Home = () => {
                         workflow: task1.workflow,
                         workflowname: task1.workflowname
                     })
+
+                    await updateDoc(workflowRef, {
+                        inStage: false
+                    })
                 } else {
                     updateTaskArray.push({
                         active: true,
@@ -485,6 +490,10 @@ const Home = () => {
                         parentId: task1.parentId,
                         workflow: task1.workflow,
                         workflowname: task1.workflowname
+                    })
+
+                    await updateDoc(workflowRef, {
+                        inStage: true
                     })
                 }
                 isTaskActive = false
@@ -575,7 +584,7 @@ const Home = () => {
                         <Accordion >
                             {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
                                 <Accordion.Item eventKey={id} >
-                                    <Accordion.Header > {name} &nbsp&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger'> Stop </Button>}
+                                    <Accordion.Header > {name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
 
                                         {inStage && (
                                             <>

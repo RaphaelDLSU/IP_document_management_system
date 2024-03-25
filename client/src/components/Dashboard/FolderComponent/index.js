@@ -7,7 +7,7 @@ import {
   faFolder,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect } from "react";
+import React, { useEffect,useState} from "react";
 import { Col, Row } from "react-bootstrap";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useHistory, useParams } from "react-router";
@@ -21,9 +21,13 @@ import SubNav from "../SubNav.js";
 import { FaFolder } from "react-icons/fa";
 import ListGroup from 'react-bootstrap/ListGroup';
 import { FaFileAlt } from "react-icons/fa";
+import { getFirestore, doc, deleteDoc } from "firebase/firestore";
+import { toast } from "react-toastify";
+import Button from 'react-bootstrap/Button';
 const FolderComponent = () => {
+  const [myState, setMyState] = useState([]);
   const { folderId } = useParams();
-
+  const db = getFirestore()
   const { folders, isLoading, userId, files } = useSelector(
     (state) => ({
       folders: state.filefolders.userFolders,
@@ -35,6 +39,7 @@ const FolderComponent = () => {
   );
   const dispatch = useDispatch();
   const history = useHistory();
+
 
   useEffect(() => {
     if (isLoading) {
@@ -63,6 +68,12 @@ const FolderComponent = () => {
     files.filter(
       (file) => file.data.parent === folderId && file.data.url !== ""
     );
+
+    const handleDeleteFile = async (docId) => {
+      await deleteDoc(doc(db, "files", docId)).then(result => setMyState(result));
+      toast.success("File deleted Successfully!");
+    };
+  
 
   if (isLoading) {
     return (
@@ -119,7 +130,7 @@ const FolderComponent = () => {
               action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt />{data.name}
+                <FaFileAlt />{data.name} <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
 
               </ListGroup.Item>
             ))}
@@ -132,7 +143,7 @@ const FolderComponent = () => {
               action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt /> {data.name}
+                <FaFileAlt  />{data.name} <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
 
               </ListGroup.Item>
             ))}

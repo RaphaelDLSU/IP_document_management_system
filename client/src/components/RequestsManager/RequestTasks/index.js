@@ -34,7 +34,7 @@ const RequestTasks = () => {
     const database = getFirestore()
     const [employees, setEmployees] = useState([])
     const [response, setResponse] = useState('')
-    const [actionCode,setActionCode] = useState('')
+    const [actionCode, setActionCode] = useState('')
     const [disapproveResponse, setDisapproveResponse] = useState('')
 
     const [show, setShow] = useState(false);
@@ -146,7 +146,7 @@ const RequestTasks = () => {
         })
         bar.then(() => {
 
-            if(request.type == 'RFI'){
+            if (request.type == 'RFI') {
                 dispatch(
                     createRFI({
                         name: request.name,
@@ -163,7 +163,7 @@ const RequestTasks = () => {
                     })
                 );
             }
-            else if (request.type == 'RFA'){
+            else if (request.type == 'RFA') {
                 dispatch(
                     createRFI({
                         name: request.name,
@@ -177,7 +177,7 @@ const RequestTasks = () => {
                         id: request.identifier,
                         step: 2,
                         origId: request.id,
-                        check:actionCode
+                        check: actionCode
                     })
                 );
             }
@@ -199,6 +199,16 @@ const RequestTasks = () => {
                 status: 'done',
                 url: request.submittedUrl
             })
+
+            //workload minus
+            const q = query(collection(database, "users"), where('email', '==', request.assignTo))
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach(async (doc) => {
+                await updateDoc(doc(database, 'users', doc.id), {
+                    tasks: doc.data().tasks - 1
+                })
+            });
 
             // dispatch(
             //     addFileUser({
@@ -304,7 +314,7 @@ const RequestTasks = () => {
                             </Modal.Body>
                         )}
                         {request && request.type == 'RFA' && (
-                            <Form.Select  onChange={(e) => setActionCode(e.target.value)}>
+                            <Form.Select onChange={(e) => setActionCode(e.target.value)}>
                                 <option value="" disabled selected>Select Action Code</option>
                                 <option value='A'>A</option>
                                 <option value='B'>B</option>

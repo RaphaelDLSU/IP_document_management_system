@@ -10,7 +10,7 @@ import './styles.css'
 const RFAImages = props => {
     const { setState, actionProvider, project, rfaDesc } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
-    const [task, setTask] = useState('');
+    const [category, setCategory] = useState('');
     const [textBoxes, setTextBoxes] = useState(['']);
     const database = getFirestore()
     const dispatch = useDispatch();
@@ -30,13 +30,21 @@ const RFAImages = props => {
     const [imageUrl, setImageUrl] = useState([]);
 
     const addImageInput = () => {
-        console.log('RFA DESC: '+rfaDesc)
+        console.log('RFA DESC: ' + rfaDesc)
         setImageButton([...imageButton, { id: imageButton.length }]);
     };
 
+    const removeImageInput = (index) => {
+        const updatedTextBoxes = [...imageButton];
+        updatedTextBoxes.splice(index, 1);
+        setImageButton(updatedTextBoxes);
+    };
+
+
+
     const handleImageUpload = (index, event) => {
 
-        
+
         // Handle image upload logic here, e.g., save the image to state or perform other actions
         const newItems = [...imageInputs, event.target.files[0]]
 
@@ -84,6 +92,19 @@ const RFAImages = props => {
             })
         })
         bar.then(() => {
+
+            let projectCat
+            if (project == 'Miramonti') {
+                projectCat = 'MIR'
+            } else if (project == "Monumento") {
+                projectCat = 'MNU'
+            } else if (project == 'Montecristo') {
+                projectCat = 'MNT'
+            } else if (project == 'Muramana') {
+                projectCat = 'MUR'
+            }
+
+            const data = snapshot.data().count + 1
             console.log('URL 1: ' + newArray)
             dispatch(
                 createRFA({
@@ -94,11 +115,11 @@ const RFAImages = props => {
                     images: newArray,
                     submitter: '',
                     date: '',
-                    response:'',
-                    id:'RFA-'+toString(snapshot.data().count +1),
-                    step:1,
-                    nameEmail:user.data.uid,
-                    check:''
+                    response: '',
+                    id: 'RFA-' + projectCat + '-' + category + '-' + data.toString(),
+                    step: 1,
+                    nameEmail: user.data.uid,
+                    check: ''
                 })
             );
         });
@@ -118,17 +139,26 @@ const RFAImages = props => {
                                 />
                             </div>
                         ))}
-
+                        <p></p>
+                        <select id="mySelect" onChange={(e) => setCategory(e.target.value)}>
+                            <option value="" disabled selected>Select Category</option>
+                            <option value="Arch">Arch</option>
+                            <option value="CS">CS</option>
+                        </select>
                         {/* Button to add more image upload inputs */}
-                        <button onClick={addImageInput}>Add Image</button>
-                        
+                        <button className="airport-button-confirm" onClick={addImageInput}>Add Image</button>
+                        <p></p>
+                        <button className="airport-button-confirm" onClick={removeImageInput}>
+                            Remove
+                        </button>
+
                         <button className="airport-button-confirm" onClick={handleSubmit}>Confirm</button>
                     </>
                 }
                 elseShow={
                     <>
                         <p>
-                            Great! You have included your images for the RFA!
+                            Great! You have included your images and category for the RFA!
                         </p>
                     </>
                 }

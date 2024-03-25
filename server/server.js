@@ -7,6 +7,8 @@ import pdf from 'pdf-parse';
 import fileUploader from 'express-fileupload';
 import OpenAI from 'openai';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 const app = express()
 
 dotenv.config()
@@ -23,56 +25,72 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cors())
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 app.post("/summary", async function (req, res) {
     console.log('Hello Hre')
-    // let sampleFile;
+    let sampleFile;
+
+    let tanong = req.body.prompt
+
+
+    sampleFile = req.files.uploadedFile
+    const uploadPath = path.join(__dirname, '/tmp/', sampleFile.name)
 
 
 
-    // sampleFile = req.files.uploadedFile
-    // const uploadPath = path.join(__dirname, '/tmp/', sampleFile.name)
-
-
-
-    // console.log('upload path: ' + uploadPath)
+    console.log('upload path: ' + uploadPath)
 
 
 
 
-    // sampleFile.mv(uploadPath, async function (err) {
+    sampleFile.mv(uploadPath, async function (err) {
 
 
-    //     console.log('it worked')
+        console.log('it worked')
 
-    //     let dataBuffer = fs.readFileSync(uploadPath);
+        let dataBuffer = fs.readFileSync(uploadPath);
+        let response
 
-    //     pdf(dataBuffer).then(async function (data) {
-    //         await openai.completions.create({
+        pdf(dataBuffer).then(async function (data) {
+            const completion = await openai.chat.completions.create({
+                messages: [{ "role": "system", "content": "You are a helpful assistant." },
+                { "role": "user", "content": tanong+'\n\n'+data.text }],
+                model: "gpt-3.5-turbo",
+            });
+            res.json({
+                id: new Date().getTime(),
+                text: completion.choices[0].message.content,
+            });
+        });
+        // pdf(dataBuffer).then(async function (data) {
+        //     await openai.completions.create({
 
-    //             model: "gpt-3.5-turbo-instruct",
-    //             prompt: data.text + "\n\nTl;dr",
-    //             temperature: 0.7,
-    //             max_tokens: Math.floor(data.text?.length / 2),
-    //             top_p: 1.0,
-    //             frequency_penalty: 0.0,
-    //             presence_penalty: 1,
-    //         })
+        //         model: "davinci-002",
+        //         prompt: tanong+'\n\n'+data.text,
+        //         temperature: 0.7,
+        //         max_tokens: Math.floor(data.text?.length / 2),
+        //         top_p: 1.0,
+        //         frequency_penalty: 0.0,
+        //         presence_penalty: 1,
+        //     })
 
-    //             .then((response) => {
-    //                 fs.unlinkSync(uploadPath);
+        //         .then((response) => {
+        //             fs.unlinkSync(uploadPath);
 
-    //                 res.json({
-    //                     id: new Date().getTime(),
-    //                     text: response.choices[0].text,
-    //                 });
-    //             })
-    //             .catch((err) => {
-    //                 console.log("ERROR:", err);
-    //                 res.status(500).send("An error has occured");
-    //             });
-    //     });
-    // });
-    // console.log('Hell 2')
+        //             res.json({
+        //                 id: new Date().getTime(),
+        //                 text: response.choices[0].text,
+        //             });
+        //         })
+        //         .catch((err) => {
+        //             console.log("ERROR:", err);
+        //             res.status(500).send("An error has occured");
+        //         });
+        // });
+    });
+    console.log('Hell 2')
 });
 
 app.listen(PORT, () => {

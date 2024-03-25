@@ -48,7 +48,6 @@ const NavbarComponent = () => {
 
   useEffect(async () => {
 
-    console.log('wtf')
     if (user) {
 
       let role
@@ -76,8 +75,8 @@ const NavbarComponent = () => {
             cName: "nav-text"
           },
           {
-            title: "Requests",
-            path: "/requests",
+            title: "Requests Manager",
+            path: "/requestsmanager",
             icon: <MdEditDocument />,
             cName: "nav-text"
           },
@@ -129,8 +128,8 @@ const NavbarComponent = () => {
             cName: "nav-text"
           },
           {
-            title: "Requests",
-            path: "/requests",
+            title: "Requests Manager",
+            path: "/requestsmanager",
             icon: <MdEditDocument />,
             cName: "nav-text"
           },
@@ -181,8 +180,8 @@ const NavbarComponent = () => {
             cName: "nav-text"
           },
           {
-            title: "Requests",
-            path: "/requests",
+            title: "Requests Manager",
+            path: "/requestsmanager",
             icon: <MdEditDocument />,
             cName: "nav-text"
           },
@@ -231,7 +230,13 @@ const NavbarComponent = () => {
             path: "/notifications",
             icon: <IoIosNotifications />,
             cName: "nav-text"
-          }
+          },
+          {
+            title: "Requests ",
+            path: "/requests",
+            icon: <MdEditDocument />,
+            cName: "nav-text"
+          },
         ]
         setSidebarData1(sidebarData)
       }

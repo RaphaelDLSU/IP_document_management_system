@@ -62,14 +62,36 @@ export const createRFI =
       }
       responseByField.setText(submitter);
 
-
+      function isPng(url) {
+        // Remove any query parameters from the URL
+        const cleanUrl = url.split('?')[0];
+      
+        // Split the URL by dots to get the file extension
+        const parts = cleanUrl.split('.');
+        const extension = parts[parts.length - 1].toLowerCase();
+      
+        // Define the image extensions to test against
+        const imageExtensions = ['png'];
+      
+        // Check if the extension matches any in the list
+        return imageExtensions.includes(extension);
+      }
 
 
       for (const image of images) {
         const imgUrl = image
+
+        
         const imgBytes = await fetch(imgUrl).then((res) => res.arrayBuffer())
 
-        const imageByte = await pdfDoc.embedPng(imgBytes)
+        let imageByte
+        if(isPng(imgBytes)){
+          imageByte = await pdfDoc.embedPng(imgBytes)
+        }else{
+          imageByte = await pdfDoc.embedJpg(imgBytes)
+        }
+
+
         const page = pdfDoc.addPage()
 
         const imgDims = imageByte.scale(0.25)

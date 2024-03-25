@@ -7,7 +7,6 @@ import Login from "./components/authentication/Login";
 import NavbarComponent from "./components/Navbar";
 import Dashboard from "./components/Dashboard";
 import Workflows from './components/Workflows'
-import Requests from './components/Requests'
 import { Chatbot } from 'react-chatbot-kit'
 
 import "./App.css";
@@ -28,6 +27,9 @@ import { ConditionallyRender } from "react-util-kit";
 import TaskManager from "./components/Task Manager";
 import DocumentCreation from "./components/Document Creation/DocumentCreation";
 import Registration from "./components/Registration";
+import Requests from "./components/Requests";
+
+import RequestsManager from "./components/RequestsManager";
 const App = () => {
   const dispatch = useDispatch();
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
@@ -70,11 +72,12 @@ const App = () => {
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/tasks" component={TaskManager} />
         <Route path="/workflows" component={Workflows} />
-        <Route path="/requests" component={Requests} />
+        <Route path="/requestsmanager" component={RequestsManager} />
         <Route path="/employees" component={Employees} />
         <Route path="/notifications" component={Notifications} />
         <Route path="/documentcreation" component={DocumentCreation} />
         <Route path="/registrations" component={Registration} />
+        <Route path="/requests" component={Requests} />
       </Switch>
     </div>
   );

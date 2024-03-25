@@ -34,12 +34,12 @@ export const registerUser =
         });
 
         database.users.add(newUser).then((usr) => {
-          dispatch(
-            setUser({
-              userId: user.user.uid,
-              user: { data: user.user.providerData[0] },
-            })
-          );
+          // dispatch(
+          //   setUser({
+          //     userId: user.user.uid,
+          //     user: { data: user.user.providerData[0] },
+          //   })
+          // );
           toast.success("User registered successfully!!");
         });
       }).then(()=>{

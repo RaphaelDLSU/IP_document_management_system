@@ -49,8 +49,11 @@ const Home = () => {
 
     }
     const disapproveRegistration = async () => {
+        toast.info('Disproving Registration. Please wait')
 
-        await deleteDoc(doc(database, "registrations", registration.id));
+        await deleteDoc(doc(database, "registrations", registration.id)).then(()=>{
+            toast.done('Registration Application removed')
+        });
         
 
     }
@@ -61,8 +64,8 @@ const Home = () => {
             let registrationData = registration.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
             setRegistrations(registrationData)
 
-        }).then(() => {
-            setLoading(false)
+        }).then(() => { 
+           setLoading(false)
         }).catch((err) => {
             console.log(err);
         })
@@ -87,6 +90,7 @@ const Home = () => {
                                 <tr>
                                     <th>Name</th>
                                     <th>Email / ID</th>
+                                    <th>Role</th>
                                     <th>Date Created</th>
                                     <th>Identification</th>
                                 </tr>
@@ -96,6 +100,7 @@ const Home = () => {
                                     <tr key={registration.id}>
                                         <td>{registration.name}</td>
                                         <td>{registration.email}</td>
+                                        <td>{registration.role}</td>
                                         <td>{registration.date.toDate().toDateString()}</td>
                                         <td><Button onClick={() => viewRegistration(registration)} >View</Button></td>
                                     </tr>
