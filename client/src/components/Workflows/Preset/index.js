@@ -346,16 +346,15 @@ const Home = () => {
                                                                 <td>{id}</td>
                                                                 <td>{task.name}</td>
                                                                 <td>
-                                                                    {task.requirements && (
+                                                                    {task.requirements ? (
                                                                         <>
                                                                             {task.requirements.map((item, index) => (
                                                                                 <span key={index}>
-                                                                                    {item.value}
-                                                                                    {index !== item.length - 1 && ', '}
+                                                                                    {index ? ', ' : ''}{item.value}
                                                                                 </span>
                                                                             ))}
                                                                         </>
-                                                                    )}
+                                                                    ):(<span>*Manual Stage*</span>)}
 
                                                                 </td>
 

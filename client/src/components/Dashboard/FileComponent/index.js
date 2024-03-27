@@ -89,14 +89,14 @@ const FileComponent = () => {
         // Now you can use the 'file' object as needed
         console.log('File created:', file);
         var formData = new FormData();
-    
+
         formData.append("filename", "User File");
-        formData.append("prompt",prompt)
+        formData.append("prompt", prompt)
         formData.append("uploadedFile", file);
 
-        console.log('Form data: '+formData)
-    
-    
+        console.log('Form data: ' + formData)
+
+
         try {
           const { data: res } = await Axios.post("http://localhost:5000/summary", formData, {
             headers: {
@@ -104,7 +104,7 @@ const FileComponent = () => {
             }
           })
           setSummary(res.text)
-    
+
         } catch (error) {
           console.log(error);
         }
@@ -115,9 +115,9 @@ const FileComponent = () => {
         console.error('Error fetching or creating file:', error);
       }
     }
-    
+
     createFileFromUrl(url)
-   
+
   }
 
   const extension =
@@ -327,8 +327,11 @@ const FileComponent = () => {
                     </a>
                     <p>
                     </p>
-                    <input type="text" placeholder="PROMPT" onChange={(e) =>setPrompt(e.target.value)}></input>
+                    <textarea name="Text1" cols="40" rows="5" placeholder="PROMPT" onChange={(e) => setPrompt(e.target.value)}></textarea>
 
+
+
+                    <p></p><p></p><p></p>
                     <Button onClick={() => handleSubmit(currentFile.data.url)}>Summarize</Button>
 
                     <p></p>

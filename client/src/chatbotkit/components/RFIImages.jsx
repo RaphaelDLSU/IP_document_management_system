@@ -115,7 +115,8 @@ const RFIImages = props => {
                     response: '',
                     id: 'RFI-' + projectCat + '-' + category + '-' + data.toString(),
                     step: 1,
-                    nameEmail: user.data.uid
+                    nameEmail: user.data.uid,
+                    category:category,
                 })
             );
         });

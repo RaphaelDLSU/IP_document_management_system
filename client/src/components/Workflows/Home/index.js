@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react'
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { increment, where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { Route, Switch, useHistory, useRouteMatch } from "react-router-dom";
 
@@ -19,7 +19,8 @@ import ListGroup from 'react-bootstrap/ListGroup';
 import '../../../App.css'
 import Spinner from 'react-bootstrap/Spinner';
 import { toast } from 'react-toastify';
-
+import projectModel from '../../../models/project';
+import { autoAssign } from '../../../redux/workload/autoAssign';
 const Home = () => {
     const [firstRender2, setFirstRender2] = useState(true);
     const [loading, setLoading] = useState(true)
@@ -29,6 +30,8 @@ const Home = () => {
     const handleClose = () => setShow(false);
 
     const [show2, setShow2] = useState(false);
+    const [show4, setShow4] = useState(false);
+    const [show5, setShow5] = useState(false);
     const handleClose2 = () => setShow2(false);
     const { path } = useRouteMatch();
     const [show3, setShow3] = useState(false);
@@ -50,7 +53,6 @@ const Home = () => {
 
     const usersRef = collection(database, "users");
 
-
     const workflowRef = collection(database, "workflows");
     const presetRef = collection(database, "presets");
 
@@ -60,6 +62,8 @@ const Home = () => {
     const [presetId, setPresetId] = useState()
     const [preset, setPreset] = useState()
 
+    const [projectName, setProjectName] = useState()
+
     const [assignEmployeeTask, setAssignEmployeeTask] = useState()
     const [assignEmployeeWorkflowId, setAssignEmployeeWorkflowId] = useState()
 
@@ -67,7 +71,11 @@ const Home = () => {
     const [startStarted, setStartStarted] = useState()
     const [startTasks, setStartTasks] = useState()
     const [project, setProject] = useState('')
+    const [projects, setProjects] = useState([])
+    const [autoEmployee, setAutoEmployee] = useState()
+    const [autoEmployeeID, setAutoEmployeeID] = useState()
     const [isChecked, setIsChecked] = useState(false);
+
 
 
     const createWorkflow = async (e) => {
@@ -127,7 +135,6 @@ const Home = () => {
 
         const updateWorkflowRef = doc(database, "workflows", workflowId);
 
-
         await updateDoc(updateWorkflowRef, {
             tasks: arrayTasks
         }).then(() => {
@@ -172,69 +179,38 @@ const Home = () => {
         } else {
             toast.info('Automatically assigning an employee')
             console.log('Checked')
-            let employeeAuto
-            let q
 
-            //WORKLOAD ALGORITHM
-            for (let i = 0; i < 30; i++) {
-                let r = query(collection(database, "users"), where('tasks', '==', i), where('role', '==', 'Employee'))
-                const querySnapshots = await getDocs(r)
-                if (!querySnapshots.empty) {
-                    querySnapshots.forEach((user) => {
-                        q = query(collection(database, "users"), where('name', '==', user.data().name))
-                    })
-
-                    break
-                }
-            }
-
-
-            const employeeSnapshot = await getDocs(q);
-            employeeSnapshot.forEach((user) => {
-                employeeAuto = user.data().name
-            })
             docSnap.data().tasks.map(async (task, index) => {
                 if (task.name === assignEmployeeTask.name) {
-                    something[index].assignTo = employeeAuto
+                    something[index].assignTo = autoEmployee
                     console.log('index ' + index)
                 }
-
             });
             await updateDoc(workflowRef, {
                 tasks: something
-            }).then(() => {
-                toast.success('Assigned ' + employeeAuto + ' to task')
+            }).then(async () => {
+                await updateDoc(doc(database, "users", autoEmployeeID), {
+                    tasks: increment(1)
+                })
+                toast.success('Assigned ' + autoEmployee + ' to task')
             });
 
         }
-        console.log('employee' + employee)
-        console.log('task' + JSON.stringify(docSnap.data().tasks))
 
         window.location.reload()
     }
 
 
-    const [textBoxes, setTextBoxes] = useState([{ id: Math.random().toString(36).slice(2, 7), value: '' }]); // Initial state with one textbox
 
-    // Function to add a new textbox
-    const addTextBox = () => {
-        const newId = Math.random().toString(36).slice(2, 7); // Generate unique ID
-        setTextBoxes(prevTextBoxes => [...prevTextBoxes, { id: newId, value: '' }]);
-    };
-
-    // Function to remove a textbox by ID
-    const removeTextBox = (id) => {
-        setTextBoxes(prevTextBoxes => prevTextBoxes.filter(textBox => textBox.id !== id));
-    };
-
-    // Function to handle changes in textbox values
-    const handleTextBoxChange = (id, value) => {
-        setTextBoxes(prevTextBoxes =>
-            prevTextBoxes.map(textBox =>
-                textBox.id === id ? { ...textBox, value: value } : textBox
-            )
-        );
-    };
+    const autoAssignThis = (e) => {
+        setIsChecked(e)
+        const employee = dispatch(autoAssign({}))
+        employee.then(async (employeeId) => {
+            const employeeRef = await getDoc(doc(database, 'users', employeeId))
+            setAutoEmployeeID(employeeRef.id)
+            setAutoEmployee(employeeRef.data().name)
+        })
+    }
 
 
     const changeStatus = async (id, started, tasks) => {
@@ -247,7 +223,7 @@ const Home = () => {
 
 
             if (!started) {
-
+                toast.info('Starting the process. Please Wait')
                 console.log('STARRT' + started)
                 const workflowRef = doc(database, "workflows", id)
                 const workflow = await getDoc(workflowRef)
@@ -255,7 +231,6 @@ const Home = () => {
                 console.log(workflow.data().tasks)
                 const statusTask = workflow.data().tasks
                 statusTask[0].active = true
-                toast.info('Starting ' + workflow.data().name)
                 let q
 
                 if (statusTask[0].assignTo == 'CEO' || statusTask[0].assignTo == 'Manager') {
@@ -327,6 +302,12 @@ const Home = () => {
                     console.log('ID' + task.id)
 
                     if (task.active == true) {
+                        const docRef = doc(database, "tasks", task.parentId);
+                        const docSnap = await getDoc(docRef);
+
+                        if (docSnap.data().status == 'done') {
+                            await addDoc(collection(database, "tasks"), docSnap.data())
+                        }
                         await deleteDoc(doc(database, "tasks", task.parentId))
                         task.active = false
                     }
@@ -347,7 +328,7 @@ const Home = () => {
                 })
                 console.log('Array HERE: ' + JSON.stringify(newArray))
             }
-           
+
         } catch (err) {
             console.log(err);
         }
@@ -361,6 +342,7 @@ const Home = () => {
         let endWorkflow = true
         let done = false
         let updateTaskArray = []
+        let isFinished = false
 
         docSnap.data().tasks.forEach(async (task1, index) => {
             console.log('task 1' + JSON.stringify(task1))
@@ -423,6 +405,7 @@ const Home = () => {
             //make active task inactive
 
             if (task1.active && !done) {
+                isFinished = true
                 console.log('make active task inactive')
 
                 if (task1.manualTasks) {
@@ -461,6 +444,7 @@ const Home = () => {
 
             //make inactive task active
             if (done && isTaskActive) {
+                isFinished = false
                 console.log('make inactive task active')
 
                 if (task1.manualTasks) {
@@ -510,11 +494,32 @@ const Home = () => {
 
         })
 
-        await updateDoc(workflowRef, {
-            tasks: updateTaskArray
+
+        if (isFinished) {
+            await updateDoc(workflowRef, {
+                started: false,
+                tasks: updateTaskArray,
+                inStage: false
+            })
+        } else {
+            await updateDoc(workflowRef, {
+                tasks: updateTaskArray
+            })
+
+        }
+
+
+    }
+
+    const createProject = async (e) => {
+        e.preventDefault()
+        toast.info("Creating Project")
+
+        const projectRef = collection(database, "projects")
+
+        await addDoc(projectRef, projectModel(projectName)).then(() => {
+            toast.success(projectName + ' created')
         })
-
-
     }
 
 
@@ -557,6 +562,17 @@ const Home = () => {
         }
         getEmployees()
 
+        const getProjects = async () => {
+            const q = query(collection(database, 'projects'))
+            await getDocs(q).then((project) => {
+                let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                setProjects(projectData)
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+        getProjects()
+
     }, [])
 
     useEffect(async () => {
@@ -578,105 +594,117 @@ const Home = () => {
         return (
             <>
                 <div className='head' style={{ padding: '20px' }}>
-                    <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
+                    <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
                     <hr></hr>
                     <div className='content' style={{ padding: '5px' }}>
-                        <Accordion >
-                            {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
-                                <Accordion.Item eventKey={id} >
-                                    <Accordion.Header > {name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
+                        {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
+                            <>
+                                <h4>{project}</h4>
+                                <Accordion >
 
-                                        {inStage && (
-                                            <>
-                                                &nbsp;<Button onClick={() => moveStage(id)}>End Ongoing Stage</Button>
-                                            </>
+                                    <Accordion.Item eventKey={id} >
+                                        <Accordion.Header >{name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
 
-                                        )}
-                                    </Accordion.Header>
+                                            {inStage && (
+                                                <>
+                                                    &nbsp;<Button onClick={() => moveStage(id)}>End Ongoing Stage</Button>
+                                                </>
 
-
-                                    <Accordion.Body>
-                                        {description}
-                                        <hr></hr>
-                                        Tasks:
-                                        <p></p>
-
-                                        <Table striped bordered hover>
-                                            <thead>
-                                                <tr>
-                                                    <th>Order</th>
-                                                    <th>Task Name</th>
-                                                    <th>Requirements</th>
-                                                    <th>Request Approval</th>
-                                                    <th>Recurring</th>
-                                                    <th>Approval To:</th>
-                                                    <th>Assign To:</th>
+                                            )}
+                                        </Accordion.Header>
 
 
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {tasks && (
-                                                    <>
-                                                        {tasks.map((task, index) =>
+                                        <Accordion.Body>
+                                            {description}
+                                            <hr></hr>
+                                            Tasks:
+                                            <p></p>
 
-                                                            <tr key={index}
-                                                                className={task.active == true ? 'table-success' : 'table-light'}
-                                                            >
-                                                                <td>{index}</td>
-                                                                <td>{task.name}</td>
-                                                                <td>
-                                                                    {task.requirements ? (
-                                                                        <> {task.requirements.map((item, index) => (
-                                                                            <span key={index}>
-                                                                                {item.value}
-                                                                                {index !== item.length - 1 && ', '}
-                                                                            </span>
-                                                                        ))
-                                                                        }</>
-                                                                    ) : (
-                                                                        <td>*Manager Will assign*</td>
-                                                                    )}
-                                                                </td>
+                                            <Table striped bordered hover>
+                                                <thead>
+                                                    <tr>
+                                                        <th>Order</th>
+                                                        <th>Task Name</th>
+                                                        <th>Requirements</th>
+                                                        <th>Approval To:</th>
+                                                        <th>Assign To:</th>
 
-                                                                {task.approval ? (<td>Yes</td>) : (<td>No</td>)}
-                                                                {task.recurring ? (<td>Yes</td>) : (<td>No</td>)}
-                                                                <td>{task.approvalTo}</td>
 
-                                                                {task.assignTo === 'Employee' ?
-                                                                    <Button onClick={() => assignEmployee(id, task)}>Assign Employee</Button>
-                                                                    :
-                                                                    <td>{task.assignTo}</td>
-                                                                }
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {tasks && (
+                                                        <>
+                                                            {tasks.map((task, index) =>
 
-                                                            </tr>
+                                                                <tr key={index}
+                                                                    className={task.active == true ? 'table-success' : 'table-light'}
+                                                                >
+                                                                    <td>{index}</td>
+                                                                    <td>{task.name}</td>
+                                                                    <td>
+                                                                        {task.requirements ? (
+                                                                            <> {task.requirements.map((item, index) => (
+                                                                                <>
+                                                                                    {item.value}
+                                                                                    {index !== task.requirements.length - 1 && ', '}
+                                                                                </>
+                                                                            ))
+                                                                            }</>
+                                                                        ) : (
+                                                                            <td style={{ color: 'blue' }}>*Manager Will assign*</td>
+                                                                        )}
+                                                                    </td>
 
-                                                        )}
 
-                                                    </>
-                                                )}
-                                            </tbody>
+                                                                    {task.approvalTo ? (<td>{task.approvalTo}</td>) : (<td>None</td>)}
 
-                                        </Table>
+                                                                    {task.assignTo === 'Employee' ?
+                                                                        <td>   <Button onClick={() => assignEmployee(id, task)}>Assign Employee</Button></td>
 
-                                        {outputs && (
-                                            <>
+                                                                        :
+                                                                        <>
+                                                                            {task.assignTo ? (
+                                                                                <td>{task.assignTo}</td>
+                                                                            ) : (
+                                                                                <td style={{ color: 'blue' }}>*Assign at Tasks*</td>
+                                                                            )}
+                                                                        </>
 
-                                                <p>Outputs: </p>
-                                                <ListGroup>
-                                                    {outputs.map((output, index) => (
-                                                        <ListGroup.Item key={index}>{output.requirement} : <a href={output.url} target="_blank">View</a></ListGroup.Item>
-                                                    ))}
-                                                </ListGroup>
 
-                                            </>
+                                                                    }
 
-                                        )}
-                                    </Accordion.Body>
+                                                                </tr>
 
-                                </Accordion.Item>
-                            )}
-                        </Accordion>
+                                                            )}
+
+                                                        </>
+                                                    )}
+                                                </tbody>
+
+                                            </Table>
+
+                                            {outputs && (
+                                                <>
+
+                                                    <p>Outputs: </p>
+                                                    <ListGroup>
+                                                        {outputs.map((output, index) => (
+                                                            <ListGroup.Item key={index}>{output.requirement} : <a href={output.url} target="_blank">View</a></ListGroup.Item>
+                                                        ))}
+                                                    </ListGroup>
+
+                                                </>
+
+                                            )}
+                                        </Accordion.Body>
+
+                                    </Accordion.Item>
+
+                                </Accordion>
+                            </>
+
+                        )}
                     </div>
 
                 </div>
@@ -689,7 +717,7 @@ const Home = () => {
                             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                                 <Form.Label>Workflow Preset</Form.Label>
                                 <Form.Select onChange={(e) => setPresetId(e.target.value)} aria-label="Default select example">
-                                    <option value="" disabled selected>Select a preset...</option>
+                                    <option hidden value>Select a preset...</option>
                                     {presets.map((preset, index) => (
                                         <option key={index} value={preset.id}>{preset.name}</option>
                                     ))}
@@ -707,7 +735,7 @@ const Home = () => {
                                         <Form.Label>Workflow Name</Form.Label>
                                         <Form.Control
                                             type="text"
-                                            placeholder='Miramonti Schematics Process'
+                                            placeholder='Miramonti Construction Process'
                                             rows={2}
                                             name='description'
                                             onChange={(e) => setName(e.target.value)}
@@ -720,10 +748,9 @@ const Home = () => {
                                             onChange={(e) => setProject(e.target.value)}
                                         >
                                             <option hidden value>Select Project...</option>
-                                            <option value='Miramonti'>Miramonti</option>
-                                            <option value='Monumento'>Monumento</option>
-                                            <option value='Montecristo'>Montecristo</option>
-                                            <option value='Muramana'>Muramana</option>
+                                            {projects.map((project, index) => (
+                                                <option key={index} value={project.name}>{project.name}</option>
+                                            ))}
                                         </Form.Select>
                                     </Form.Group>
 
@@ -736,11 +763,7 @@ const Home = () => {
                             </Modal.Footer>
                         </Form>
                     </Modal.Body>
-
-
-
                 </Modal>
-
                 <Modal show={show2} onHide={handleClose2}>
                     <Modal.Header closeButton>
                         <Modal.Title>Assign Employee</Modal.Title>
@@ -758,10 +781,13 @@ const Home = () => {
                                 ))}
 
                             </Form.Select>
+                            {autoEmployee && isChecked && (
+                                <Form.Label>Auto Assigned: {autoEmployee}</Form.Label>
+                            )}
                             <Form.Check
                                 label='Automatically Assign Employee?'
                                 checked={isChecked}
-                                onChange={(e) => setIsChecked(e.target.checked)}
+                                onChange={(e) => autoAssignThis(e.target.checked)}
 
                             />
 
@@ -773,6 +799,52 @@ const Home = () => {
                         </Form>
                     </Modal.Body>
                 </Modal>
+
+                <Modal show={show4} onHide={() => setShow4(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Create a Project</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form onSubmit={createProject}>
+                            <Form.Label>Project Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder='Picadelli'
+                                rows={1}
+                                name='name'
+                                onChange={(e) => setProjectName(e.target.value)}
+                            />
+
+
+
+
+                            <Modal.Footer>
+                                <Button variant='secondary' onClick={() => setShow4(false)}>Close</Button>
+                                <Button variant="primary" type="submit">Submit</Button>
+                            </Modal.Footer>
+                        </Form>
+                    </Modal.Body>
+                </Modal>
+
+                <Modal show={show5} onHide={() => setShow5(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Manage Projects</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form>
+                            <Form.Label>Projects  &nbsp; <Button onClick={() => setShow4(true)} size='sm'> <FaPlus></FaPlus> &nbsp; Create Project</Button> </Form.Label>
+                            <ListGroup style={{ maxHeight: '200px', overflow: 'scroll' }}>
+                                {projects.map((project, index) => (
+                                    <ListGroup.Item style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}> {project.name} <Button variant='danger'>Delete</Button></ListGroup.Item>
+                                ))}
+                            </ListGroup>
+                            <Modal.Footer>
+                                <Button variant='secondary' onClick={() => setShow5(false)}>Close</Button>
+                            </Modal.Footer>
+                        </Form>
+                    </Modal.Body>
+                </Modal>
+
 
             </>
 

@@ -119,7 +119,8 @@ const RFAImages = props => {
                     id: 'RFA-' + projectCat + '-' + category + '-' + data.toString(),
                     step: 1,
                     nameEmail: user.data.uid,
-                    check: ''
+                    check: '',
+                    category:category,
                 })
             );
         });

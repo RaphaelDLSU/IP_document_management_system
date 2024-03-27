@@ -35,16 +35,16 @@ const TaskMonitoring = () => {
     const doc = new jsPDF({ orientation: "landscape" });
 
     doc.autoTable({
-        html: id,
+      html: id,
     });
 
     doc.save("mypdf.pdf");
-}
+  }
 
   useEffect(() => {
     const getTasks = async () => {
       // const q = query(collectionRef, orderBy('task', 'asc'))
-      const q = query(collectionRef, where('status','!=','done'))
+      const q = query(collectionRef, where('status', '!=', 'done'))
       await getDocs(q).then((tasks) => {
         let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
         setTasksPending(tasksData)
@@ -52,13 +52,13 @@ const TaskMonitoring = () => {
         console.log(err);
       })
 
-      const f = query(collectionRef, where('status','==','done'))
+      const f = query(collectionRef, where('status', '==', 'done'))
       await getDocs(f).then((tasks) => {
         let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
         setTasksCompleted(tasksData)
       }).catch((err) => {
         console.log(err);
-      }).then(()=>{
+      }).then(() => {
         setLoading(false)
       })
     }
@@ -92,8 +92,8 @@ const TaskMonitoring = () => {
           className="mb-3"
         >
           <Tab eventKey="pending" title="Pending">
-          <Button onClick={()=>handleReport('#table-pending')}>Get Report</Button>
-          <p></p>
+            <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
+            <p></p>
             <Table id='table-pending' striped bordered hover>
               <thead>
                 <tr>
@@ -120,11 +120,10 @@ const TaskMonitoring = () => {
                     <td>{task.task}</td>
                     {task.requirements ? (
                       <td> {task.requirements.map((req, index) => (
-
-                        <span key={index}>
+                        <>
                           {req.value}
-                          {index !== req.length - 1 && ', '}
-                        </span>
+                          {index !== task.requirements.length - 1 && ', '}
+                        </>
                       ))}</td>
                     ) : (<td>None</td>)}
 
@@ -139,9 +138,9 @@ const TaskMonitoring = () => {
             </Table>
           </Tab>
           <Tab eventKey="completed" title="Completed">
-          <Button onClick={()=>handleReport('#table-completed')}>Get Report</Button>
-          <p></p>
-          <Table id='table-completed' striped bordered hover>
+            <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
+            <p></p>
+            <Table id='table-completed' striped bordered hover>
               <thead>
                 <tr>
                   <th>Workflow</th>

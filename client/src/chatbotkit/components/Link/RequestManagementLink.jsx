@@ -4,7 +4,7 @@ import Link from './Link';
 
 const RequestManagementLink = ({ selectedAirport }) => {
   const getUrl = () => {
-    return `localhost:3000/requests`;
+    return `http://localhost:3000/requests`;
   };
 
   return <Link url={getUrl()} title={"Requests Management"} />;

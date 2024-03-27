@@ -16,7 +16,7 @@ export const createRFI =
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
       // Create a new PDFDocument
-      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2Fwyp6vGhpxTbjrRw0RbIU0mgoOcN2%2FRFI_Template.pdf?alt=media&token=6b558def-ed48-4652-8af6-c03f90196423";
+      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2F9cWK9cyWOBZVKd9gzGjxqbjhCSv2%2FRFI_Template-1.pdf?alt=media&token=2bb2897d-3fed-4ded-9bb6-7fab9a66dbd0";
       const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
 
       //Load PDF
@@ -63,6 +63,7 @@ export const createRFI =
       responseByField.setText(submitter);
 
       function isPng(url) {
+        console.log('URL: '+url)
         // Remove any query parameters from the URL
         const cleanUrl = url.split('?')[0];
       
@@ -78,20 +79,17 @@ export const createRFI =
       }
 
 
+     
       for (const image of images) {
         const imgUrl = image
-
-        
         const imgBytes = await fetch(imgUrl).then((res) => res.arrayBuffer())
 
         let imageByte
-        if(isPng(imgBytes)){
+        if(isPng(imgUrl)){
           imageByte = await pdfDoc.embedPng(imgBytes)
         }else{
           imageByte = await pdfDoc.embedJpg(imgBytes)
         }
-
-
         const page = pdfDoc.addPage()
 
         const imgDims = imageByte.scale(0.25)

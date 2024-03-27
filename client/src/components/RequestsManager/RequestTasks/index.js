@@ -9,8 +9,9 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Accordion from 'react-bootstrap/Accordion';
 import Table from 'react-bootstrap/Table';
-
+import { Toast, toast } from 'react-toastify';
 import Form from 'react-bootstrap/Form';
+import ProgressBar from 'react-bootstrap/ProgressBar';
 
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ListGroup } from 'react-bootstrap';
@@ -25,7 +26,8 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase
 
 const RequestTasks = () => {
     const dispatch = useDispatch();
-
+    const [show5, setShow5] = useState(false);
+    const [progress, setProgress] = useState(0)
     const storage = getStorage();
     const [requests, setRequests] = useState([])
     const [loading, setLoading] = useState(true)
@@ -115,11 +117,12 @@ const RequestTasks = () => {
 
                 const storageRef = ref(storage, 'rfiImages/' + image.name);
                 const uploadTask = uploadBytesResumable(storageRef, image);
-
+                setShow5(true)
                 uploadTask.on('state_changed',
                     (snapshot) => {
 
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        setProgress(progress)
                         console.log('Upload is ' + progress + '% done');
                         switch (snapshot.state) {
                             case 'paused':
@@ -183,7 +186,9 @@ const RequestTasks = () => {
             }
 
         });
-
+        setShow5(false)
+        toast.success('Finished')
+        
     }
 
     const approveRFI = async (e) => {
@@ -372,6 +377,20 @@ const RequestTasks = () => {
                             </Modal.Footer>
                         </Form>
                     </Modal.Body>
+                </Modal>
+
+                <Modal show={show5} onHide={()=>setShow5(false)}>
+                    <Modal.Header>
+                        <Modal.Title>Progress</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <ProgressBar now={progress} />
+
+                        {progress == 100 && (
+                            <p>Done! Please wait a little bit more...</p>
+                        )}
+                    </Modal.Body>
+
                 </Modal>
             </>
 

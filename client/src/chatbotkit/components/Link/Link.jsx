@@ -8,7 +8,6 @@ const Link = ({ url, title }) => {
   return (
     <a
       href={url}
-      target="_blank"
       rel="noopener noreferrer"
       className="url-link"
     >

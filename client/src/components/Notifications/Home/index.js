@@ -17,6 +17,14 @@ import '../Home/index.css'
 import '../../../App.css'
 import Spinner from 'react-bootstrap/Spinner';
 
+import '../../../botstyle.css'
+import MessageParser from "../../../chatbotkit/MessageParser.js";
+import ActionProvider from "../../../chatbotkit/ActionProvider.js";
+import config from "../../../chatbotkit/config.js";
+import '../../../botstyle.css';
+import { ConditionallyRender } from "react-util-kit";
+import { Chatbot } from 'react-chatbot-kit'
+import { ReactComponent as ButtonIcon } from "../../../assets/icons/robot.svg";
 
 const Home = () => {
     const { isLoggedIn, user, userId } = useSelector(
@@ -35,6 +43,9 @@ const Home = () => {
     const [notifs, setNotifs] = useState()
     const [loading, setLoading] = useState(true)
     const database = getFirestore()
+    const [showChatbot, toggleChatbot] = useState(false);
+    const [role, setRole] = useState()
+
 
     useEffect(async () => {
 
@@ -69,6 +80,19 @@ const Home = () => {
         console.log('notifs ' + notifs)
         setLoading(false)
     }, [notifs]);
+
+    useEffect(async () => {
+        if (user) {
+            const s = query(collection(database, "users"), where("email", "==", user.data.uid));
+            const querySnapshot = await getDocs(s);
+            querySnapshot.forEach((doc) => {
+                setRole(doc.data().role)
+            });
+        }
+    }, [])
+
+
+
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -78,37 +102,66 @@ const Home = () => {
 
     } else {
         return (
-
-            <div className='head' style={{ padding: '20px' }}>
-                <h2>Notifications</h2>
-                <hr></hr>
-                <div className='content' style={{ padding: '5px' }}>
-
-                    <Table striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th>Title</th>
-                                <th>Content</th>
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        {notifs && (
-                            <tbody>
-
-                                {notifs.map(notif => (
-                                    <tr key={notif.id}>
-                                        <td>{notif.title}</td>
-                                        <td>{notif.content}</td>
-                                        <td>{notif.date.toDate().toDateString()}</td>
-                                    </tr>
-                                ))}
-
-                            </tbody>
-                        )}
-
-                    </Table>
+            <>
+                <div className="app-chatbot-container">
+                    <ConditionallyRender
+                        ifTrue={showChatbot}
+                        show={
+                            <Chatbot
+                                config={config}
+                                messageParser={MessageParser}
+                                actionProvider={ActionProvider}
+                            />
+                        }
+                    />
                 </div>
-            </div>
+                {role && (
+                    <>
+                        {role == 'Requestor' && (
+                            <button
+                                className="app-chatbot-button"
+                                onClick={() => toggleChatbot((prev) => !prev)}
+                            >
+                                <ButtonIcon className="app-chatbot-button-icon" />
+                            </button>
+                        )}
+                    </>
+
+                )}
+
+
+                <div className='head' style={{ padding: '20px' }}>
+                    <h2>Notifications</h2>
+                    <hr></hr>
+                    <div className='content' style={{ padding: '5px' }}>
+
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Content</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            {notifs && (
+                                <tbody>
+
+                                    {notifs.map(notif => (
+                                        <tr key={notif.id}>
+                                            <td>{notif.title}</td>
+                                            <td>{notif.content}</td>
+                                            <td>{notif.date.toDate().toDateString()}</td>
+                                        </tr>
+                                    ))}
+
+                                </tbody>
+                            )}
+
+                        </Table>
+                    </div>
+                </div>
+            </>
+
 
         )
     }

@@ -102,7 +102,7 @@ const Home = () => {
                                         <td>{registration.email}</td>
                                         <td>{registration.role}</td>
                                         <td>{registration.date.toDate().toDateString()}</td>
-                                        <td><Button onClick={() => viewRegistration(registration)} >View</Button></td>
+                                        <td><Button size='sm' onClick={() => viewRegistration(registration)} >View</Button></td>
                                     </tr>
                                 ))}
 

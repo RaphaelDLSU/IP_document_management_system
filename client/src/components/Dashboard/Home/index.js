@@ -20,6 +20,7 @@ import { FaFileAlt } from "react-icons/fa";
 import '../../../App.css'
 import Spinner from 'react-bootstrap/Spinner';
 import { FaTrash } from "react-icons/fa";
+import Button from 'react-bootstrap/Button';
 import {
   getAdminFiles,
   getAdminFolders,
@@ -28,12 +29,23 @@ import {
 } from "../../../redux/actionCreators/filefoldersActionCreators";
 import SubNav from "../SubNav.js";
 
+import '../../../botstyle.css'
+import MessageParser from "../../../chatbotkit/MessageParser.js";
+import ActionProvider from "../../../chatbotkit/ActionProvider.js";
+import config from "../../../chatbotkit/config.js";
+import '../../../botstyle.css';
+import { ConditionallyRender } from "react-util-kit";
+import { Chatbot } from 'react-chatbot-kit'
+import { ReactComponent as ButtonIcon } from "../../../assets/icons/robot.svg";
+import { where, collection, getDocs, addDoc, runTransaction, orderBy, query, serverTimestamp, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore'
+
 const Home = () => {
   const [myState, setMyState] = useState([]);
 
   const db = getFirestore()
-
+  const [showChatbot, toggleChatbot] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
+  const [role, setRole] = useState()
 
   const handleMouseEnter = (index) => {
     setHoveredItem(index);
@@ -61,7 +73,7 @@ const Home = () => {
 
   const history = useHistory();
   const dispatch = useDispatch();
-  const { isLoading, adminFolders, allUserFolders, userId, allUserFiles } =
+  const { isLoading, adminFolders, allUserFolders, userId, allUserFiles, user } =
     useSelector(
       (state) => ({
         isLoading: state.filefolders.isLoading,
@@ -69,6 +81,7 @@ const Home = () => {
         allUserFolders: state.filefolders.userFolders,
         allUserFiles: state.filefolders.userFiles,
         userId: state.auth.userId,
+        user: state.auth.user
       }),
       shallowEqual
     );
@@ -97,6 +110,16 @@ const Home = () => {
   const [list2, setList2] = useState(createdUserFiles);
   const [list3, setList3] = useState(uploadedUserFiles);
 
+
+  useEffect(async () => {
+    if (user) {
+      const s = query(collection(db, "users"), where("email", "==", user.data.uid));
+      const querySnapshot = await getDocs(s);
+      querySnapshot.forEach((doc) => {
+        setRole(doc.data().role)
+      });
+    }
+  }, [])
 
   useEffect(() => {
     if (isLoading && !adminFolders) {
@@ -152,7 +175,7 @@ const Home = () => {
   };
 
 
-  if (isLoading && !list1 && !list2&& !list3 ) {
+  if (isLoading && !list1 && !list2 && !list3) {
 
     return (
       <div className='loadingcontain'>
@@ -163,12 +186,40 @@ const Home = () => {
 
   return (
     <>
+      <div className="app-chatbot-container">
+        <ConditionallyRender
+          ifTrue={showChatbot}
+          show={
+            <Chatbot
+              config={config}
+              messageParser={MessageParser}
+              actionProvider={ActionProvider}
+            />
+          }
+        />
+      </div>
+      {role && (
+        <>
+          {role == 'Requestor' && (
+            <button
+              className="app-chatbot-button"
+              onClick={() => toggleChatbot((prev) => !prev)}
+            >
+              <ButtonIcon className="app-chatbot-button-icon" />
+            </button>
+          )}
+        </>
+
+      )}
+
+
       <input
         type="text"
         placeholder="Search..."
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
       />
+
       <button onClick={handleSearch}>Search</button>
 
       <button> PDF MAKER </button>
@@ -200,7 +251,7 @@ const Home = () => {
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name}
+                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name} <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
 
               </ListGroup.Item>
             ))}
@@ -213,7 +264,8 @@ const Home = () => {
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt /> {data.name}<FaTrash />
+                <FaFileAlt /> {data.name}   <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
+
 
               </ListGroup.Item>
             ))}

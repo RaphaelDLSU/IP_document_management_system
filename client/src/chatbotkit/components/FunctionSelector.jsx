@@ -8,10 +8,6 @@ const FunctionSelector = props => {
 
   const options = [
     {
-      name: "File request",
-      id: 1
-    },
-    {
       name: "Task Request",
       id: 2
     },

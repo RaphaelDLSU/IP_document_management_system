@@ -20,12 +20,21 @@ import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import '../../../App.css'
 
+import '../../../botstyle.css'
+import MessageParser from "../../../chatbotkit/MessageParser.js";
+import ActionProvider from "../../../chatbotkit/ActionProvider.js";
+import config from "../../../chatbotkit/config.js";
+import '../../../botstyle.css';
+import { ConditionallyRender } from "react-util-kit";
+import { Chatbot } from 'react-chatbot-kit'
+import { ReactComponent as ButtonIcon } from "../../../assets/icons/robot.svg";
 const Home = () => {
 
     const [error, setError] = useState("");
+    const [role, setRole] = useState()
     const [tasks, setTasks] = useState([])
     const [requests, setRequests] = useState([])
-
+    const [showChatbot, toggleChatbot] = useState(false);
     const [loading, setLoading] = useState(true)
     const database = getFirestore()
     const [show, setShow] = useState(false)
@@ -37,11 +46,17 @@ const Home = () => {
         }),
         shallowEqual
     );
-   
 
 
-    useEffect(() => {
+
+    useEffect(async () => {
         if (user) {
+            const s = query(collection(database, "users"), where("email", "==", user.data.uid));
+            const querySnapshot = await getDocs(s);
+            querySnapshot.forEach((doc) => {
+                setRole(doc.data().role)
+            });
+
             const q = query(collection(database, "tasks"), where('requestor', '==', user.data.uid));
 
             const f = query(collection(database, 'requests'), where('nameEmail', '==', user.data.uid))
@@ -77,6 +92,28 @@ const Home = () => {
     } else {
         return (
             <>
+                <div className="app-chatbot-container">
+                    <ConditionallyRender
+                        ifTrue={showChatbot}
+                        show={
+                            <Chatbot
+                                config={config}
+                                messageParser={MessageParser}
+                                actionProvider={ActionProvider}
+                            />
+                        }
+                    />
+                </div>
+                {role == 'Requestor' && (
+                    <button
+                        className="app-chatbot-button"
+                        onClick={() => toggleChatbot((prev) => !prev)}
+                    >
+                        <ButtonIcon className="app-chatbot-button-icon" />
+                    </button>
+                )}
+
+
                 <div className='head' style={{ padding: '20px' }}>
                     <h2>Requests</h2>
                     <hr></hr>
@@ -89,7 +126,7 @@ const Home = () => {
                             className="mb-3"
                         >
 
-                            <Tab eventKey="home" title="Tasks" id='table-tasks'>
+                            <Tab eventKey="tasks" title="Tasks" id='table-tasks'>
                                 <Table striped bordered hover>
                                     <thead>
                                         <tr>
@@ -97,7 +134,6 @@ const Home = () => {
                                             <th>Requirements</th>
                                             <th>Date Created</th>
                                             <th>Status</th>
-                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -106,10 +142,11 @@ const Home = () => {
                                                 <td>{task.task}</td>
                                                 {task.requirements ? (
                                                     <td> {task.requirements.map((req, index) => (
-
                                                         <span key={index}>
-                                                            {req.value}
-                                                            {index !== req.length - 1 && ', '}
+                                                            {req.url ? (
+                                                                <a href={req.url} target='_blank'>{req.value}</a>
+                                                            ) : (<a>{req.value}</a>)}
+                                                            {index < task.length - 1 && ', '}
                                                         </span>
                                                     ))}</td>
                                                 ) : (<td>None</td>)}
@@ -129,7 +166,7 @@ const Home = () => {
                                 </Table>
                             </Tab>
                             <Tab eventKey="profile" title="Requests" id='table-requests'>
-                              
+
                                 <Table striped bordered hover>
                                     <thead>
                                         <tr>

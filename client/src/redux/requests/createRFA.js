@@ -3,7 +3,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, setDoc, arrayUnion } from 'firebase/firestore'
 
 export const createRFA =
-  ({ name,nameEmail, deadline, project, desc, images, submitter, date, response, id, step,origId,check }, setError) =>
+  ({ name,nameEmail, deadline, project, desc, images, submitter, date, response, id, step,origId,check,category }, setError) =>
     async (dispatch) => {
       const database = getFirestore()
       const storage = getStorage();
@@ -16,7 +16,7 @@ export const createRFA =
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
       // Create a new PDFDocument
-      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/storedFiles%2F7536o%2FRFA_Template_v4.pdf?alt=media&token=4b03b192-f59d-48b2-abb1-7ad7a430723a";
+      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2F9cWK9cyWOBZVKd9gzGjxqbjhCSv2%2FRFA_Template_v4-1.pdf?alt=media&token=69439c4c-46e1-4a27-acea-9bcab25d2c4c";
       const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
 
       //Load PDF
@@ -55,7 +55,7 @@ export const createRFA =
       submitToField.setText('Manager');
       neededByField.setText(deadline);
       projectNameField.setText(project);
-      projectNumberField.setText("12345");
+      projectNumberField.setText(category);
       submitByField.setText(name);
       rfiDescriptionField.setText(desc);
       submitByField2.setText(name);
