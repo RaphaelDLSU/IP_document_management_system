@@ -8,7 +8,7 @@ import { createRFI } from "../../redux/requests/createRFI.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase/storage";
 import './styles.css'
 const RFIImages = props => {
-    const { setState, actionProvider, project, rfiDesc } = props;
+    const { setState, actionProvider, project, rfiDesc,rfiDeadline } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
     const [category, setCategory] = useState('');
     const [textBoxes, setTextBoxes] = useState(['']);
@@ -106,7 +106,7 @@ const RFIImages = props => {
             dispatch(
                 createRFI({
                     name: user.data.displayName,
-                    deadline: 'None yet',
+                    deadline: rfiDeadline,
                     project: project,
                     desc: rfiDesc,
                     images: newArray,

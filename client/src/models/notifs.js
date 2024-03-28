@@ -11,7 +11,8 @@ const notifsModel = (email, title, content, link) => {
     receiver: email,
     title: title,
     content: content,
-    link:url
+    link:url,
+    isChecked:true
   };
   return model;
 };

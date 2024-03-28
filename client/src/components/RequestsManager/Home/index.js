@@ -18,7 +18,8 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import RequestTasks from '../RequestTasks';
 import '../../../App.css'
 import Spinner from 'react-bootstrap/Spinner';
-
+import { createNotifs } from '../../../redux/notifs/createNotif';
+import { Dispatch } from 'react';
 
 
 const Home = () => {
@@ -29,7 +30,7 @@ const Home = () => {
     const [employee, setEmployee] = useState()
     const database = getFirestore()
     const [employees, setEmployees] = useState([])
-
+    const dispatch = useDispatch();
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const [isChecked, setIsChecked] = useState(false);
@@ -57,17 +58,23 @@ const Home = () => {
                 //Workload
                  await updateDoc(washingtonRef, {
                      tasks: doc.data().tasks+1
-                 });
+                 })
             });
 
 
-            // Set the "capital" field of the city 'DC'
             await updateDoc(requestRef, {
                 submitter: employee,
                 submitterEmail: employeeEmail,
                 status: 'for submission',
                 assignTo: employeeEmail
-            });
+            }).then(()=>{
+                dispatch(createNotifs({
+                    title: 'REQUEST ASSIGNED: ' + request.name,
+                    message: 'A request was submitted by ' + request.identifier + '. Please check the Requests Manager page to submit the request',
+                    receiverID: employeeEmail,
+                    link: 'requestsmanager'
+                  }))
+            })
         } else {
             console.log('Checked')
             let employeeAuto
@@ -104,8 +111,13 @@ const Home = () => {
                 submitterEmail: employeeAutoEmail,
                 status: 'for submission',
                 assignTo: employeeAutoEmail
-            }).then(() => {
-                window.location.reload()
+            }).then(()=>{
+                dispatch(createNotifs({
+                    title: 'REQUEST ASSIGNED: ' + request.name,
+                    message: 'A request was submitted by ' + request.identifier + '. Please check the Requests Manager page to submit the request',
+                    receiverID: employeeAutoEmail,
+                    link: 'requestsmanager'
+                  }))
             })
         }
 

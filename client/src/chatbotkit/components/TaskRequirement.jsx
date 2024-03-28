@@ -8,7 +8,7 @@ import './styles.css'
 import { autoAssign } from '../../redux/workload/autoAssign';
 import { toast } from 'react-toastify';
 const TaskRequirement = props => {
-  const { setState, actionProvider, taskName, project } = props;
+  const { setState, actionProvider, taskName, project,taskDeadline } = props;
   const [displaySelector, toggleDisplaySelector] = useState(true);
   const [task, setTask] = useState('');
   const [textBoxes, setTextBoxes] = useState(['']);
@@ -64,7 +64,7 @@ const TaskRequirement = props => {
         task: taskName,
         isChecked: false,
         timestamp: serverTimestamp(),
-        deadline: 'None',
+        deadline: taskDeadline,
         employee: employee.data().name,
         employeeId: employee.data().email,
         requirements: requirements,
@@ -73,7 +73,7 @@ const TaskRequirement = props => {
         project: project,
         requestor: user.data.uid,
         requestorname: user.data.displayName,
-        isRequest: true
+        isRequest: true,
       })
 
       actionProvider.finishTaskCreator()

@@ -38,6 +38,7 @@ import RequestorHome from "./components/Home/Requestor";
 import Spinner from 'react-bootstrap/Spinner';
 import CEOHome from "./components/Home/CEO";
 import ManagerHome from "./components/Home/Manager";
+import EmployeeHome from "./components/Home/Employee";
 const App = () => {
   const database = getFirestore()
   const dispatch = useDispatch();
@@ -126,6 +127,9 @@ const App = () => {
               )}
               {role == 'Manager' && (
                 <ManagerHome></ManagerHome>
+              )}
+              {role == 'Employee' &&(
+                <EmployeeHome></EmployeeHome>
               )}
             </>
           )}

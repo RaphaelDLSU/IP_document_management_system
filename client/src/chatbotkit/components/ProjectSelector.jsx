@@ -2,56 +2,55 @@
 import React, { useEffect, useState } from 'react';
 import Options from './Options/Options';
 import './Options/Options.css'
+import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, setDoc, arrayUnion } from 'firebase/firestore'
 
 const ProjectSelector = props => {
-    const { setState, actionProvider,func } = props;
+  const { setState, actionProvider, func } = props;
+  const [projects, setProjects] = useState([])
 
-    const options = [
-        {
-          name: "Miramonti",
-          id: 1
-        },
-        {
-            name: "Monumento",
-            id: 2
-        },
-        {
-            name: "Montecristo",
-            id: 3
-        },
-        {
-            name: "Muramana",
-            id: 4
-        },
-      ];
+  const database = getFirestore()
 
-    const setFunction = async (name) =>{
-        setState((state)=>({
-            ...state,
-            project:name,
-        }))
-        actionProvider.handleTaskDefinition(name,func)
+  const setFunction = async (name) => {
+    setState((state) => ({
+      ...state,
+      project: name,
+    }))
+    actionProvider.handleTaskDefinition(name, func)
+  }
+
+  useEffect(() => {
+    const getProjects = async () => {
+      const q = query(collection(database, 'projects'))
+      await getDocs(q).then((project) => {
+        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setProjects(projectData)
+      }).catch((err) => {
+        console.log(err);
+      })
     }
+    getProjects()
+  }, []);
 
-      return (
-        <div className="options">
-          <h1 className="options-header">{props.title}</h1>
-          <div className="options-container">
-            {options.map(option => {
-              return (
-                <div
-                  className="option-item"
-                  onClick={()=>setFunction(option.name)}
-                  key={option.id}
-                >
-                  {option.name}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-   
+
+  return (
+    <div className="options">
+      <h1 className="options-header">{props.title}</h1>
+      <div className="options-container">
+        {projects.map(option => {
+          return (
+            <div
+              className="option-item"
+              onClick={() => setFunction(option.name)}
+              key={option.id}
+            >
+              {option.name}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
 };
 
 export default ProjectSelector;

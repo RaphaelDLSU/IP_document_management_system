@@ -1,16 +1,16 @@
 import { PDFDocument, rgb, StandardFonts, PDFField, PDFButton } from "pdf-lib";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, setDoc, arrayUnion } from 'firebase/firestore'
-
+import { createNotifs } from "../notifs/createNotif";
 export const createRFI =
-  ({ name,nameEmail, deadline, project, desc, images, submitter, date, response, id, step,origId }, setError) =>
+  ({ name, nameEmail, deadline, project, desc, images, submitter, date, response, id, step, origId }, setError) =>
     async (dispatch) => {
       const database = getFirestore()
       const storage = getStorage();
       let storageRef
-      if (step==1){
+      if (step == 1) {
         storageRef = ref(storage, 'rfiFiles/before');
-      }else if (step==2){
+      } else if (step == 2) {
         storageRef = ref(storage, 'rfiFiles/after');
       }
       console.log('DISPATHCINGGGGs FILES: ' + images)
@@ -41,53 +41,64 @@ export const createRFI =
 
       //Fill in basic fields
       rfiField.setText(id);
-      if(step==1){
+      if (step == 1) {
         dateField.setText(new Date().toLocaleDateString());
-      }else if (step ==2){
+      } else if (step == 2) {
         dateField.setText(new Date(date.seconds * 1000).toLocaleString());
       }
-      
+
+
+    // Create a Date object from the timestamp
+    const dateObject = new Date(deadline * 1000); // Multiply by 1000 to convert seconds to milliseconds
+
+    // Extract the components (month, day, and year)
+    const month = dateObject.getMonth() + 1; // Months are zero-based, so add 1
+    const day = dateObject.getDate();
+    const year = dateObject.getFullYear();
+    const formattedDate = `${month}/${day}/${year}`
+
+
       submitToField.setText('Manager');
-      neededByField.setText(deadline);
+      neededByField.setText(formattedDate);
       projectNameField.setText(project);
       projectNumberField.setText("12345");
       submitByField.setText(name);
       rfiDescriptionField.setText(desc);
       submitByField2.setText(name);
       responseDescriptionField.setText(response);
-      if(step==1){
+      if (step == 1) {
         dateField2.setText(date);
-      }else if (step ==2){
+      } else if (step == 2) {
         dateField2.setText(new Date().toLocaleDateString());
       }
       responseByField.setText(submitter);
 
       function isPng(url) {
-        console.log('URL: '+url)
+        console.log('URL: ' + url)
         // Remove any query parameters from the URL
         const cleanUrl = url.split('?')[0];
-      
+
         // Split the URL by dots to get the file extension
         const parts = cleanUrl.split('.');
         const extension = parts[parts.length - 1].toLowerCase();
-      
+
         // Define the image extensions to test against
         const imageExtensions = ['png'];
-      
+
         // Check if the extension matches any in the list
         return imageExtensions.includes(extension);
       }
 
 
-     
+
       for (const image of images) {
         const imgUrl = image
         const imgBytes = await fetch(imgUrl).then((res) => res.arrayBuffer())
 
         let imageByte
-        if(isPng(imgUrl)){
+        if (isPng(imgUrl)) {
           imageByte = await pdfDoc.embedPng(imgBytes)
-        }else{
+        } else {
           imageByte = await pdfDoc.embedJpg(imgBytes)
         }
         const page = pdfDoc.addPage()
@@ -101,6 +112,8 @@ export const createRFI =
           height: imgDims.height,
         })
       }
+
+        
 
 
       let pdfUrl
@@ -145,20 +158,27 @@ export const createRFI =
                 date2: date,
                 response: response,
                 url: pdfUrl,
-                status:'for assign',
-                identifier:id,
+                status: 'for assign',
+                identifier: id,
                 nameEmail: nameEmail,
-                type:'RFI'
+                type: 'RFI'
               })
             }
-            if(step == 2){
-              const requestDocRef =  doc(database, "requests", origId);
+            if (step == 2) {
+              const requestDocRef = doc(database, "requests", origId);
               await updateDoc(requestDocRef, {
-                submittedUrl : pdfUrl,
-                status:'for approval',
-                assignTo:'manager@gmail.com',
+                submittedUrl: pdfUrl,
+                status: 'for approval',
+                assignTo: 'manager@gmail.com',
                 date2: new Date(),
-              });
+              }).then(() => {
+                dispatch(createNotifs({
+                  title: 'REQUEST SUBMITTED: ' + name,
+                  message: 'An RFI was submitted by ' + id + '. Please check the Requests Manager page to assign an employee to the RFI',
+                  receiverID: 'manager@gmail.com',
+                  link: 'requestsmanager'
+                }))
+              })
             }
           });
         },

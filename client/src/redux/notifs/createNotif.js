@@ -7,11 +7,27 @@ export const createNotifs =
   ({ title, message, receiverID, link }, setError) =>
     async (dispatch) => {
 
+      let page
+      if(link == 'tasks'){
+        page = 'http://localhost:3000/tasks'
+      }else if(link == 'requests'){
+        page = 'http://localhost:3000/requests'
+      }else if(link =='registration'){
+        page = "http://localhost:3000/registrations"
+      }else if(link == 'files'){
+        page = "http://localhost:3000/files"
+      }else if(link == 'workflows'){
+        page = "http://localhost:3000/workflows"
+      }else if(link =='requestsmanager'){
+        page = "http://localhost:3000/workflows"
+      }
+
+
       console.log(title + ' ' + message + ' ' + receiverID + ' ' + link)
       const database = getFirestore()
       const notifsRef = collection(database, "notifs")
 
-      await addDoc(notifsRef, notifsModel(receiverID, title, message, link)).then(() => {
+      await addDoc(notifsRef, notifsModel(receiverID, title, message, page)).then(() => {
         toast.success('DOne')
       });
     };

@@ -33,6 +33,9 @@ const config = {
     rfiImages:[],
     rfaDesc:'',
     rfaImages:[],
+    taskDeadline:'',
+    rfiDeadline:'',
+    rfaDeadline:'',
 
   },
   widgets:[
@@ -53,12 +56,12 @@ const config = {
     {
       widgetName:'taskCreator',
       widgetFunc:(props)=> <TaskCreator {...props}/>,
-      mapStateToProps: ["taskName"],
+      mapStateToProps: ["taskName","taskDeadline"],
     },
     {
       widgetName:'taskRequirement',
       widgetFunc:(props)=> <TaskRequirement {...props}/>,
-      mapStateToProps: ["taskName",'project'],
+      mapStateToProps: ["taskName",'project','taskDeadline'],
     },
     {
       widgetName: "requestManagementLink",
@@ -67,22 +70,22 @@ const config = {
     {
       widgetName: "rfiCreator",
       widgetFunc: (props) => <RFICreator {...props} />,
-      mapStateToProps: ["rfiDesc"],
+      mapStateToProps: ["rfiDesc","rfiDeadline"],
     },
     {
       widgetName: "rfiImages",
       widgetFunc: (props) => <RFIImages {...props} />,
-      mapStateToProps: ["rfiDesc",'rfiImages','project'],
+      mapStateToProps: ["rfiDesc",'rfiImages','project','rfiDeadline'],
     },
     {
       widgetName: "rfaCreator",
       widgetFunc: (props) => <RFACreator {...props} />,
-      mapStateToProps: ["rfaDesc"],
+      mapStateToProps: ["rfaDesc",'rfaDeadline'],
     },
     {
       widgetName: "rfaImages",
       widgetFunc: (props) => <RFAImages {...props} />,
-      mapStateToProps: ["rfaDesc",'rfaImages','project'],
+      mapStateToProps: ["rfaDesc",'rfaImages','project',"rfaDeadline"],
     },
   ]
 }

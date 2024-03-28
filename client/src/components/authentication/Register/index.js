@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { registerUser } from "../../../redux/actionCreators/authActionCreators";
 import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject, getBlob } from "firebase/storage";
+import { createNotifs } from "../../../redux/notifs/createNotif";
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -56,7 +57,13 @@ const Register = () => {
 
     if (querySnapshot.empty) {
 
-      console.log('FILE: '+ID[0])
+      dispatch(createNotifs({
+        title: 'NEW REGISTRATION: ' + name,
+        message: name+' wants to register to the system with the role '+role+ '. Please check the Registrations page',
+        receiverID: 'manager@gmail.com',
+        link: 'registration'
+      }))
+      console.log('FILE: ' + ID[0])
       const storageRef = ref(storage, 'registrationFiles/' + name + '/' + ID.name);
       const uploadTask = uploadBytesResumable(storageRef, ID[0]);
 
@@ -87,17 +94,18 @@ const Register = () => {
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             console.log('File available at', downloadURL);
             const data = {
-              name : name,
-              email:email,
-              password:password,
-              role:role,
-              url:downloadURL,
-              date:new Date()
+              name: name,
+              email: email,
+              password: password,
+              role: role,
+              url: downloadURL,
+              date: new Date()
             };
 
             const registerRef = collection(database, 'registrations')
 
-            await addDoc(registerRef, data).then(()=>{
+            await addDoc(registerRef, data).then(() => {
+
               toast.success('Registration successful! Please wait for the registration confirmation by the Manager')
             })
           });
@@ -105,7 +113,7 @@ const Register = () => {
       );
 
     }
-   
+
 
     // dispatch(registerUser(data, setError));
   };
@@ -165,7 +173,7 @@ const Register = () => {
                 <option>Requestor</option>
               </Form.Select>
             </Form.Group>
-            <Form.Group  controlId="formFile" className="mb-3">
+            <Form.Group controlId="formFile" className="mb-3">
               <Form.Control type="file" accept="image/*" onChange={(e) => setID(e.target.files)} />
             </Form.Group>
             <Form.Group controlId="formBasicBtn" className="mt-3">

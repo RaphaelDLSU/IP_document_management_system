@@ -7,7 +7,7 @@ const RFACreator = props => {
     const { setState, actionProvider, taskName } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
     const [query, setQuery] = useState('');
-
+    const [deadline, setDeadline] = useState();
 
     const handleChange = (e) => {
         setQuery(e.target.value);
@@ -16,7 +16,8 @@ const RFACreator = props => {
     const handleSubmit = () => {
         setState((state) => ({
             ...state,
-            rfaDesc: query
+            rfaDesc: query,
+            rfaDeadline:deadline
         }));
         toggleDisplaySelector((prevState) => !prevState);
         actionProvider.handleRFAImages();
@@ -32,10 +33,13 @@ const RFACreator = props => {
                         <h2 className="airport-selector-heading">RFA Query</h2>
                         <textarea onChange={(e) => handleChange(e)}>
                         </textarea>
+
+                        <h2 className="airport-selector-heading">Deadline</h2>
+
+                        <input type="date" id="myDateInput" name="myDate" onChange={(e) => setDeadline(e.target.value)} />
                         <button className="airport-button-confirm" onClick={handleSubmit}>
                             Confirm
                         </button>
-
                     </>
                 }
                 elseShow={

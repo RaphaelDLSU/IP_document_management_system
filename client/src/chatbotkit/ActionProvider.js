@@ -16,11 +16,8 @@ class ActionProvider2 {
 
   };
   handleHelp = () => {
-    const message = this.createChatBotMessage(
-      "File Request : Might Remove  ",
-    );
     const message2 = this.createChatBotMessage(
-      " Task Request : Creates a task that requests a file to be created and/or submitted to the requestor ",
+      " Task Request : Creates a task that requests a file/output to be created and/or submitted to the requestor ",
     );
     const message3 = this.createChatBotMessage(
       " RFA Submission : Creates an RFA File to be submitted to the Design Department  ",
@@ -29,7 +26,6 @@ class ActionProvider2 {
       "RFI Submission : Creates an RFI File to be submitted to the Design Department ",
     );
 
-    this.addMessageToState(message);
     this.addMessageToState(message2);
     this.addMessageToState(message3);
     this.addMessageToState(message4);
@@ -48,6 +44,15 @@ class ActionProvider2 {
         withAvatar: true,
         widget: 'projectSelector',
       },
+    );
+    this.addMessageToState(message);
+
+  };
+  handleContactInfo= () => {
+
+    console.log('Contact')
+    const message = this.createChatBotMessage(
+      `You can contact the manager Mary Jane Santiago. Contact Number: 09089637245 Email Info: manager@gmail.com`,
     );
     this.addMessageToState(message);
 

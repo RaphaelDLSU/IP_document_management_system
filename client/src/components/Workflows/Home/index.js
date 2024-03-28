@@ -21,6 +21,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { toast } from 'react-toastify';
 import projectModel from '../../../models/project';
 import { autoAssign } from '../../../redux/workload/autoAssign';
+import { createNotifs } from '../../../redux/notifs/createNotif';
 const Home = () => {
     const [firstRender2, setFirstRender2] = useState(true);
     const [loading, setLoading] = useState(true)
@@ -263,14 +264,12 @@ const Home = () => {
                             project: workflow.data().project
                         })
 
-                        //Notifs
-                        await addDoc(collection(database, "notifs"), {
-                            title: `NEW TASK: ${statusTask[0].name} from ${workflow.data().name}`,
-                            date: new Date(),
-                            content: `Your task for ${workflow.data().name} has now begun. Please check it in the Task Manager`,
-                            receiver: user.data().email
-
-                        })
+                        dispatch(createNotifs({
+                            title: 'NEW TASK: ' + statusTask[0].name,
+                            message: 'You have been assigned to a new task. Please check the Tasks Manager Page for more information ',
+                            receiverID: user.data().email,
+                            link: 'tasks'
+                        }))
                     } else {
                         await setDoc(stageRef, {
                             task: statusTask[0].name,
@@ -335,7 +334,7 @@ const Home = () => {
     };
 
     const moveStage = async (id) => {
-        const workflowRef = doc(database, "workflows", id);
+        const workflowRef = doc(database, "workflows",id);
         const docSnap = await getDoc(workflowRef);
 
         let isTaskActive = false
@@ -344,13 +343,21 @@ const Home = () => {
         let updateTaskArray = []
         let isFinished = false
 
-        docSnap.data().tasks.forEach(async (task1, index) => {
-            console.log('task 1' + JSON.stringify(task1))
+        var data = [];
+        var tempCollection = [];
+        docSnap.data().tasks.forEach(collection => {
+            tempCollection.push(collection);
+        });
 
-            if (isTaskActive) {
+        for (const task1 of tempCollection) {
+            if (isTaskActive && !done) {
+
+                console.log('HELP ME')
+                done = true
+
+                console.log('task ' + task1.name)
 
                 console.log('Creating task for yet to activate stage')
-                endWorkflow = false
 
                 const setTasksRef = doc(database, 'tasks', task1.parentId)
                 const stageRef = doc(database, 'stages', task1.parentId)
@@ -360,6 +367,14 @@ const Home = () => {
                     const querySnapshot = await getDocs(q);
                     querySnapshot.forEach(async (user) => {
                         console.log('USER: ' + user)
+
+                        //Notifs
+                        dispatch(createNotifs({
+                            title: 'NEW TASK: ' + task1.name,
+                            message: 'You have been assigned to a new task. Please check the Tasks Manager Page for more information ',
+                            receiverID: user.data().email,
+                            link: 'notifs'
+                        }))
                         await setDoc(setTasksRef, {
                             task: task1.name,
                             isChecked: false,
@@ -378,20 +393,16 @@ const Home = () => {
                         })
                     })
                 } else {
-                    console.log('Manual Stage')
                     await setDoc(stageRef, {
                         task: task1.name,
                         workflow: task1.workflow,
                         workflowname: task1.workflowname,
                     })
                 }
-                done = true
-            }
-            if (done) {
-                console.log('DONE')
-            }
 
-            //brush off
+
+            }
+            //brush off inactive tasks before finishing
             if (!task1.active && !isTaskActive && !done) {
                 console.log('brush off')
                 if (updateTaskArray = []) {
@@ -399,15 +410,11 @@ const Home = () => {
                 } else {
                     updateTaskArray.push(task1)
                 }
-
             }
-
             //make active task inactive
-
             if (task1.active && !done) {
                 isFinished = true
                 console.log('make active task inactive')
-
                 if (task1.manualTasks) {
                     updateTaskArray.push({
                         active: false,
@@ -425,7 +432,7 @@ const Home = () => {
                     })
                 } else {
                     updateTaskArray.push({
-                        active: false,
+                        active: true,
                         manualTasks: task1.manualTasks,
                         name: task1.name,
                         parentId: task1.parentId,
@@ -436,11 +443,6 @@ const Home = () => {
                     await deleteDoc(doc(database, 'stages', task1.parentId))
                 }
             }
-            //finished activating task
-            if (done && !isTaskActive) {
-                console.log('finished activating task')
-                updateTaskArray.push(task1)
-            }
 
             //make inactive task active
             if (done && isTaskActive) {
@@ -448,33 +450,12 @@ const Home = () => {
                 console.log('make inactive task active')
 
                 if (task1.manualTasks) {
-                    updateTaskArray.push({
-                        active: true,
-                        approval: task1.approval,
-                        approvalTo: task1.approvalTo,
-                        assignTo: task1.assignTo,
-                        employeeManual: task1.employeeManual,
-                        manualTasks: task1.manualTasks,
-                        name: task1.name,
-                        parentId: task1.parentId,
-                        recurring: task1.recurring,
-                        requirements: task1.requirements,
-                        workflow: task1.workflow,
-                        workflowname: task1.workflowname
-                    })
-
+                    task1.active = true
                     await updateDoc(workflowRef, {
                         inStage: false
                     })
                 } else {
-                    updateTaskArray.push({
-                        active: true,
-                        manualTasks: task1.manualTasks,
-                        name: task1.name,
-                        parentId: task1.parentId,
-                        workflow: task1.workflow,
-                        workflowname: task1.workflowname
-                    })
+                    task1.active = true
 
                     await updateDoc(workflowRef, {
                         inStage: true
@@ -483,15 +464,21 @@ const Home = () => {
                 isTaskActive = false
             }
 
+            //finished activating task
+            if (done && !isTaskActive) {
+                console.log('finished activating task')
+                updateTaskArray.push(task1)
+            }
+
+
             //Recognize task is active and create a task for next task
             if (task1.active && !isTaskActive && !done) {
-
                 console.log('Recognize next task is active and create a task for next task')
                 isTaskActive = true
             }
-
-            console.log('Task = ' + task1)
-
+        }
+        await updateDoc(workflowRef, {
+            tasks: updateTaskArray
         })
 
 

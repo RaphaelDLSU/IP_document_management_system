@@ -8,7 +8,7 @@ import { createRFA } from '../../redux/requests/createRFA';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase/storage";
 import './styles.css'
 const RFAImages = props => {
-    const { setState, actionProvider, project, rfaDesc } = props;
+    const { setState, actionProvider, project, rfaDesc,rfaDeadline } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
     const [category, setCategory] = useState('');
     const [textBoxes, setTextBoxes] = useState(['']);
@@ -109,7 +109,7 @@ const RFAImages = props => {
             dispatch(
                 createRFA({
                     name: user.data.displayName,
-                    deadline: 'None yet',
+                    deadline: rfaDeadline,
                     project: project,
                     desc: rfaDesc,
                     images: newArray,

@@ -7,7 +7,7 @@ const RFICreator = props => {
     const { setState, actionProvider, taskName } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
     const [query, setQuery] = useState('');
-
+    const [deadline, setDeadline] = useState();
 
     const handleChange = (e) => {
         setQuery(e.target.value);
@@ -16,14 +16,15 @@ const RFICreator = props => {
     const handleSubmit = () => {
         setState((state) => ({
             ...state,
-            rfiDesc: query
+            rfiDesc: query,
+            rfiDeadline:deadline
         }));
         toggleDisplaySelector((prevState) => !prevState);
         actionProvider.handleRFIImages();
     };
 
     return (
-        <div  className="airport-selector-container">
+        <div className="airport-selector-container">
             <ConditionallyRender
                 ifTrue={displaySelector}
                 show={
@@ -35,6 +36,9 @@ const RFICreator = props => {
                             placeholder="Query ..."
                             onChange={(e) => handleChange(e)}
                         />
+                        <h2 className="airport-selector-heading">Deadline</h2>
+
+                        <input type="date" id="myDateInput" name="myDate" onChange={(e) => setDeadline(e.target.value)} />
                         <button className="airport-button-confirm" onClick={handleSubmit}>
                             Confirm
                         </button>
