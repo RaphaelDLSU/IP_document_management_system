@@ -20,8 +20,18 @@ import Spinner from 'react-bootstrap/Spinner';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 
+import moment from 'moment'
+import { createNotifs } from '../../../redux/notifs/createNotif';
+import { toast } from 'react-toastify';
 
 const TaskMonitoring = () => {
+  const [show, setShow] = useState(false);
+
+  const handleClose = () => setShow(false);
+  const dispatch = useDispatch();
+
+  const [task, setTask] = useState();
+  const [taskIDName, setTaskIDName] = useState();
   const database = getFirestore()
   const [users, setUsers] = useState([]);
   const usersRef = collection(database, "users");
@@ -30,7 +40,15 @@ const TaskMonitoring = () => {
   const collectionRef = collection(database, 'tasks')
   const [loading, setLoading] = useState(true)
   const [firstRender, setFirstRender] = useState(true);
-
+  const [role, setRole] = useState();
+  const { isLoggedIn, user, userId } = useSelector(
+    (state) => ({
+      isLoggedIn: state.auth.isLoggedIn,
+      user: state.auth.user,
+      userId: state.auth.userId,
+    }),
+    shallowEqual
+  );
   const handleReport = (id) => {
     const doc = new jsPDF({ orientation: "landscape" });
 
@@ -39,6 +57,28 @@ const TaskMonitoring = () => {
     });
 
     doc.save("mypdf.pdf");
+  }
+
+  const deleteTask = async () => {
+    console.log(task)
+    toast.info('Deleting task. Please wait..')
+
+    await deleteDoc(doc(database, 'tasks', task.id)).then(() => {
+      dispatch(createNotifs({
+        title: 'TASK DELETED: ' + task.task,
+        message: 'This task has been deleted. ',
+        receiverID: task.employeeId,
+        link: 'tasks'
+      }))
+      toast.success('Task Deleted')
+
+    })
+  }
+
+  const showTaskDeletion = (task) => {
+    setTask(task)
+    setShow(true)
+    console.log('HI')
   }
 
   useEffect(() => {
@@ -75,6 +115,22 @@ const TaskMonitoring = () => {
     }
     getUsers()
   }, [])
+
+  useEffect(async () => {
+
+    if (user) {
+      let role
+      const q = query(collection(database, "users"), where("email", "==", user.data.uid));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        role = doc.data().role
+      });
+
+      setRole(role)
+
+    }
+  }, [user])
+
 
 
   if (loading) {
@@ -121,7 +177,14 @@ const TaskMonitoring = () => {
                     {task.requirements ? (
                       <td> {task.requirements.map((req, index) => (
                         <>
-                          {req.value}
+                          {req.url ? (
+                            <a href={req.url}>{req.value}</a>
+                          ) : (
+                            <>
+                              {req.value}
+                            </>
+                          )}
+
                           {index !== task.requirements.length - 1 && ', '}
                         </>
                       ))}</td>
@@ -129,9 +192,32 @@ const TaskMonitoring = () => {
 
                     <td>{task.hours}</td>
                     <td>{task.employee}</td>
-                    <td>{task.timestamp.toDate().toDateString()}</td>
-                    <td>{task.deadline}</td>
-                    <td>{task.status}</td>
+                    <td>{moment(task.timestamp.toDate()).format('l')}</td>
+                    {task.deadline == 'None' ? (
+                      <td>None</td>
+                    ) : (
+                      <td>{moment(task.deadline.toDate()).format('l')}</td>
+
+                    )}
+                    {task.status == 'for submission' && (
+                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                    )}
+                    {task.status == 'done' && (
+                      <td style={{ backgroundColor: "green" }}>Completed</td>
+                    )}
+                    {task.status == 'for approval' && (
+                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                    )}
+
+
+                    {role && role != 'Employee' && (
+                      <>
+                        <td><Button onClick={() => showTaskDeletion(task)}>Delete</Button></td>
+                      </>
+                    )}
+
+
+
                   </tr>
                 ))}
               </tbody>
@@ -166,19 +252,42 @@ const TaskMonitoring = () => {
                     <td>{task.task}</td>
                     {task.requirements ? (
                       <td> {task.requirements.map((req, index) => (
+                        <>
+                          {req.url ? (
+                            <a href={req.url}>{req.value}</a>
+                          ) : (
+                            <>
+                              {req.value}
+                            </>
+                          )}
 
-                        <span key={index}>
-                          {req.value}
-                          {index !== req.length - 1 && ', '}
-                        </span>
+                          {index !== task.requirements.length - 1 && ', '}
+                        </>
                       ))}</td>
                     ) : (<td>None</td>)}
 
                     <td>{task.hours}</td>
                     <td>{task.employee}</td>
-                    <td>{task.timestamp.toDate().toDateString()}</td>
-                    <td>{task.deadline}</td>
-                    <td>{task.status}</td>
+
+                    <td>{moment(task.timestamp.toDate()).format('l')}</td>
+
+
+                    {task.deadline == 'None' ? (
+                      <td>None</td>
+                    ) : (
+                      <td>{moment(task.deadline.toDate()).format('l')}</td>
+
+                    )}
+                    {task.status == 'for submission' && (
+                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                    )}
+                    {task.status == 'done' && (
+                      <td style={{ backgroundColor: "green" }}>Completed</td>
+                    )}
+                    {task.status == 'for approval' && (
+                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                    )}
+
                   </tr>
                 ))}
               </tbody>
@@ -187,6 +296,20 @@ const TaskMonitoring = () => {
 
         </Tabs>
 
+        <Modal show={show} onHide={handleClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Are you sure you want to delete task?</Modal.Title>
+          </Modal.Header>
+          <Modal.Body> Assigned Employee will be notified of the task cancellation.</Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleClose}>
+              Close
+            </Button>
+            <Button variant="danger" onClick={deleteTask}>
+              Delete
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
       </>
     )

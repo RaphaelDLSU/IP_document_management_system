@@ -96,13 +96,14 @@ const Home = () => {
             // docSnap.data() will be undefined in this case
             console.log("No such document!");
         }
-
-        setPreset(docSnap.data())
+        const presetData = docSnap.data()
+        presetData.tasks = presetData.tasks.map(v => ({ ...v, parentId: Math.random().toString(36).slice(2, 7) }));
+        setPreset(presetData)
         await addDoc(workflowRef, {
             name: name,
-            preset: docSnap.data().name,
-            description: docSnap.data().description,
-            tasks: docSnap.data().tasks,
+            preset: presetData.name,
+            description: presetData.description,
+            tasks: presetData.tasks,
             project: project,
             started: false,
             outputs: [],
@@ -121,7 +122,7 @@ const Home = () => {
             workflowName = doc.data().name
         });
 
-        let arrayTasks = docSnap.data().tasks
+        let arrayTasks = presetData.tasks
 
         // Function to update a specific field in all objects
         function updateFieldInAllObjects(array, fieldToUpdate, newValue) {
@@ -243,7 +244,8 @@ const Home = () => {
 
                 const querySnapshot = await getDocs(q);
 
-
+                const dateDeadline = new Date();
+                dateDeadline.setDate(dateDeadline.getDate() + 3);
                 querySnapshot.forEach(async (user) => {
                     const setTasksRef = doc(database, 'tasks', statusTask[0].parentId)
                     const stageRef = doc(database, 'stages', statusTask[0].parentId)
@@ -252,7 +254,7 @@ const Home = () => {
                             task: statusTask[0].name,
                             isChecked: false,
                             timestamp: serverTimestamp(),
-                            deadline: 'None',
+                            deadline: dateDeadline,
                             employee: user.data().name,
                             employeeId: user.data().email,
                             requirements: statusTask[0].requirements,
@@ -275,6 +277,7 @@ const Home = () => {
                             task: statusTask[0].name,
                             workflow: statusTask[0].workflow,
                             workflowname: workflow.data().name,
+                            project:statusTask[0].project
                         })
 
                         await updateDoc(workflowRef, {
@@ -334,7 +337,7 @@ const Home = () => {
     };
 
     const moveStage = async (id) => {
-        const workflowRef = doc(database, "workflows",id);
+        const workflowRef = doc(database, "workflows", id);
         const docSnap = await getDoc(workflowRef);
 
         let isTaskActive = false
@@ -375,11 +378,13 @@ const Home = () => {
                             receiverID: user.data().email,
                             link: 'notifs'
                         }))
+                        const dateDeadline = new Date();
+                        dateDeadline.setDate(dateDeadline.getDate() + 3);
                         await setDoc(setTasksRef, {
                             task: task1.name,
                             isChecked: false,
                             timestamp: serverTimestamp(),
-                            deadline: 'None',
+                            deadline: dateDeadline,
                             employee: user.data().name,
                             employeeId: user.data().email,
                             requirements: task1.requirements,
@@ -397,6 +402,7 @@ const Home = () => {
                         task: task1.name,
                         workflow: task1.workflow,
                         workflowname: task1.workflowname,
+                        project: task1.project
                     })
                 }
 
@@ -432,7 +438,7 @@ const Home = () => {
                     })
                 } else {
                     updateTaskArray.push({
-                        active: true,
+                        active: false,
                         manualTasks: task1.manualTasks,
                         name: task1.name,
                         parentId: task1.parentId,
@@ -768,6 +774,9 @@ const Home = () => {
                                 ))}
 
                             </Form.Select>
+                            {!autoEmployee && isChecked && (
+                                <Form.Label>Assigning Employee. Please Wait.</Form.Label>
+                            )}
                             {autoEmployee && isChecked && (
                                 <Form.Label>Auto Assigned: {autoEmployee}</Form.Label>
                             )}

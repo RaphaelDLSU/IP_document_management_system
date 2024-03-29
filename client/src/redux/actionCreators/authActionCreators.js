@@ -5,6 +5,8 @@ import { RESET_USER, SET_USER } from "../actions/authActions";
 import { RESET_FOLDERS_FILES } from "../actions/filefoldersActions";
 import { Link, useHistory } from "react-router-dom";
 
+
+
 const setUser = (data) => ({
   type: SET_USER,
   payload: data,
@@ -57,6 +59,8 @@ export const registerUser =
 export const loginUser =
   ({ email, password }, setError) =>
   (dispatch) => {
+   
+
     auth
       .signInWithEmailAndPassword(email, password)
       .then(async (user) => {
@@ -64,6 +68,7 @@ export const loginUser =
           .where("uid", "==", user.user.uid)
           .get();
         console.log(usr.docs);
+      }).then(()=>{
       })
       .catch(() => {
         setError("Invalid Email Or Password!");

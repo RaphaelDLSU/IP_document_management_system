@@ -38,7 +38,10 @@ import { ConditionallyRender } from "react-util-kit";
 import { Chatbot } from 'react-chatbot-kit'
 import { ReactComponent as ButtonIcon } from "../../../assets/icons/robot.svg";
 import { where, collection, getDocs, addDoc, runTransaction, orderBy, query, serverTimestamp, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore'
-
+import CreateFile from "../../CreateFile/index.js";
+import UploadFile from "../../UploadFile/index.js";
+import CreateFolder from "../../CreateFolder/index.js";
+import BreadCrum from "../BreadCrum.js/index.js";
 const Home = () => {
   const [myState, setMyState] = useState([]);
 
@@ -69,6 +72,8 @@ const Home = () => {
 
 
   };
+
+  let currentFolder = 'root folder'
 
 
   const history = useHistory();
@@ -213,20 +218,50 @@ const Home = () => {
       )}
 
 
-      <input
-        type="text"
-        placeholder="Search..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-
-      <button onClick={handleSearch}>Search</button>
-
-      <button> PDF MAKER </button>
 
 
-      <SubNav currentFolder="root folder" />
 
+
+      <Col
+        md={12}
+        className={"d-flex align-items-center px-5 pt-3 justify-content-between"}
+      >
+
+        {currentFolder && currentFolder !== "root folder" ? (
+          <>
+            <BreadCrum currentFolder={currentFolder} />
+            {currentFolder.data.createdBy !== "admin" && (
+              <div className="ml-auto col-md-5 d-flex justify-content-end">
+
+                <UploadFile currentFolder={currentFolder} />
+                &nbsp;
+                <CreateFile currentFolder={currentFolder} />
+                &nbsp;
+                <CreateFolder currentFolder={currentFolder} />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <p>Root</p>
+            <div className="ml-auto col-md-5 d-flex justify-content-end">
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+
+              <button onClick={handleSearch}>Search</button>
+              <UploadFile currentFolder={currentFolder} />
+              &nbsp;
+              <CreateFile currentFolder={currentFolder} />
+              &nbsp;
+              <CreateFolder currentFolder={currentFolder} />
+            </div>
+          </>
+        )}
+      </Col>
       <ListGroup >
         <p></p><p></p>
         {userFolders && userFolders.length > 0 && list1 && list1.length > 0 && (
@@ -251,7 +286,7 @@ const Home = () => {
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name} <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
+                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name} <Button style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}>Delete</Button>
 
               </ListGroup.Item>
             ))}
@@ -264,7 +299,7 @@ const Home = () => {
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt /> {data.name}   <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
+                <FaFileAlt /> {data.name}   <Button style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}>Delete</Button>
 
 
               </ListGroup.Item>

@@ -24,9 +24,13 @@ import { FaMinusCircle } from "react-icons/fa";
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import { createNotifs } from '../../../redux/notifs/createNotif';
+import { autoAssign } from '../../../redux/workload/autoAssign';
+import moment from 'moment'
 
 const Home = () => {
+    const [role, setRole] = useState();
     const [isChecked, setIsChecked] = useState(false);
+    const [isChecked2, setIsChecked2] = useState(false);
     const [loading, setLoading] = useState(true)
     const dispatch = useDispatch();
     const db = getFirestore()
@@ -37,7 +41,6 @@ const Home = () => {
     const [hours, setHours] = useState();
     const [createTask, setCreateTask] = useState("")
     const [deadline, setDeadline] = useState("")
-    const [checked, setChecked] = useState([]);
     const database = getFirestore()
     const collectionRef = collection(database, 'tasks')
     const [show, setShow] = useState(false);
@@ -80,6 +83,9 @@ const Home = () => {
     const [project, setProject] = useState('')
     const [inputs, setInputs] = useState([]);
     const [projects, setProjects] = useState([])
+    const [selectedStages, setSelectedStages] = useState([])
+    const [autoEmployee, setAutoEmployee] = useState()
+    const [autoEmployeeID, setAutoEmployeeID] = useState()
     const { isLoggedIn, user, userId } = useSelector(
         (state) => ({
             isLoggedIn: state.auth.isLoggedIn,
@@ -99,7 +105,6 @@ const Home = () => {
             await getDocs(q).then((tasks) => {
                 let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
                 setTasks(tasksData)
-                setChecked(tasksData)
 
             }).catch((err) => {
                 console.log(err);
@@ -154,6 +159,41 @@ const Home = () => {
         getProjects()
     }, [])
 
+    useEffect(() => {
+
+        if (project) {
+            const getStages = async () => {
+                const q = query(collection(database, 'stages'), where("project", '==', project))
+                await getDocs(q).then((stages) => {
+                    let stagesData = stages.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                    setSelectedStages(stagesData)
+
+                }).catch((err) => {
+                    console.log(err);
+                })
+
+            }
+            getStages()
+        }
+
+    }, [project])
+
+    useEffect(async () => {
+
+        if (user) {
+            let role
+            const q = query(collection(database, "users"), where("email", "==", user.data.uid));
+            let sidebarData
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                role = doc.data().role
+            });
+
+            setRole(role)
+
+        }
+    }, [user])
+
     //Add Task Handler
     const submitTask = async (e) => {
 
@@ -193,6 +233,11 @@ const Home = () => {
                 if (approval == '') {
                     isApproval = false
                 }
+                const [year, month, day] = deadline.split("-");
+                const date = new Date(year, month - 1, day);
+                const timestamp = date.getTime();
+                const timestampReal = new Date(timestamp)
+
                 await addDoc(taskRef, {
                     approval: isApproval,
                     approvalTo: approval,
@@ -205,10 +250,12 @@ const Home = () => {
                     timestamp: new Date(),
                     stage: stage,
                     hours: hours,
-                    deadline: deadline,
+                    deadline: timestampReal,
                     workflowname: workflowOfStage,
                     workflow: workflowIdOfStage,
-                    isFinalTask: checked
+                    isFinalTask: isChecked
+                }).then(() => {
+                    toast.success('Task Created!')
                 })
 
                 //workload algorithm
@@ -218,7 +265,7 @@ const Home = () => {
             });
 
         }
-        toast.success('Task Created!')
+
     }
     //Delete Handler
 
@@ -325,7 +372,7 @@ const Home = () => {
                         origUser: orig
                     }).then(() => {
                         dispatch(createNotifs({
-                            title: 'NEW TASK: Approve ' + task.task,
+                            title: 'NEW TASK: Approve ' + task.task + task.requirements[0].value,
                             message: 'You have been been submitted a task for approval by ' + task.employee + '. Please check the Tasks Manager Page for more information ',
                             receiverID: approver,
                             link: 'tasks'
@@ -343,7 +390,7 @@ const Home = () => {
                     }
                     if (task.isFinalTask) {
                         dispatch(createNotifs({
-                            title: 'FINAL TASK SUBMITTED: ' + task.task,
+                            title: 'FINAL TASK SUBMITTED: ' + task.task + task.requirements[0].value,
                             message: 'The Final Task indicated for ' + task.task + 'is submitted by ' + task.employee + '. Please check the Workflows page for the output/s',
                             receiverID: 'manager@gmail.com',
                             link: 'workflows'
@@ -351,7 +398,7 @@ const Home = () => {
                     }
 
                     dispatch(createNotifs({
-                        title: 'TASK FINISHED: ' + task.task,
+                        title: 'TASK FINISHED: ' + task.task + task.requirements[0].value,
                         message: 'A Task assigned to ' + task.employee + ' for the project ' + task.project + ' has been submitted and uploaded to the Files page.',
                         receiverID: 'manager@gmail.com',
                         link: 'files'
@@ -411,7 +458,7 @@ const Home = () => {
                                     filePath: 'storedFiles/' + selectedFile.req.id + '/' + file.name,
                                     fileName: file.name
                                 }
-                                toast.success('Uploaded. Please wait..')
+                                toast.info('Uploaded. Please wait..')
                                 setReqArray([...reqArray, newObject])
 
                             });
@@ -448,7 +495,7 @@ const Home = () => {
                             let folderName
                             if (task.isRequest) {
                                 dispatch(createNotifs({
-                                    title: 'REQUEST FINISHED: ' + task.task,
+                                    title: 'REQUEST FINISHED: ' + task.task + task.requirements[0].value,
                                     message: 'Your request has been finished by ' + task.employeeId + '. Please go to the Requests page to view your requested output',
                                     receiverID: task.requestor,
                                     link: 'requests'
@@ -543,11 +590,20 @@ const Home = () => {
             }
 
             dispatch(createNotifs({
-                title: 'SUBMISSION APPROVED: ' + task.task,
+                title: 'SUBMISSION APPROVED: ' + task.task + task.requirements[0].value,
                 message: message,
                 receiverID: task.origUser,
                 link: 'tasks'
             }))
+
+            if (task.isFinalTask) {
+                dispatch(createNotifs({
+                    title: 'FINAL TASK SUBMITTED: ' + task.task + task.requirements[0].value,
+                    message: 'The Final Task indicated for ' + task.task + 'is submitted by ' + task.employee + '. Please check the Workflows page for the output/s',
+                    receiverID: 'manager@gmail.com',
+                    link: 'workflows'
+                }))
+            }
 
             toast.info('Finishing Approval')
 
@@ -726,7 +782,7 @@ const Home = () => {
         }).then(() => {
 
             dispatch(createNotifs({
-                title: 'SUBMISSION DISAPPROVED: ' + task.task,
+                title: 'SUBMISSION DISAPPROVED: ' + task.task + task.requirements[0].value,
                 message: 'Your submission has been disapproved. Please check the Tasks page for the reason for disapproval and for other comments.',
                 receiverID: task.origUser,
                 link: 'tasks'
@@ -740,6 +796,7 @@ const Home = () => {
     const createPlan = async () => {
 
         console.log('INSIDE CREATE PLAN')
+        toast.info('Creating Plan. Please Wait')
 
         const planRef = doc(collection(database, "plans"));
 
@@ -767,11 +824,26 @@ const Home = () => {
     };
 
     const handleDropdownChange = (index, event) => {
-        const newInputs = [...inputs];
-        newInputs[index].employee = event.target.value;
+        if (event.target.value == 'Automatic') {
+            setIsChecked2(true)
+            const employee = dispatch(autoAssign({}))
+            employee.then(async (employeeId) => {
+                const employeeRef = await getDoc(doc(database, 'users', employeeId))
+                const newInputs = [...inputs];
+                newInputs[index].employee = employeeRef.data().email;
+                console.log('employee = ' + event.target.value)
+                setInputs(newInputs);
+                setIsChecked2(false)
+            })
+        } else {
+            setIsChecked2(false)
+            const newInputs = [...inputs];
+            newInputs[index].employee = event.target.value;
 
-        console.log('employee = ' + event.target.value)
-        setInputs(newInputs);
+            console.log('employee = ' + event.target.value)
+
+            setInputs(newInputs);
+        }
     };
 
     const setStageAndWorkflow = async (stageId) => {
@@ -799,6 +871,7 @@ const Home = () => {
     const approveAndEndSubmission = (task) => {
 
     }
+
 
     useEffect(() => {
         console.log(selectedFiles);
@@ -904,7 +977,7 @@ const Home = () => {
 
                             //Notifs
                             dispatch(createNotifs({
-                                title: 'NEW TASK: ' + task1.name,
+                                title: 'NEW TASK: ' + task1.task + task1.requirements[0].value,
                                 message: 'You have been assigned to a new task. Please check the Tasks Manager Page for more information ',
                                 receiverID: user.data().email,
                                 link: 'notifs'
@@ -960,7 +1033,8 @@ const Home = () => {
                             recurring: task1.recurring,
                             requirements: task1.requirements,
                             workflow: task1.workflow,
-                            workflowname: task1.workflowname
+                            workflowname: task1.workflowname,
+                            project: task.project
                         })
                     } else {
                         updateTaskArray.push({
@@ -969,7 +1043,8 @@ const Home = () => {
                             name: task1.name,
                             parentId: task1.parentId,
                             workflow: task1.workflow,
-                            workflowname: task1.workflowname
+                            workflowname: task1.workflowname,
+                            project: task.project
                         })
 
                         await deleteDoc(doc(database, 'stages', task1.parentId))
@@ -1063,116 +1138,154 @@ const Home = () => {
             })
         );
 
-        const workflowRef = doc(database, "workflows", task.workflow);
-        const docSnap = await getDoc(workflowRef);
 
-        let isTaskActive = false
-        let endWorkflow = true
-        let done = false
-        let updateTaskArray = []
-        docSnap.data().tasks.forEach(async (task1, index) => {
-            console.log('task 1' + JSON.stringify(task1))
+        if (task.workflow) {
 
-            if (isTaskActive) {
+            const workflowRef = doc(database, "workflows", task.workflow);
+            const docSnap = await getDoc(workflowRef);
 
-                console.log('Creating task for yet to activate stage')
-                endWorkflow = false
+            let isTaskActive = false
+            let endWorkflow = true
+            let done = false
+            let updateTaskArray = []
 
-                const setTasksRef = doc(database, 'tasks', task1.parentId)
-                const stageRef = doc(database, 'stages', task1.parentId)
-                if (task1.assignTo) {
-                    console.log('Automatic Stage')
-                    const q = query(collection(database, "users"), where('name', '==', task1.assignTo))
-                    const querySnapshot = await getDocs(q);
-                    querySnapshot.forEach(async (user) => {
-                        console.log('USER: ' + user)
-                        await setDoc(setTasksRef, {
+            var data = [];
+            var tempCollection = [];
+            docSnap.data().tasks.forEach(collection => {
+                tempCollection.push(collection);
+            });
+
+            for (const task1 of tempCollection) {
+                if (isTaskActive && !done) {
+
+                    console.log('HELP ME')
+                    done = true
+
+                    console.log('task ' + task1.name)
+
+                    console.log('Creating task for yet to activate stage')
+
+                    const setTasksRef = doc(database, 'tasks', task1.parentId)
+                    const stageRef = doc(database, 'stages', task1.parentId)
+                    if (task1.assignTo) {
+                        console.log('Automatic Stage')
+                        const q = query(collection(database, "users"), where('name', '==', task1.assignTo))
+                        const querySnapshot = await getDocs(q);
+                        querySnapshot.forEach(async (user) => {
+                            console.log('USER: ' + user)
+
+                            //Notifs
+                            dispatch(createNotifs({
+                                title: 'NEW TASK: ' + task1.task + task1.requirements[0].value,
+                                message: 'You have been assigned to a new task. Please check the Tasks Manager Page for more information ',
+                                receiverID: user.data().email,
+                                link: 'notifs'
+                            }))
+                            await setDoc(setTasksRef, {
+                                task: task1.name,
+                                timestamp: serverTimestamp(),
+                                deadline: 'None',
+                                employee: user.data().name,
+                                employeeId: user.data().email,
+                                requirements: task1.requirements,
+                                status: 'for submission',
+                                approval: task1.approval,
+                                workflow: task1.workflow,
+                                workflowname: task1.workflowname,
+                                approvalTo: task1.approvalTo,
+                                recurring: task1.recurring,
+                                project: task.project
+                            })
+                        })
+                    } else {
+                        await setDoc(stageRef, {
                             task: task1.name,
-                            timestamp: serverTimestamp(),
-                            deadline: 'None',
-                            employee: user.data().name,
-                            employeeId: user.data().email,
-                            requirements: task1.requirements,
-                            status: 'for submission',
-                            approval: task1.approval,
                             workflow: task1.workflow,
                             workflowname: task1.workflowname,
+                        })
+                    }
+
+
+                }
+                //brush off inactive tasks before finishing
+                if (!task1.active && !isTaskActive && !done) {
+                    console.log('brush off')
+                    if (updateTaskArray = []) {
+                        updateTaskArray = [task1]
+                    } else {
+                        updateTaskArray.push(task1)
+                    }
+                }
+                //make active task inactive
+                if (task1.active && !done) {
+                    console.log('make active task inactive')
+                    if (task1.manualTasks) {
+                        updateTaskArray.push({
+                            active: false,
+                            approval: task1.approval,
                             approvalTo: task1.approvalTo,
+                            assignTo: task1.assignTo,
+                            employeeManual: task1.employeeManual,
+                            manualTasks: task1.manualTasks,
+                            name: task1.name,
+                            parentId: task1.parentId,
                             recurring: task1.recurring,
+                            requirements: task1.requirements,
+                            workflow: task1.workflow,
+                            workflowname: task1.workflowname,
                             project: task.project
                         })
-                    })
-                } else {
-                    console.log('Manual Stage')
-                    await setDoc(stageRef, {
-                        task: task1.name,
-                        workflow: task1.workflow,
-                        workflowname: task1.workflowname,
-                    })
+                    } else {
+                        updateTaskArray.push({
+                            active: true,
+                            manualTasks: task1.manualTasks,
+                            name: task1.name,
+                            parentId: task1.parentId,
+                            workflow: task1.workflow,
+                            workflowname: task1.workflowname,
+                            project: task.project
+                        })
+
+                        await deleteDoc(doc(database, 'stages', task1.parentId))
+                    }
                 }
-                done = true
-            }
-            if (done) {
-                console.log('DONE')
-            }
-            //brush off
-            if (!task1.active && !isTaskActive && !done) {
-                console.log('brush off')
-                if (updateTaskArray = []) {
-                    updateTaskArray = [task1]
-                } else {
+
+                //make inactive task active
+                if (done && isTaskActive) {
+                    console.log('make inactive task active')
+
+                    if (task1.manualTasks) {
+                        task1.active = true
+                        await updateDoc(workflowRef, {
+                            inStage: false
+                        })
+                    } else {
+                        task1.active = true
+
+                        await updateDoc(workflowRef, {
+                            inStage: true
+                        })
+                    }
+                    isTaskActive = false
+                }
+
+                //finished activating task
+                if (done && !isTaskActive) {
+                    console.log('finished activating task')
                     updateTaskArray.push(task1)
                 }
-            }
-            //make active task inactive
-            if (task1.active && !done) {
-                console.log('make active task inactive')
 
-                if (task1.manualTasks) {
-                    task1.active = false
-                    updateTaskArray.push(task1)
-                } else {
-                    updateTaskArray.push(task1)
+
+                //Recognize task is active and create a task for next task
+                if (task1.active && !isTaskActive && !done) {
+                    console.log('Recognize next task is active and create a task for next task')
+                    isTaskActive = true
                 }
             }
-            //finished activating task
-            if (done && !isTaskActive) {
-                console.log('finished activating task')
-                updateTaskArray.push(task1)
-            }
-
-            //make inactive task active
-            if (done && isTaskActive) {
-                console.log('make inactive task active')
-
-                if (task1.manualTasks) {
-                    task1.active = true
-                    updateTaskArray.push(task1)
-
-                    await updateDoc(workflowRef, {
-                        inStage: false
-                    })
-                } else {
-                    task1.active = true
-                    updateTaskArray.push(task1)
-
-                    await updateDoc(workflowRef, {
-                        inStage: true
-                    })
-                }
-                isTaskActive = false
-            }
-
-            //Recognize task is active and create a task for next task
-            if (task1.active && !isTaskActive && !done) {
-
-                console.log('Recognize next task is active and create a task for next task')
-                isTaskActive = true
-            }
-
-            console.log('Task = ' + task1)
-
-        })
+            await updateDoc(workflowRef, {
+                tasks: updateTaskArray
+            })
+        }
 
         if (!task.recurring) {
             await updateDoc(doc(database, "tasks", task.id), {
@@ -1197,9 +1310,7 @@ const Home = () => {
             });
         }
 
-        await updateDoc(workflowRef, {
-            tasks: updateTaskArray
-        })
+
 
         setShow5(false)
         toast('FINISHED')
@@ -1226,7 +1337,24 @@ const Home = () => {
         return (
             <>
                 <div className='head' style={{ padding: '20px' }}>
-                    <h2>Task Manager &nbsp; <Button onClick={() => setShow(true)}><FaPlus /></Button></h2>
+
+                    {role && role != 'Employee' ? (
+                        <>
+                            <h2>Task Manager &nbsp; <Button onClick={() => setShow(true)}><FaPlus /></Button>        <p>Ongoing Stages</p>
+
+                                <ListGroup horizontal>
+                                    {stages.map((stage, index) => (
+
+                                        <ListGroup.Item key={index} variant="success">{stage.task}</ListGroup.Item>
+                                    ))}
+
+                                </ListGroup>
+                            </h2>
+                        </>
+                    ) : (<>
+                        <h2>Task Manager</h2>
+                    </>)}
+
                     <hr></hr>
                     <div className='content' style={{ padding: '5px' }}>
 
@@ -1244,11 +1372,20 @@ const Home = () => {
                                                         <Card.Header>{task.project}</Card.Header>
                                                         <Card.Body>
                                                             <Card.Title>{task.task}</Card.Title>
+                                                            <Card.Text>
+                                                                Requirements: &nbsp;
+                                                                {task.requirements.map((req, index) => (
+                                                                    <>
+                                                                        {req.value}
+                                                                        {index !== task.requirements.length - 1 && ', '}
+                                                                    </>
+                                                                ))}
+                                                            </Card.Text>
 
                                                         </Card.Body>
                                                         <ListGroup className="list-group-flush">
-                                                            <ListGroup.Item>Deadline : {task.deadline}</ListGroup.Item>
-                                                            <ListGroup.Item>Date : {new Date(task.timestamp.seconds * 1000).toLocaleString()}</ListGroup.Item>
+                                                            <ListGroup.Item>Deadline : {moment(task.deadline.toDate()).format('l')}</ListGroup.Item>
+                                                            <ListGroup.Item>Date : {moment(task.timestamp.toDate()).format('l')}</ListGroup.Item>
                                                             <ListGroup.Item>Assigned To : {task.employee}</ListGroup.Item>
                                                             {task.reason && (
                                                                 <>
@@ -1274,7 +1411,10 @@ const Home = () => {
                             }
                             )}
                         </div>
-                        <h5>Pending Approvals</h5>
+                        {user.data.uid != "Employee" && (
+                            <h5>Pending Approvals</h5>
+                        )}
+
                         <p></p>
                         <div className='cards-container'>
                             {tasks.map((task, index) => {
@@ -1295,8 +1435,8 @@ const Home = () => {
                                                             }
                                                         </Card.Body>
                                                         <ListGroup className="list-group-flush">
-                                                            <ListGroup.Item>Deadline : {task.deadline}</ListGroup.Item>
-                                                            <ListGroup.Item>Date : {new Date(task.timestamp.seconds * 1000).toLocaleString()}</ListGroup.Item>
+                                                            <ListGroup.Item>Deadline : {moment(task.deadline.toDate()).format('l')}</ListGroup.Item>
+                                                            <ListGroup.Item>Date : {moment(task.timestamp.toDate()).format('l')}</ListGroup.Item>
                                                             <ListGroup.Item>Assigned To : {task.employee}</ListGroup.Item>
                                                         </ListGroup>
                                                     </Card>
@@ -1311,19 +1451,13 @@ const Home = () => {
                             )}
                         </div>
 
-                        <h5>Ongoing Stages</h5>
-                        <p></p>
-                        <ListGroup horizontal>
-                            {stages.map((stage, index) => (
 
-                                <ListGroup.Item key={index} variant="success">{stage.task}</ListGroup.Item>
-                            ))}
 
-                        </ListGroup>
 
                         <h5>Tasks Records</h5>
                         <p></p>
                         <TaskMonitoring></TaskMonitoring>
+
 
                     </div>
 
@@ -1350,8 +1484,8 @@ const Home = () => {
                                         <Form.Label> Select Stage</Form.Label>
                                         <Form.Select onChange={(e) => setStageAndWorkflow(e.target.value)}>
                                             <option value="" disabled selected hidden>Select Stage</option>
-                                            <option value="" >None</option>
-                                            {stages.map((stage, index) => (
+                                            <option value="None" >None</option>
+                                            {selectedStages.map((stage, index) => (
                                                 <option key={index} value={stage.id}>
                                                     {stage.task}
                                                 </option>
@@ -1400,6 +1534,9 @@ const Home = () => {
 
                                                             ))}
                                                         </Form.Select>
+                                                        {!input.employee && isChecked2 && (
+                                                            <Form.Label>Assigning Employee. Please Wait.</Form.Label>
+                                                        )}
                                                     </Col>
                                                 </Form.Group>
 
@@ -1460,6 +1597,7 @@ const Home = () => {
                                             <Form.Label >
                                                 {req.value}
                                             </Form.Label>
+                                            &nbsp;&nbsp;&nbsp;
 
                                             {task.status === 'for submission' ?
                                                 <Form.Control type="file" onChange={(e) => handleUploadReq(e, req)} />
@@ -1505,10 +1643,14 @@ const Home = () => {
                     <Modal.Header closeButton>
                         <Modal.Title>Create Plan for {project}</Modal.Title>
                     </Modal.Header>
-                    <Form.Control
-                        type='text'
-                        onChange={(e) => setPlanCreate(e.target.value)}
-                    />
+                    <Modal.Body>
+                        <Form.Label >Plan Name</Form.Label>
+                        <Form.Control
+                            type='text'
+                            onChange={(e) => setPlanCreate(e.target.value)}
+                        />
+                    </Modal.Body>
+
                     <Modal.Footer>
                         <Button variant="secondary" onClick={handleClose4}>
                             Close

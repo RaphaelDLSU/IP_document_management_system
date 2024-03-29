@@ -33,6 +33,7 @@ const Home = () => {
     const { path } = useRouteMatch();
     const [show2, setShow2] = useState(false);
     const handleClose2 = () => setShow2(false);
+    const [projects, setProjects] = useState()
 
     const [show3, setShow3] = useState(false);
     const handleClose3 = () => setShow3(false);
@@ -123,7 +124,7 @@ const Home = () => {
         console.log(assignTo)
     };
     const submitTask = async (e) => {
-        
+
         const gotDoc = await getDoc(presetDocRef)
 
         let updatedObject
@@ -133,7 +134,6 @@ const Home = () => {
                 ...workflowTask,
                 name: name,
                 active: false,
-                parentId: Math.random().toString(36).slice(2, 7),
                 workflow: gotDoc.id,
                 workflowname: gotDoc.data().name,
                 manualTasks: checked3,
@@ -151,7 +151,6 @@ const Home = () => {
                 assignTo: assignTo,
                 employeeManual: checked3,
                 active: false,
-                parentId: Math.random().toString(36).slice(2, 7),
                 workflow: gotDoc.id,
                 workflowname: gotDoc.data().name,
                 manualTasks: checked3,
@@ -288,7 +287,7 @@ const Home = () => {
             await getDocs(q).then((workflow) => {
                 let workflowData = workflow.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
                 setPreset(workflowData)
-            }).then(()=>{
+            }).then(() => {
                 setLoading(false)
             }).catch((err) => {
                 console.log(err);
@@ -296,6 +295,16 @@ const Home = () => {
         }
         getWorkflows()
 
+        const getProjects = async () => {
+            const q = query(collection(database, 'projects'))
+            await getDocs(q).then((project) => {
+                let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                setProjects(projectData)
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+        getProjects()
 
 
     }, [])
@@ -354,7 +363,7 @@ const Home = () => {
                                                                                 </span>
                                                                             ))}
                                                                         </>
-                                                                    ):(<span>*Manual Stage*</span>)}
+                                                                    ) : (<span>*Manual Stage*</span>)}
 
                                                                 </td>
 
@@ -503,10 +512,9 @@ const Home = () => {
                             onChange={(e) => setProject(e.target.value)}
                         >
                             <option hidden value>Select Project...</option>
-                            <option value='Miramonti'>Miramonti</option>
-                            <option value='Monumento'>Monumento</option>
-                            <option value='Montecristo'>Montecristo</option>
-                            <option value='Muramana'>Muramana</option>
+                            {projects.map((project, index) => (
+                                <option key={index} value={project.name}>{project.name}</option>
+                            ))}
                         </Form.Select>
                     </Modal.Body>
                     <Modal.Footer>
