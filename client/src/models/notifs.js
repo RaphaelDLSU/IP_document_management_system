@@ -7,7 +7,7 @@ const notifsModel = (email, title, content, link) => {
     title: title,
     content: content,
     link:link,
-    isChecked:true
+    isChecked:false,
   };
   return model;
 };

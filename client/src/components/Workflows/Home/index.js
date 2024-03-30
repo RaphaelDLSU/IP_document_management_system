@@ -263,7 +263,8 @@ const Home = () => {
                             workflow: statusTask[0].workflow,
                             workflowname: workflow.data().name,
                             approvalTo: statusTask[0].approvalTo,
-                            project: workflow.data().project
+                            project: workflow.data().project,
+                            hours: 40
                         })
 
                         dispatch(createNotifs({
@@ -277,7 +278,7 @@ const Home = () => {
                             task: statusTask[0].name,
                             workflow: statusTask[0].workflow,
                             workflowname: workflow.data().name,
-                            project:statusTask[0].project
+                            project: workflow.data().project
                         })
 
                         await updateDoc(workflowRef, {
@@ -337,6 +338,7 @@ const Home = () => {
     };
 
     const moveStage = async (id) => {
+        toast.info('Ending Stage. Please Wait...')
         const workflowRef = doc(database, "workflows", id);
         const docSnap = await getDoc(workflowRef);
 
@@ -370,13 +372,12 @@ const Home = () => {
                     const querySnapshot = await getDocs(q);
                     querySnapshot.forEach(async (user) => {
                         console.log('USER: ' + user)
-
                         //Notifs
                         dispatch(createNotifs({
                             title: 'NEW TASK: ' + task1.name,
                             message: 'You have been assigned to a new task. Please check the Tasks Manager Page for more information ',
                             receiverID: user.data().email,
-                            link: 'notifs'
+                            link: 'tasks'
                         }))
                         const dateDeadline = new Date();
                         dateDeadline.setDate(dateDeadline.getDate() + 3);
@@ -394,7 +395,8 @@ const Home = () => {
                             workflowname: task1.workflowname,
                             approvalTo: task1.approvalTo,
                             recurring: task1.recurring,
-                            project: task1.project
+                            project: docSnap.data().project,
+                            hours: 40
                         })
                     })
                 } else {
@@ -402,7 +404,7 @@ const Home = () => {
                         task: task1.name,
                         workflow: task1.workflow,
                         workflowname: task1.workflowname,
-                        project: task1.project
+                        project: docSnap.data().project
                     })
                 }
 
@@ -411,11 +413,8 @@ const Home = () => {
             //brush off inactive tasks before finishing
             if (!task1.active && !isTaskActive && !done) {
                 console.log('brush off')
-                if (updateTaskArray = []) {
-                    updateTaskArray = [task1]
-                } else {
-                    updateTaskArray.push(task1)
-                }
+
+                updateTaskArray.push(task1)
             }
             //make active task inactive
             if (task1.active && !done) {
@@ -434,7 +433,8 @@ const Home = () => {
                         recurring: task1.recurring,
                         requirements: task1.requirements,
                         workflow: task1.workflow,
-                        workflowname: task1.workflowname
+                        workflowname: task1.workflowname,
+                        hours: 3
                     })
                 } else {
                     updateTaskArray.push({
@@ -501,7 +501,7 @@ const Home = () => {
 
         }
 
-
+        toast.success('Stage ended')
     }
 
     const createProject = async (e) => {
@@ -592,7 +592,7 @@ const Home = () => {
                     <div className='content' style={{ padding: '5px' }}>
                         {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
                             <>
-                                <h4>{project}</h4>
+                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> {project}</h5>
                                 <Accordion >
 
                                     <Accordion.Item eventKey={id} >
@@ -702,15 +702,15 @@ const Home = () => {
 
                 </div>
 
-                <Modal show={show} onHide={() => handleClose} >
+                <Modal show={show} onHide={() => setShow(false)} >
 
                     <Modal.Header closeButton> Create a Workflow</Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={createWorkflow}>
                             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                                 <Form.Label>Workflow Preset</Form.Label>
-                                <Form.Select onChange={(e) => setPresetId(e.target.value)} aria-label="Default select example">
-                                    <option hidden value>Select a preset...</option>
+                                <Form.Select required onChange={(e) => setPresetId(e.target.value)} aria-label="Default select example">
+                                    <option hidden value="">Select a preset...</option>
                                     {presets.map((preset, index) => (
                                         <option key={index} value={preset.id}>{preset.name}</option>
                                     ))}
@@ -727,6 +727,7 @@ const Home = () => {
                                     >
                                         <Form.Label>Workflow Name</Form.Label>
                                         <Form.Control
+                                            required
                                             type="text"
                                             placeholder='Miramonti Construction Process'
                                             rows={2}
@@ -735,12 +736,13 @@ const Home = () => {
                                         />
                                         <Form.Label>Project</Form.Label>
                                         <Form.Select
+                                            required
                                             labelId="demo-simple-select-label"
                                             id="demo-simple-select"
                                             label="Project"
                                             onChange={(e) => setProject(e.target.value)}
                                         >
-                                            <option hidden value>Select Project...</option>
+                                            <option hidden value="">Select Project...</option>
                                             {projects.map((project, index) => (
                                                 <option key={index} value={project.name}>{project.name}</option>
                                             ))}
@@ -770,7 +772,7 @@ const Home = () => {
                             <Form.Select disabled={isChecked} style={{ opacity: isChecked ? 0.5 : 1 }} onChange={(e) => setEmployee(e.target.value)} aria-label="Default select example">
                                 <option value="" disabled selected>Select Employee</option>
                                 {users.map((user, index) => (
-                                    <option key={index} value={user.name}>{user.name}</option>
+                                    <option key={index} value={user.name}>{user.name} &nbsp;(Tasks: {user.tasks})</option>
                                 ))}
 
                             </Form.Select>

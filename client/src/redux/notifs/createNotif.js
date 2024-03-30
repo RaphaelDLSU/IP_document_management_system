@@ -9,17 +9,17 @@ export const createNotifs =
 
       let page
       if(link == 'tasks'){
-        page = 'http://localhost:3000/tasks'
+        page = '/tasks'
       }else if(link == 'requests'){
-        page = 'http://localhost:3000/requests'
+        page = '/requests'
       }else if(link =='registration'){
-        page = "http://localhost:3000/registrations"
+        page = "/registrations"
       }else if(link == 'files'){
-        page = "http://localhost:3000/dashboard"
+        page = "/dashboard"
       }else if(link == 'workflows'){
-        page = "http://localhost:3000/workflows"
+        page = "/workflows"
       }else if(link =='requestsmanager'){
-        page = "http://localhost:3000/requestsmanager"
+        page = "/requestsmanager"
       }
 
 

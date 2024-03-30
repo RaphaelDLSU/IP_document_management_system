@@ -2,21 +2,23 @@ import { PDFDocument, rgb, StandardFonts, PDFField, PDFButton } from "pdf-lib";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, setDoc, arrayUnion } from 'firebase/firestore'
 import { createNotifs } from "../notifs/createNotif";
+import moment from "moment";
+import { toast } from 'react-toastify';
 export const createRFI =
-  ({ name, nameEmail, deadline, project, desc, images, submitter, date, response, id, step, origId }, setError) =>
+  ({ category, name, nameEmail, deadline, project, desc, images, submitter, date, response, id, step, origId,date2 }, setError) =>
     async (dispatch) => {
       const database = getFirestore()
       const storage = getStorage();
       let storageRef
       if (step == 1) {
-        storageRef = ref(storage, 'rfiFiles/before');
+        storageRef = ref(storage, 'rfiFiles/before'+id);
       } else if (step == 2) {
-        storageRef = ref(storage, 'rfiFiles/after');
+        storageRef = ref(storage, 'rfiFiles/after'+id);
       }
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
       // Create a new PDFDocument
-      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2F9cWK9cyWOBZVKd9gzGjxqbjhCSv2%2FRFI_Template-1.pdf?alt=media&token=2bb2897d-3fed-4ded-9bb6-7fab9a66dbd0";
+      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FgHUFtURzuuU0ZW5us1KuogcKpKi2%2FRFI_Template_v2.pdf?alt=media&token=200bdf06-2083-4947-a0b2-4685f74bf5d8";
       const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
 
       //Load PDF
@@ -37,39 +39,38 @@ export const createRFI =
       const responseDescriptionField = form.getTextField("Response_Desc");
       const dateField2 = form.getTextField("Date2");
       const responseByField = form.getTextField("Response_By");
-      const attachmentButton = form.getButton("Attachment");
 
       //Fill in basic fields
       rfiField.setText(id);
       if (step == 1) {
-        dateField.setText(new Date().toLocaleDateString());
+        dateField.setText(moment(new Date()).format('l'));
       } else if (step == 2) {
-        dateField.setText(new Date(date.seconds * 1000).toLocaleString());
+        dateField.setText(moment(new Date(date)).format('l'));
       }
 
 
-    // Create a Date object from the timestamp
-    const dateObject = new Date(deadline * 1000); // Multiply by 1000 to convert seconds to milliseconds
+      // Create a Date object from the timestamp
+      const dateObject = new Date(deadline * 1000); // Multiply by 1000 to convert seconds to milliseconds
 
-    // Extract the components (month, day, and year)
-    const month = dateObject.getMonth() + 1; // Months are zero-based, so add 1
-    const day = dateObject.getDate();
-    const year = dateObject.getFullYear();
-    const formattedDate = `${month}/${day}/${year}`
+      // Extract the components (month, day, and year)
+      const month = dateObject.getMonth() + 1; // Months are zero-based, so add 1
+      const day = dateObject.getDate();
+      const year = dateObject.getFullYear();
+      const formattedDate = `${month}/${day}/${year}`
 
 
       submitToField.setText('Manager');
-      neededByField.setText(formattedDate);
+      neededByField.setText(moment(new Date(deadline)).format('l'));
       projectNameField.setText(project);
-      projectNumberField.setText("12345");
+      projectNumberField.setText(category);
       submitByField.setText(name);
       rfiDescriptionField.setText(desc);
       submitByField2.setText(name);
       responseDescriptionField.setText(response);
       if (step == 1) {
-        dateField2.setText(date);
+        dateField2.setText('');
       } else if (step == 2) {
-        dateField2.setText(new Date().toLocaleDateString());
+        dateField2.setText(moment(new Date()).format('l'));
       }
       responseByField.setText(submitter);
 
@@ -113,9 +114,9 @@ export const createRFI =
         })
       }
 
-        
 
 
+      const newDeadline = new Date(deadline)
       let pdfUrl
       // Serialize the PDFDocument to bytes
       const pdfBytes = await pdfDoc.save();
@@ -144,24 +145,32 @@ export const createRFI =
           getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
             console.log('File available at', downloadURL)
             pdfUrl = downloadURL
-            console.log('what the fuck')
             const requestRef = collection(database, "requests")
             if (step == 1) {
               await addDoc(requestRef, {
                 name: name,
-                deadline: deadline,
+                deadline: newDeadline,
                 project: project,
                 date: new Date(),
                 desc: desc,
                 images: images,
                 submitter: submitter,
-                date2: date,
+                date: date,
                 response: response,
                 url: pdfUrl,
                 status: 'for assign',
                 identifier: id,
                 nameEmail: nameEmail,
-                type: 'RFI'
+                type: 'RFI',
+                category: category
+              }).then(() => {
+                dispatch(createNotifs({
+                  title: 'REQUEST SUBMITTED: ' + name,
+                  message: 'An RFI was submitted by ' + id + '. Please check the Requests Manager page to assign an employee to the RFI',
+                  receiverID: 'manager@gmail.com',
+                  link: 'requestsmanager'
+                }))
+                toast.success('Creation of Request Done')
               })
             }
             if (step == 2) {
@@ -173,11 +182,12 @@ export const createRFI =
                 date2: new Date(),
               }).then(() => {
                 dispatch(createNotifs({
-                  title: 'REQUEST SUBMITTED: ' + name,
-                  message: 'An RFI was submitted by ' + id + '. Please check the Requests Manager page to assign an employee to the RFI',
+                  title: 'NEW REQUEST APPROVAL: ' + name,
+                  message: 'An RFI was submitted for approval. Please check the Requests Manager page to view the needed approval',
                   receiverID: 'manager@gmail.com',
                   link: 'requestsmanager'
                 }))
+                toast.success('Done. Please wait for the approval of your submission.')
               })
             }
           });

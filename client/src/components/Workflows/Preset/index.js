@@ -399,6 +399,7 @@ const Home = () => {
                             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                                 <Form.Label>Workflow preset Name</Form.Label>
                                 <Form.Control
+                                    required
                                     type="text"
                                     placeholder="Schematics Process"
                                     autoFocus
@@ -412,6 +413,7 @@ const Home = () => {
                             >
                                 <Form.Label>Description</Form.Label>
                                 <Form.Control
+                                    required
                                     as="textarea"
                                     placeholder='Initial process of designing a project'
                                     rows={3}
@@ -436,11 +438,12 @@ const Home = () => {
                     <Modal.Header closeButton>
                         <Modal.Title>Add Stage</Modal.Title>
                     </Modal.Header>
-                    <Modal.Body>
-                        <Form>
+                    <Form onSubmit={submitTask}>
+                        <Modal.Body>
+
                             <Form.Group>
                                 <Form.Label>Stage Name</Form.Label>
-                                <Form.Control type='text' placeholder="Name the stage" onChange={(e) => setName(e.target.value)}></Form.Control>
+                                <Form.Control required type='text' placeholder="Name the stage" onChange={(e) => setName(e.target.value)}></Form.Control>
                             </Form.Group>
                             <p></p>
                             <Form.Group>
@@ -458,7 +461,7 @@ const Home = () => {
 
                                         {textBoxes.map(({ id, value }) => (
                                             <>
-                                                <Form.Control value={value} type='text' placeholder='Requirement Name' onChange={(e) => handleTextBoxChange(id, e.target.value)}></Form.Control>
+                                                <Form.Control required value={value} type='text' placeholder='Requirement Name' onChange={(e) => handleTextBoxChange(id, e.target.value)}></Form.Control>
                                             </>
                                         ))}
                                     </Form.Group>
@@ -473,8 +476,8 @@ const Home = () => {
                                     {checked && (
                                         <>
                                             <Form.Group>
-                                                <Form.Select onChange={(e) => setApprovalTo(e.target.value)} aria-label="Default select example">
-                                                    <option hidden value>Request Approval to </option>
+                                                <Form.Select required onChange={(e) => setApprovalTo(e.target.value)} aria-label="Default select example">
+                                                    <option hidden value="">Request Approval to </option>
                                                     <option value="CEO">CEO</option>
                                                     <option value="Manager">Manager</option>
                                                     <option value="Manager and CEO">Manager and CEO</option>
@@ -483,8 +486,8 @@ const Home = () => {
                                         </>
                                     )}
                                     <Form.Group>
-                                        <Form.Select onChange={(e) => setAssignTo(e.target.value)} aria-label="Default select example">
-                                            <option hidden value>Assign To: </option>
+                                        <Form.Select required onChange={(e) => setAssignTo(e.target.value)} aria-label="Default select example">
+                                            <option hidden value="">Assign To: </option>
                                             <option value="CEO">CEO</option>
                                             <option value="Manager">Manager</option>
                                             <option value="Employee">Employee</option>
@@ -493,36 +496,42 @@ const Home = () => {
 
                                 </>
                             )}
-                        </Form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <button className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleClose2}>Close</button>
-                        <button className="btn btn-primary" onClick={submitTask}>Create Stage</button>
-                    </Modal.Footer>
+
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <button className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleClose2}>Close</button>
+                            <button className="btn btn-primary" type='submit'>Create Stage</button>
+                        </Modal.Footer>
+                    </Form>
                 </Modal>
 
                 <Modal show={show3} onHide={() => handleClose3} >
 
                     <Modal.Header closeButton> Assign Project for Stage</Modal.Header>
-                    <Modal.Body>
-                        <Form.Select
-                            labelId="demo-simple-select-label"
-                            id="demo-simple-select"
-                            label="Project"
-                            onChange={(e) => setProject(e.target.value)}
-                        >
-                            <option hidden value>Select Project...</option>
-                            {projects.map((project, index) => (
-                                <option key={index} value={project.name}>{project.name}</option>
-                            ))}
-                        </Form.Select>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <button className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleClose3}>Close</button>
-                        <button className="btn btn-primary" onClick={submitProject}>Submit</button>
-                    </Modal.Footer>
+                    <Form onSubmit={submitProject}>
+                        <Modal.Body>
+
+                            <Form.Select
+                                required
+                                labelId="demo-simple-select-label"
+                                id="demo-simple-select"
+                                label="Project"
+                                onChange={(e) => setProject(e.target.value)}
+                            >
+                                <option hidden value>Select Project...</option>
+                                {projects.map((project, index) => (
+                                    <option key={index} value={project.name}>{project.name}</option>
+                                ))}
+                            </Form.Select>
 
 
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <button className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleClose3}>Close</button>
+                            <button className="btn btn-primary" type='submit'>Submit</button>
+                        </Modal.Footer>
+
+                    </Form>
 
                 </Modal>
             </>

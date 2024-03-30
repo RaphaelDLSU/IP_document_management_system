@@ -136,6 +136,7 @@ const Register = () => {
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formBasicName" className="mb-3">
               <Form.Control
+              required
                 type="text"
                 placeholder="Name"
                 value={name}
@@ -144,6 +145,7 @@ const Register = () => {
             </Form.Group>
             <Form.Group controlId="formBasicEmail" className="mb-3">
               <Form.Control
+              required
                 type="email"
                 placeholder="Email"
                 value={email}
@@ -152,6 +154,7 @@ const Register = () => {
             </Form.Group>
             <Form.Group controlId="formBasicPassword" className="mb-3">
               <Form.Control
+              required
                 type="password"
                 placeholder="Password"
                 value={password}
@@ -160,6 +163,7 @@ const Register = () => {
             </Form.Group>
             <Form.Group controlId="formBasicConfirmPassword" className="mb-3">
               <Form.Control
+              required
                 type="password"
                 placeholder="Re-type password"
                 value={confirmPassword}
@@ -167,14 +171,14 @@ const Register = () => {
               />
             </Form.Group>
             <Form.Group controlId="formBasicCheckbox" className="mb-3">
-              <Form.Select onChange={(e) => setRole(e.target.value)}>
+              <Form.Select required onChange={(e) => setRole(e.target.value)}>
                 <option value="" disabled selected hidden>Select Role</option>
                 <option>Employee</option>
                 <option>Requestor</option>
               </Form.Select>
             </Form.Group>
             <Form.Group controlId="formFile" className="mb-3">
-              <Form.Control type="file" accept="image/*" onChange={(e) => setID(e.target.files)} />
+              <Form.Control required type="file" accept="image/*" onChange={(e) => setID(e.target.files)} />
             </Form.Group>
             <Form.Group controlId="formBasicBtn" className="mt-3">
               <Button

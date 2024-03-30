@@ -16,6 +16,8 @@ import { createNotifs } from '../../../redux/notifs/createNotif';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
+import moment from 'moment';
+import { useHistory } from "react-router-dom";
 
 const CEOHome = () => {
     const [notifs, setNotifs] = useState()
@@ -32,7 +34,7 @@ const CEOHome = () => {
         }),
         shallowEqual
     );
-
+    const history = useHistory();
     useEffect(async () => {
         if (user) {
             const f = query(collection(database, "notifs"), where("receiver", "==", user.data.uid), orderBy("date", 'desc'), limit(5));
@@ -45,7 +47,7 @@ const CEOHome = () => {
 
             const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid));
 
-            const fs = query(collection(database, 'requests'), where('employeeId', '==', user.data.uid))
+            const fs = query(collection(database, 'requests'), where('assignTo', '==', user.data.uid))
 
             const something = async () => {
                 await getDocs(q).then(async (task) => {
@@ -86,15 +88,22 @@ const CEOHome = () => {
                     <Row >
                         <Col>
 
-                            <h5> Notifications</h5>
-                            <hr></hr>
+                            <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Notifications</h5>
+
                             <ListGroup>
                                 {notifs ? (
                                     <>
                                         {notifs.map(notif => (
-                                            <a style={{ textDecoration: 'none' }} href={notif.link} rel="noopener noreferrer">
-                                                <ListGroup.Item action>{notif.title}</ListGroup.Item>
-                                            </a>
+                                                <ListGroup.Item action onClick={()=>history.push(notif.link)}
+                                                    className="d-flex justify-content-between align-items-start"
+                                                >
+                                                    <div className="ms-2 me-auto">
+                                                        <div>{notif.title}</div>
+                                                    </div>
+                                                    <Badge bg="primary" pill>
+                                                        {moment(notif.date.toDate()).format('LLL')}
+                                                    </Badge>
+                                                </ListGroup.Item>
 
                                         ))}
                                     </>
@@ -107,8 +116,8 @@ const CEOHome = () => {
 
                         </Col>
                         <Col>
-                            <h5>Tasks</h5>
-                            <hr></hr>
+                            <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Pending Tasks/Approvals</h5>
+
                             <Tabs
                                 defaultActiveKey="tasks"
                                 id="uncontrolled-tab-example"
@@ -119,11 +128,11 @@ const CEOHome = () => {
                                         {tasks ? (
                                             <>
                                                 {tasks.map(task => (
-                                                    <ListGroup.Item action
+                                                    <ListGroup.Item action onClick={()=>history.push('/tasks')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
-                                                            <div>{task.task}</div>
+                                                            <div>{task.task}: {task.requirements[0].value}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
                                                             {task.status}
@@ -138,12 +147,12 @@ const CEOHome = () => {
 
                                     </ListGroup>
                                 </Tab>
-                                <Tab eventKey="requests" title="Requests">
+                                <Tab eventKey="requests" title="RFA/RFI">
                                     <ListGroup >
                                         {requests ? (
                                             <>
                                                 {requests.map(request => (
-                                                    <ListGroup.Item action
+                                                    <ListGroup.Item action onClick={()=>history.push('/requestsmanager')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">

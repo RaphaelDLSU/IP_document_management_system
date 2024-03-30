@@ -178,7 +178,7 @@ const TaskMonitoring = () => {
                       <td> {task.requirements.map((req, index) => (
                         <>
                           {req.url ? (
-                            <a href={req.url}>{req.value}</a>
+                            <a href={req.url} target='_blank'>{req.value}</a>
                           ) : (
                             <>
                               {req.value}
@@ -212,7 +212,7 @@ const TaskMonitoring = () => {
 
                     {role && role != 'Employee' && (
                       <>
-                        <td><Button onClick={() => showTaskDeletion(task)}>Delete</Button></td>
+                        <td><Button onClick={() => showTaskDeletion(task)} size='sm'>Delete</Button></td>
                       </>
                     )}
 
@@ -243,7 +243,7 @@ const TaskMonitoring = () => {
               <tbody>
                 {taskCompleted.map(task => (
                   <tr key={task.id}>
-                    {task.workflowname !== '' ? (
+                    {task.workflowname ? (
                       <td>{task.workflowname}</td>
                     ) : (
                       <td>None</td>
@@ -254,7 +254,7 @@ const TaskMonitoring = () => {
                       <td> {task.requirements.map((req, index) => (
                         <>
                           {req.url ? (
-                            <a href={req.url}>{req.value}</a>
+                            <a href={req.url} target='_blank'>{req.value}</a>
                           ) : (
                             <>
                               {req.value}

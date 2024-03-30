@@ -24,6 +24,7 @@ const Login = () => {
       password,
     };
     dispatch(loginUser(data, setError));
+    history.push('/')
   };
 
   useEffect(() => {
@@ -44,6 +45,7 @@ const Login = () => {
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formBasicEmail" className="mb-3">
               <Form.Control
+                required
                 type="email"
                 placeholder="Email"
                 value={email}
@@ -52,6 +54,7 @@ const Login = () => {
             </Form.Group>
             <Form.Group controlId="formBasicPassword" className="mb-3">
               <Form.Control
+                required
                 type="password"
                 placeholder="Password"
                 value={password}
