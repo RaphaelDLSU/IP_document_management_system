@@ -9,7 +9,9 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Accordion from 'react-bootstrap/Accordion';
 import Table from 'react-bootstrap/Table';
-
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 import Form from 'react-bootstrap/Form';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
@@ -25,6 +27,10 @@ import { autoAssign } from '../../../redux/workload/autoAssign';
 import { toast } from 'react-toastify';
 
 const Home = () => {
+    const [users, setUsers] = useState([]);
+
+    const [requestsCompletedInit, setRequestsCompletedInit] = useState();
+    const [requestsPendingInit, setRequestsPendingInit] = useState();
     const [autoEmployee, setAutoEmployee] = useState()
     const [autoEmployeeID, setAutoEmployeeID] = useState()
     const [requestsPending, setRequestsPending] = useState([])
@@ -116,6 +122,7 @@ const Home = () => {
         }
 
     }
+    const usersRef = collection(database, "users");
 
     const handleReport = (id) => {
         const doc = new jsPDF({ orientation: "landscape" });
@@ -133,6 +140,7 @@ const Home = () => {
 
         await getDocs(q).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+            setRequestsPendingInit(requestsData)
             setRequestsDone(requestsData)
         }).catch((err) => {
             console.log(err);
@@ -140,6 +148,7 @@ const Home = () => {
 
         await getDocs(f).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+            setRequestsCompletedInit(requestsData)
             setRequestsPending(requestsData)
             setLoading(false)
         }).catch((err) => {
@@ -158,6 +167,18 @@ const Home = () => {
         }
         getEmployees()
 
+        const getUsers = async () => {
+            // const q = query(collectionRef, orderBy('task', 'asc'))
+            const q = query(usersRef)
+            await getDocs(q).then((users) => {
+              let usersData = users.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+              setUsers(usersData)
+            }).catch((err) => {
+              console.log(err);
+            })
+          }
+          getUsers()
+
 
     }, []);
 
@@ -171,6 +192,217 @@ const Home = () => {
             setAutoEmployee(employeeRef.data().name)
         })
     }
+
+    const resetFilterPending = () => {
+        setRequestsPending(requestsPendingInit)
+    }
+    const sortFilterPending = (sort) => {
+
+        if (sort == 'End Date Descending') {
+
+            const filter = requestsPending.sort((a, b) => b.deadline - a.deadline)
+            setRequestsPending([...filter])
+        } else if (sort == 'End Date Ascending') {
+
+            const filter = requestsPending.sort((a, b) => a.deadline - b.deadline)
+            setRequestsPending([...filter])
+        }
+        else if (sort == 'Start Date Ascending') {
+
+            const filter = requestsPending.sort((a, b) => a.date - b.date)
+            setRequestsPending([...filter])
+        }
+        else if (sort == 'Start Date Descending') {
+
+            const filter = requestsPending.sort((a, b) => b.date - a.date)
+            setRequestsPending([...filter])
+        }
+    }
+
+    const filterTaskPending = (filter) => {
+
+        const filteredTasks = requestsPending.filter(data => data.desc.includes(filter))
+
+        setRequestsPending(filteredTasks)
+
+    }
+
+    const filterEmployeePending = (filter) => {
+
+        const filteredTasks = requestsPending.filter(data => data.submitter.includes(filter))
+
+        setRequestsPending(filteredTasks)
+
+    }
+    const filterStartPending = (filter) => {
+        if (filter == '1 week') {
+            const seventhDay = new Date();
+            seventhDay.setDate(seventhDay.getDate() - 7);
+
+            const filteredData = requestsPending.filter((d) => {
+                return d.date.toDate().getTime() >= seventhDay.getTime();
+            });
+
+            setRequestsPending(filteredData)
+        } else if (filter == '1 month') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const filteredData = requestsPending.filter((d) => {
+                return d.date.toDate().getTime() >= thirtyDaysAgo.getTime();
+            });
+
+            setRequestsPending(filteredData)
+        } else if (filter == '3 months') {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+            const filteredData = requestsPending.filter((d) => {
+                return d.date.toDate().getTime() >= threeMonthsAgo.getTime();
+            });
+
+            setRequestsPending(filteredData)
+        }
+    }
+    const filterEndPending = (filter) => {
+
+        if (filter == '1 week') {
+            const seventhDay = new Date();
+            seventhDay.setDate(seventhDay.getDate() - 7);
+
+            const filteredData = requestsPending.filter((d) => {
+                return d.deadline.toDate().getTime() >= seventhDay.getTime();
+            });
+
+            setRequestsPending(filteredData)
+        } else if (filter == '1 month') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const filteredData = requestsPending.filter((d) => {
+                return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+            });
+
+            setRequestsPending(filteredData)
+        } else if (filter == '3 months') {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+            const filteredData = requestsPending.filter((d) => {
+                return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+            });
+
+            setRequestsPending(filteredData)
+        }
+
+    }
+
+    const resetFilterCompleted = () => {
+        setRequestsDone(requestsCompletedInit)
+    }
+    const sortFilterCompleted = (sort) => {
+
+        if (sort == 'End Date Descending') {
+
+            const filter = requestsDone.sort((a, b) => b.deadline - a.deadline)
+            setRequestsDone([...filter])
+        } else if (sort == 'End Date Ascending') {
+
+            const filter = requestsDone.sort((a, b) => a.deadline - b.deadline)
+            setRequestsDone([...filter])
+        }
+        else if (sort == 'Start Date Ascending') {
+
+            const filter = requestsDone.sort((a, b) => a.date - b.date)
+            setRequestsDone([...filter])
+        }
+        else if (sort == 'Start Date Descending') {
+
+            const filter = requestsDone.sort((a, b) => b.date - a.date)
+            setRequestsDone([...filter])
+        }
+   
+    }
+
+    const filterTaskCompleted = (filter) => {
+
+        const filteredTasks = requestsDone.filter(data => data.desc.includes(filter))
+
+        setRequestsDone(filteredTasks)
+
+    }
+
+    const filterEmployeeCompleted = (filter) => {
+
+        const filteredTasks = requestsDone.filter(data => data.submitter.includes(filter))
+
+        setRequestsDone(filteredTasks)
+
+    }
+    const filterStartCompleted = (filter) => {
+        if (filter == '1 week') {
+            const seventhDay = new Date();
+            seventhDay.setDate(seventhDay.getDate() - 7);
+
+            const filteredData = requestsDone.filter((d) => {
+                return d.date.toDate().getTime() >= seventhDay.getTime();
+            });
+
+
+            setRequestsDone(filteredData)
+        } else if (filter == '1 month') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const filteredData = requestsDone.filter((d) => {
+                return d.date.toDate().getTime() >= thirtyDaysAgo.getTime();
+            });
+
+            setRequestsDone(filteredData)
+        } else if (filter == '3 months') {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+            const filteredData = setRequestsDone.filter((d) => {
+                return d.date.toDate().getTime() >= threeMonthsAgo.getTime();
+            });
+
+            setRequestsDone(filteredData)
+        }
+    }
+    const filterEndCompleted = (filter) => {
+
+        if (filter == '1 week') {
+            const seventhDay = new Date();
+            seventhDay.setDate(seventhDay.getDate() - 7);
+
+            const filteredData = requestsDone.filter((d) => {
+                return d.deadline.toDate().getTime() >= seventhDay.getTime();
+            });
+
+            setRequestsDone(filteredData)
+        } else if (filter == '1 month') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            const filteredData = requestsDone.filter((d) => {
+                return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+            });
+
+            setRequestsDone(filteredData)
+        } else if (filter == '3 months') {
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+            const filteredData = requestsDone.filter((d) => {
+                return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+            });
+
+            setRequestsDone(filteredData)
+        }
+
+    }
+
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -195,7 +427,67 @@ const Home = () => {
                             className="mb-3"
                         >
                             <Tab eventKey="pending" title="Pending" >
-                                <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
+                                <Container style={{ maxWidth: "100%" }}>
+                                    <Row xs="auto">
+                                        <Col>
+                                            <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
+                                        </Col>
+                                        <Col>
+                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterPending(e.target.value)}>
+                                                <option value="" hidden>Sort By</option>
+                                                <option value="End Date Descending"> End Date Descending</option>
+                                                <option value="End Date Ascending"> End Date Ascending</option>
+                                                <option value="Start Date Ascending"> Start Date Ascending</option>
+                                                <option value="Start Date Descending"> Start Date Descending</option>
+                                        
+                                            </Form.Select>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="text"
+                                                onChange={(e) => filterTaskPending(e.target.value)}
+                                                placeholder='Filter by Query'
+                                            />
+                                        </Col>
+                                        <Col>
+                                            <Form.Select onChange={(e) => filterEmployeePending(e.target.value)}>
+                                                <option value="" hidden>Sort By Employee</option>
+                                                {users.map((user, index) => (
+                                                    <>
+
+                                                        <option>{user.name}</option>
+
+                                                    </>
+
+                                                ))}
+                                            </Form.Select>
+
+                                        </Col>
+                                        <Col>
+                                            <Form.Select onChange={(e) => filterStartPending(e.target.value)}>
+                                                <option value="" hidden>Filter Date Requested</option>
+                                                <option value='1 week'>1 week</option>
+                                                <option value='1 month'>1 Month</option>
+                                                <option value='3 months'>3 Months</option>
+
+                                            </Form.Select>
+
+                                        </Col>
+                                        <Col>
+                                            <Form.Select onChange={(e) => filterEndPending(e.target.value)}>
+                                                <option value="" hidden>Filter Deadline</option>
+                                                <option value='1 week'>1 week</option>
+                                                <option value='1 month'>1 Month</option>
+                                                <option value='3 months'>3 Months</option>
+
+                                            </Form.Select>
+
+                                        </Col>
+                                        <Col>
+                                            <Button onClick={resetFilterPending}>Reset</Button>
+                                        </Col>
+                                    </Row>
+                                </Container>
                                 <p></p>
                                 <Table id='table-pending' striped bordered hover>
                                     <thead>
@@ -207,7 +499,7 @@ const Home = () => {
                                             <th>Deadline</th>
                                             <th>Assigned to </th>
                                             <th>Status </th>
-                                          
+
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -244,7 +536,66 @@ const Home = () => {
 
                             </Tab>
                             <Tab eventKey="completed" title="Completed" >
-                                <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
+                                <Container style={{ maxWidth: "100%" }}>
+                                    <Row xs="auto">
+                                        <Col>
+                                            <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
+                                        </Col>
+                                        <Col>
+                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterCompleted(e.target.value)}>
+                                                <option value="" hidden>Sort By</option>
+                                                <option value="End Date Descending"> End Date Descending</option>
+                                                <option value="End Date Ascending"> End Date Ascending</option>
+                                                <option value="Start Date Ascending"> Start Date Ascending</option>
+                                                <option value="Start Date Descending"> Start Date Descending</option>
+                                            </Form.Select>
+                                        </Col>
+                                        <Col>
+                                            <Form.Control
+                                                type="text"
+                                                onChange={(e) => filterTaskCompleted(e.target.value)}
+                                                placeholder='Filter by Query'
+                                            />
+                                        </Col>
+                                        <Col>
+                                            <Form.Select onChange={(e) => filterEmployeeCompleted(e.target.value)}>
+                                                <option value="" hidden>Sort By Employee</option>
+                                                {users.map((user, index) => (
+                                                    <>
+
+                                                        <option>{user.name}</option>
+
+                                                    </>
+
+                                                ))}
+                                            </Form.Select>
+
+                                        </Col>
+                                        <Col>
+                                            <Form.Select onChange={(e) => filterStartCompleted(e.target.value)}>
+                                                <option value="" hidden>Filter Date Requested</option>
+                                                <option value='1 week'>1 week</option>
+                                                <option value='1 month'>1 Month</option>
+                                                <option value='3 months'>3 Months</option>
+
+                                            </Form.Select>
+
+                                        </Col>
+                                        <Col>
+                                            <Form.Select onChange={(e) => filterEndCompleted(e.target.value)}>
+                                                <option value="" hidden>Filter Deadline</option>
+                                                <option value='1 week'>1 week</option>
+                                                <option value='1 month'>1 Month</option>
+                                                <option value='3 months'>3 Months</option>
+
+                                            </Form.Select>
+
+                                        </Col>
+                                        <Col>
+                                            <Button onClick={resetFilterCompleted}>Reset</Button>
+                                        </Col>
+                                    </Row>
+                                </Container>
                                 <p></p>
                                 <Table id='table-completed' striped bordered hover>
                                     <thead>
@@ -254,10 +605,9 @@ const Home = () => {
                                             <th>Deadline</th>
                                             <th>Date Requested</th>
                                             <th>Date Responded</th>
-
                                             <th>Assigned to </th>
                                             <th>Status </th>
-              
+
                                         </tr>
                                     </thead>
                                     <tbody>

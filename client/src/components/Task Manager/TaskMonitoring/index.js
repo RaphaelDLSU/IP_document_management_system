@@ -28,6 +28,7 @@ import { createNotifs } from '../../../redux/notifs/createNotif';
 import { toast } from 'react-toastify';
 
 const TaskMonitoring = () => {
+  const [projects, setProjects] = useState([])
   const [show, setShow] = useState(false);
 
   const handleClose = () => setShow(false);
@@ -123,6 +124,17 @@ const TaskMonitoring = () => {
       })
     }
     getUsers()
+
+    const getProjects = async () => {
+      const q = query(collection(database, 'projects'))
+      await getDocs(q).then((project) => {
+        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setProjects(projectData)
+      }).catch((err) => {
+        console.log(err);
+      })
+    }
+    getProjects()
   }, [])
 
   useEffect(async () => {
@@ -249,7 +261,7 @@ const TaskMonitoring = () => {
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksPending.filter((d) => {
-        return new Date(d.timestamp).getTime() >= seventhDay.getTime();
+        return d.timestamp.toDate().getTime() >= seventhDay.getTime();
       });
 
       setTasksPending(filteredData)
@@ -258,7 +270,7 @@ const TaskMonitoring = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksPending.filter((d) => {
-        return new Date(d.timestamp).getTime() >= thirtyDaysAgo.getTime();
+        return d.timestamp.getTime() >= thirtyDaysAgo.getTime();
       });
 
       setTasksPending(filteredData)
@@ -267,7 +279,7 @@ const TaskMonitoring = () => {
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksPending.filter((d) => {
-        return new Date(d.timestamp).getTime() >= threeMonthsAgo.getTime();
+        return d.timestamp.getTime() >= threeMonthsAgo.getTime();
       });
 
       setTasksPending(filteredData)
@@ -280,7 +292,7 @@ const TaskMonitoring = () => {
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksPending.filter((d) => {
-        return new Date(d.deadline).getTime() >= seventhDay.getTime();
+        return d.deadline.toDate().getTime() >= seventhDay.getTime();
       });
 
       setTasksPending(filteredData)
@@ -289,7 +301,7 @@ const TaskMonitoring = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksPending.filter((d) => {
-        return new Date(d.deadline).getTime() >= thirtyDaysAgo.getTime();
+        return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
       });
 
       setTasksPending(filteredData)
@@ -298,7 +310,7 @@ const TaskMonitoring = () => {
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksPending.filter((d) => {
-        return new Date(d.deadline).getTime() >= threeMonthsAgo.getTime();
+        return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
       });
 
       setTasksPending(filteredData)
@@ -369,6 +381,16 @@ const TaskMonitoring = () => {
 
   }
 
+  const filterProjectCompleted = (filter) => {
+    const filteredTasks = tasksCompleted.filter(data => data.project.includes(filter))
+
+    setTasksCompleted(filteredTasks)
+  }
+  const filterProjectPending = (filter) => {
+    const filteredTasks = tasksPending.filter(data => data.project.includes(filter))
+
+    setTasksPending(filteredTasks)
+  }
 
   if (loading) {
     return (
@@ -404,6 +426,18 @@ const TaskMonitoring = () => {
                   </Form.Select>
                 </Col>
                 <Col>
+                  <Form.Select onChange={(e) => filterProjectPending(e.target.value)}>
+                    <option value="" hidden>Filter by Project</option>
+                    {projects.map((project, index) => (
+                      <>
+                        <option value={project.name}>{project.name}</option>
+                      </>
+
+                    ))}
+                  </Form.Select>
+
+                </Col>
+                <Col>
                   <Form.Control
                     type="text"
                     onChange={(e) => filterTaskPending(e.target.value)}
@@ -436,7 +470,7 @@ const TaskMonitoring = () => {
                 </Col>
                 <Col>
                   <Form.Select onChange={(e) => filterEndPending(e.target.value)}>
-                    <option value="" hidden>Filter Start Date</option>
+                    <option value="" hidden>Filter End Date</option>
                     <option value='1 week'>1 week</option>
                     <option value='1 month'>1 Month</option>
                     <option value='3 months'>3 Months</option>
@@ -500,13 +534,13 @@ const TaskMonitoring = () => {
 
                     )}
                     {task.status == 'for submission' && (
-                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                      <td style={{ backgroundColor: "red", color: 'white'  }}>Pending</td>
                     )}
                     {task.status == 'done' && (
-                      <td style={{ backgroundColor: "green" }}>Completed</td>
+                      <td style={{ backgroundColor: "green", color: 'white' }}>Completed</td>
                     )}
                     {task.status == 'for approval' && (
-                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                      <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
                     )}
 
 
@@ -541,6 +575,18 @@ const TaskMonitoring = () => {
                   </Form.Select>
                 </Col>
                 <Col>
+                  <Form.Select onChange={(e) => filterProjectCompleted(e.target.value)}>
+                    <option value="" hidden>Filter by Project</option>
+                    {projects.map((project, index) => (
+                      <>
+                        <option value={project.name}>{project.name}</option>
+                      </>
+
+                    ))}
+                  </Form.Select>
+
+                </Col>
+                <Col>
                   <Form.Control
                     type="text"
                     onChange={(e) => filterTaskCompleted(e.target.value)}
@@ -573,7 +619,7 @@ const TaskMonitoring = () => {
                 </Col>
                 <Col>
                   <Form.Select onChange={(e) => filterEndCompleted(e.target.value)}>
-                    <option value="" hidden>Filter Start Date</option>
+                    <option value="" hidden>Filter End Date</option>
                     <option value='1 week'>1 week</option>
                     <option value='1 month'>1 Month</option>
                     <option value='3 months'>3 Months</option>
@@ -640,13 +686,13 @@ const TaskMonitoring = () => {
 
                     )}
                     {task.status == 'for submission' && (
-                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                      <td style={{ backgroundColor: "red", color: 'white'  }}>Pending</td>
                     )}
                     {task.status == 'done' && (
-                      <td style={{ backgroundColor: "green" }}>Completed</td>
+                      <td style={{ backgroundColor: "green", color: 'white' }}>Completed</td>
                     )}
                     {task.status == 'for approval' && (
-                      <td style={{ backgroundColor: "red" }}>Pending</td>
+                      <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
                     )}
 
                   </tr>
