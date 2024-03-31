@@ -38,15 +38,9 @@ app.post("/summary", async function (req, res) {
     sampleFile = req.files.uploadedFile
     const uploadPath = path.join(__dirname, '/tmp/', sampleFile.name)
 
-
-
     console.log('upload path: ' + uploadPath)
 
-
-
-
     sampleFile.mv(uploadPath, async function (err) {
-
 
         console.log('it worked')
 

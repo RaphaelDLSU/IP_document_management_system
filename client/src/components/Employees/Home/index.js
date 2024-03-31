@@ -244,13 +244,13 @@ const Home = () => {
 
             let timestamp = task.startDate
 
-            console.log('timestamp ' +timestamp)
+            console.log('timestamp ' + timestamp)
             const taskDate = new Date(timestamp).getDate();
-            console.log('date  ' +taskDate)
+            console.log('date  ' + taskDate)
             const taskMonth = new Date(timestamp).getMonth();
-            console.log('month  ' +taskMonth)
+            console.log('month  ' + taskMonth)
             const taskYear = new Date(timestamp).getFullYear();
-            console.log('year  ' +taskYear)
+            console.log('year  ' + taskYear)
 
             return taskDate === 28 && taskMonth === 2 && taskYear === 2024; // March is month index 2
         });
@@ -269,14 +269,14 @@ const Home = () => {
                 <h2>Employees</h2>
                 <hr></hr>
                 <div className='content' style={{ padding: '5px' }}>
-                    <input type='text' onChange={(e) => handleFilter(e.target.value)}></input> <Button onClick={handleReset}>Reset</Button><Button onClick={handle28}>March 28</Button>
-                    <Table striped bordered hover>
+                    {/* <input type='text' onChange={(e) => handleFilter(e.target.value)}></input> <Button onClick={handleReset}>Reset</Button><Button onClick={handle28}>March 28</Button> */}
+                    {/*<Table striped bordered hover>
                         <thead>
                             <tr>
                                 <th>Name</th>
                                 <th>Start date</th>
                                 <th>End date</th>
-                                <th>Status</th>
+                                <th>Status</th> 
                             </tr>
                         </thead>
                         <tbody>
@@ -293,7 +293,8 @@ const Home = () => {
 
 
                     </Table>
-                    {/* <Table striped bordered hover>
+                    */}
+                    <Table striped bordered hover>
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -313,7 +314,7 @@ const Home = () => {
                             ))}
 
                         </tbody>
-                    </Table> */}
+                    </Table>
                 </div>
             </div>
 

@@ -24,6 +24,7 @@ import { FaFileAlt } from "react-icons/fa";
 import { getFirestore, doc, deleteDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
 import Button from 'react-bootstrap/Button';
+import { FaTrashAlt } from "react-icons/fa";
 const FolderComponent = () => {
   const [myState, setMyState] = useState([]);
   const { folderId } = useParams();
@@ -127,10 +128,11 @@ const FolderComponent = () => {
             {createdFiles.map(({ data, docId }) => (
 
               <ListGroup.Item
+              className="d-flex align-items-center"
               action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt />{data.name} <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
+                <FaFileAlt />{data.name} <Button onClick={()=>handleDeleteFile(docId)}><FaTrashAlt /></Button>
 
               </ListGroup.Item>
             ))}
@@ -140,10 +142,11 @@ const FolderComponent = () => {
           <>
             {uploadedFiles.map(({ data, docId }) => (
               <ListGroup.Item
+              className="d-flex align-items-center"
               action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt  />{data.name} <Button style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}>Delete</Button>
+                <FaFileAlt  />{data.name} <Button size="sm"  style={{position:'absolute',right:'0'}} onClick={()=>handleDeleteFile(docId)}><FaTrashAlt /></Button>
 
               </ListGroup.Item>
             ))}

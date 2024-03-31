@@ -10,10 +10,13 @@ import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Accordion from 'react-bootstrap/Accordion';
 import Table from 'react-bootstrap/Table';
-
+import Dropdown from 'react-bootstrap/Dropdown';
 import Form from 'react-bootstrap/Form';
 
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 import '../../../App.css'
 import Spinner from 'react-bootstrap/Spinner';
@@ -31,12 +34,15 @@ const TaskMonitoring = () => {
   const dispatch = useDispatch();
 
   const [task, setTask] = useState();
+  const [tasksCompletedInit, setTasksCompletedInit] = useState();
+  const [tasksPendingInit, setTasksPendingInit] = useState();
+
   const [taskIDName, setTaskIDName] = useState();
   const database = getFirestore()
   const [users, setUsers] = useState([]);
   const usersRef = collection(database, "users");
   const [tasksPending, setTasksPending] = useState([]);
-  const [taskCompleted, setTasksCompleted] = useState([]);
+  const [tasksCompleted, setTasksCompleted] = useState([]);
   const collectionRef = collection(database, 'tasks')
   const [loading, setLoading] = useState(true)
   const [firstRender, setFirstRender] = useState(true);
@@ -49,6 +55,7 @@ const TaskMonitoring = () => {
     }),
     shallowEqual
   );
+
   const handleReport = (id) => {
     const doc = new jsPDF({ orientation: "landscape" });
 
@@ -87,6 +94,7 @@ const TaskMonitoring = () => {
       const q = query(collectionRef, where('status', '!=', 'done'))
       await getDocs(q).then((tasks) => {
         let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setTasksPendingInit(tasksData)
         setTasksPending(tasksData)
       }).catch((err) => {
         console.log(err);
@@ -95,6 +103,7 @@ const TaskMonitoring = () => {
       const f = query(collectionRef, where('status', '==', 'done'))
       await getDocs(f).then((tasks) => {
         let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setTasksCompletedInit(tasksData)
         setTasksCompleted(tasksData)
       }).catch((err) => {
         console.log(err);
@@ -131,6 +140,234 @@ const TaskMonitoring = () => {
     }
   }, [user])
 
+  const resetFilterCompleted = () => {
+    setTasksCompleted(tasksCompletedInit)
+  }
+  const sortFilterCompleted = (sort) => {
+
+    if (sort == 'End Date Descending') {
+
+      const filter = tasksCompleted.sort((a, b) => b.deadline - a.deadline)
+      setTasksCompleted([...filter])
+    } else if (sort == 'End Date Ascending') {
+
+      const filter = tasksCompleted.sort((a, b) => a.deadline - b.deadline)
+      setTasksCompleted([...filter])
+    }
+    else if (sort == 'Start Date Ascending') {
+
+      const filter = tasksCompleted.sort((a, b) => a.timestamp - b.timestamp)
+      setTasksCompleted([...filter])
+    }
+    else if (sort == 'Start Date Descending') {
+
+      const filter = tasksCompleted.sort((a, b) => b.timestamp - a.timestamp)
+      setTasksCompleted([...filter])
+    }
+    else if (sort == 'No. of Hours Descending') {
+
+      const filter = tasksCompleted.sort((a, b) => b.hours - a.hours)
+      setTasksCompleted([...filter])
+    }
+    else if (sort == 'No. of Hours Ascending') {
+
+      const filter = tasksCompleted.sort((a, b) => a.hours - a.hours)
+      setTasksCompleted([...filter])
+    }
+  }
+
+  const filterTaskCompleted = (filter) => {
+
+    const filteredTasks = tasksCompleted.filter(data => data.task.includes(filter))
+
+    setTasksCompleted(filteredTasks)
+
+  }
+
+  const filterEmployeeCompleted = (filter) => {
+
+    const filteredTasks = tasksCompleted.filter(data => data.employee.includes(filter))
+
+    setTasksCompleted(filteredTasks)
+
+  }
+
+  const resetFilterPending = () => {
+    setTasksPending(tasksPendingInit)
+  }
+  const sortFilterPending = (sort) => {
+
+    if (sort == 'End Date Descending') {
+
+      const filter = tasksPending.sort((a, b) => b.deadline - a.deadline)
+      setTasksPending([...filter])
+    } else if (sort == 'End Date Ascending') {
+
+      const filter = tasksPending.sort((a, b) => a.deadline - b.deadline)
+      setTasksPending([...filter])
+    }
+    else if (sort == 'Start Date Ascending') {
+
+      const filter = tasksPending.sort((a, b) => a.timestamp - b.timestamp)
+      setTasksPending([...filter])
+    }
+    else if (sort == 'Start Date Descending') {
+
+      const filter = tasksPending.sort((a, b) => b.timestamp - a.timestamp)
+      setTasksPending([...filter])
+    }
+    else if (sort == 'No. of Hours Descending') {
+
+      const filter = tasksPending.sort((a, b) => b.hours - a.hours)
+      setTasksPending([...filter])
+    }
+    else if (sort == 'No. of Hours Ascending') {
+
+      const filter = tasksPending.sort((a, b) => a.hours - a.hours)
+      setTasksPending([...filter])
+    }
+  }
+
+  const filterTaskPending = (filter) => {
+
+    const filteredTasks = tasksPending.filter(data => data.task.includes(filter))
+
+    setTasksPending(filteredTasks)
+
+  }
+
+  const filterEmployeePending = (filter) => {
+
+    const filteredTasks = tasksCompleted.filter(data => data.employee.includes(filter))
+
+    setTasksPending(filteredTasks)
+
+  }
+  const filterStartPending = (filter) => {
+    if (filter == '1 week') {
+      const seventhDay = new Date();
+      seventhDay.setDate(seventhDay.getDate() - 7);
+
+      const filteredData = tasksPending.filter((d) => {
+        return new Date(d.timestamp).getTime() >= seventhDay.getTime();
+      });
+
+      setTasksPending(filteredData)
+    } else if (filter == '1 month') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const filteredData = tasksPending.filter((d) => {
+        return new Date(d.timestamp).getTime() >= thirtyDaysAgo.getTime();
+      });
+
+      setTasksPending(filteredData)
+    } else if (filter == '3 months') {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+      const filteredData = tasksPending.filter((d) => {
+        return new Date(d.timestamp).getTime() >= threeMonthsAgo.getTime();
+      });
+
+      setTasksPending(filteredData)
+    }
+  }
+  const filterEndPending = (filter) => {
+
+    if (filter == '1 week') {
+      const seventhDay = new Date();
+      seventhDay.setDate(seventhDay.getDate() - 7);
+
+      const filteredData = tasksPending.filter((d) => {
+        return new Date(d.deadline).getTime() >= seventhDay.getTime();
+      });
+
+      setTasksPending(filteredData)
+    } else if (filter == '1 month') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const filteredData = tasksPending.filter((d) => {
+        return new Date(d.deadline).getTime() >= thirtyDaysAgo.getTime();
+      });
+
+      setTasksPending(filteredData)
+    } else if (filter == '3 months') {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+      const filteredData = tasksPending.filter((d) => {
+        return new Date(d.deadline).getTime() >= threeMonthsAgo.getTime();
+      });
+
+      setTasksPending(filteredData)
+    }
+
+  }
+  const filterStartCompleted = (filter) => {
+    if (filter == '1 week') {
+      const seventhDay = new Date();
+      seventhDay.setDate(seventhDay.getDate() - 7);
+
+      const filteredData = tasksCompleted.filter((d) => {
+        return d.timestamp.toDate().getTime() >= seventhDay.getTime();
+      });
+
+
+      setTasksCompleted(filteredData)
+    } else if (filter == '1 month') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const filteredData = tasksCompleted.filter((d) => {
+        return d.timestamp.toDate().getTime() >= thirtyDaysAgo.getTime();
+      });
+
+      setTasksCompleted(filteredData)
+    } else if (filter == '3 months') {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+      const filteredData = tasksCompleted.filter((d) => {
+        return d.timestamp.toDate().getTime() >= threeMonthsAgo.getTime();
+      });
+
+      setTasksCompleted(filteredData)
+    }
+  }
+  const filterEndCompleted = (filter) => {
+
+    if (filter == '1 week') {
+      const seventhDay = new Date();
+      seventhDay.setDate(seventhDay.getDate() - 7);
+
+      const filteredData = tasksCompleted.filter((d) => {
+        return d.deadline.toDate().getTime() >= seventhDay.getTime();
+      });
+
+      setTasksCompleted(filteredData)
+    } else if (filter == '1 month') {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const filteredData = tasksCompleted.filter((d) => {
+        return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+      });
+
+      setTasksCompleted(filteredData)
+    } else if (filter == '3 months') {
+      const threeMonthsAgo = new Date();
+      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+      const filteredData = tasksCompleted.filter((d) => {
+        return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+      });
+
+      setTasksCompleted(filteredData)
+    }
+
+  }
 
 
   if (loading) {
@@ -147,8 +384,71 @@ const TaskMonitoring = () => {
           id="uncontrolled-tab-example"
           className="mb-3"
         >
+
           <Tab eventKey="pending" title="Pending">
-            <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
+
+            <Container style={{ maxWidth: "100%" }}>
+              <Row xs="auto">
+                <Col>
+                  <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
+                </Col>
+                <Col>
+                  <Form.Select placeholder='Sort By' onChange={(e) => sortFilterPending(e.target.value)}>
+                    <option value="" hidden>Sort By</option>
+                    <option value="End Date Descending"> End Date Descending</option>
+                    <option value="End Date Ascending"> End Date Ascending</option>
+                    <option value="Start Date Ascending"> Start Date Ascending</option>
+                    <option value="Start Date Descending"> Start Date Descending</option>
+                    <option value="No. of Hours Descending"> No. of Hours Descending</option>
+                    <option value="No. of Hours Ascending"> No. of Hours Ascending</option>
+                  </Form.Select>
+                </Col>
+                <Col>
+                  <Form.Control
+                    type="text"
+                    onChange={(e) => filterTaskPending(e.target.value)}
+                    placeholder='Filter by Task/Plan'
+                  />
+                </Col>
+                <Col>
+                  <Form.Select onChange={(e) => filterEmployeePending(e.target.value)}>
+                    <option value="" hidden>Sort By Employee</option>
+                    {users.map((user, index) => (
+                      <>
+
+                        <option>{user.name}</option>
+
+                      </>
+
+                    ))}
+                  </Form.Select>
+
+                </Col>
+                <Col>
+                  <Form.Select onChange={(e) => filterStartPending(e.target.value)}>
+                    <option value="" hidden>Filter Start Date</option>
+                    <option value='1 week'>1 week</option>
+                    <option value='1 month'>1 Month</option>
+                    <option value='3 months'>3 Months</option>
+
+                  </Form.Select>
+
+                </Col>
+                <Col>
+                  <Form.Select onChange={(e) => filterEndPending(e.target.value)}>
+                    <option value="" hidden>Filter Start Date</option>
+                    <option value='1 week'>1 week</option>
+                    <option value='1 month'>1 Month</option>
+                    <option value='3 months'>3 Months</option>
+
+                  </Form.Select>
+
+                </Col>
+                <Col>
+                  <Button onClick={resetFilterPending}>Reset</Button>
+                </Col>
+              </Row>
+            </Container>
             <p></p>
             <Table id='table-pending' striped bordered hover>
               <thead>
@@ -224,7 +524,68 @@ const TaskMonitoring = () => {
             </Table>
           </Tab>
           <Tab eventKey="completed" title="Completed">
-            <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
+            <Container style={{ maxWidth: "100%" }}>
+              <Row xs="auto">
+                <Col>
+                  <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
+                </Col>
+                <Col>
+                  <Form.Select placeholder='Sort By' onChange={(e) => sortFilterCompleted(e.target.value)}>
+                    <option value="" hidden>Sort By</option>
+                    <option value="End Date Descending"> End Date Descending</option>
+                    <option value="End Date Ascending"> End Date Ascending</option>
+                    <option value="Start Date Ascending"> Start Date Ascending</option>
+                    <option value="Start Date Descending"> Start Date Descending</option>
+                    <option value="No. of Hours Descending"> No. of Hours Descending</option>
+                    <option value="No. of Hours Ascending"> No. of Hours Ascending</option>
+                  </Form.Select>
+                </Col>
+                <Col>
+                  <Form.Control
+                    type="text"
+                    onChange={(e) => filterTaskCompleted(e.target.value)}
+                    placeholder='Filter by Task/Plan'
+                  />
+                </Col>
+                <Col>
+                  <Form.Select onChange={(e) => filterEmployeeCompleted(e.target.value)}>
+                    <option value="" hidden>Sort By Employee</option>
+                    {users.map((user, index) => (
+                      <>
+
+                        <option>{user.name}</option>
+
+                      </>
+
+                    ))}
+                  </Form.Select>
+
+                </Col>
+                <Col>
+                  <Form.Select onChange={(e) => filterStartCompleted(e.target.value)}>
+                    <option value="" hidden>Filter Start Date</option>
+                    <option value='1 week'>1 week</option>
+                    <option value='1 month'>1 Month</option>
+                    <option value='3 months'>3 Months</option>
+
+                  </Form.Select>
+
+                </Col>
+                <Col>
+                  <Form.Select onChange={(e) => filterEndCompleted(e.target.value)}>
+                    <option value="" hidden>Filter Start Date</option>
+                    <option value='1 week'>1 week</option>
+                    <option value='1 month'>1 Month</option>
+                    <option value='3 months'>3 Months</option>
+
+                  </Form.Select>
+
+                </Col>
+                <Col>
+                  <Button onClick={resetFilterCompleted}>Reset</Button>
+                </Col>
+              </Row>
+            </Container>
             <p></p>
             <Table id='table-completed' striped bordered hover>
               <thead>
@@ -241,7 +602,7 @@ const TaskMonitoring = () => {
                 </tr>
               </thead>
               <tbody>
-                {taskCompleted.map(task => (
+                {tasksCompleted.map(task => (
                   <tr key={task.id}>
                     {task.workflowname ? (
                       <td>{task.workflowname}</td>

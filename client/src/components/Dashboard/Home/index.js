@@ -21,6 +21,7 @@ import '../../../App.css'
 import Spinner from 'react-bootstrap/Spinner';
 import { FaTrash } from "react-icons/fa";
 import Button from 'react-bootstrap/Button';
+import { FaTrashAlt } from "react-icons/fa";
 import {
   getAdminFiles,
   getAdminFolders,
@@ -286,7 +287,7 @@ const Home = () => {
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name} <Button style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}>Delete</Button>
+                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name} <Button style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button>
 
               </ListGroup.Item>
             ))}
@@ -296,10 +297,11 @@ const Home = () => {
           <>
             {list3.map(({ data, docId }) => (
               <ListGroup.Item
+              className="d-flex align-items-center"
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt /> {data.name}   <Button style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}>Delete</Button>
+                <FaFileAlt />{data.name} <Button size="sm"  onClick={()=>handleDeleteFile(docId)}><FaTrashAlt /></Button>
 
 
               </ListGroup.Item>
