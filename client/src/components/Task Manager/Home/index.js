@@ -725,11 +725,7 @@ const Home = () => {
                                 }
 
 
-                                const desertRef = ref(storage, req.filePath);
 
-                                deleteObject(desertRef).then(() => {
-                                    console.log('Deleted: ' + req.filePath)
-                                })
                             });
                             const docsRef = collection(database, "docs");
 
@@ -1050,7 +1046,8 @@ const Home = () => {
                                     workflowname: task1.workflowname,
                                     approvalTo: task1.approvalTo,
                                     recurring: task1.recurring,
-                                    project: task.project
+                                    project: task.project,
+                                    hours:40
                                 })
                             })
                         } else {
@@ -1254,7 +1251,7 @@ const Home = () => {
             <>
                 <div className='head' style={{ padding: '20px' }}>
 
-                    {role && role != 'Employee' ? (
+                    {role && role == 'Manager' ? (
                         <>
                             <h2>Task Manager &nbsp; <Button onClick={() => setShow(true)}><FaPlus /></Button></h2>
                         </>
@@ -1370,7 +1367,7 @@ const Home = () => {
                         <ListGroup horizontal>
                             {stages.map((stage, index) => (
 
-                                <ListGroup.Item key={index} variant="success">{stage.task}</ListGroup.Item>
+                                <ListGroup.Item key={index} variant="success">{stage.project}: &nbsp;{stage.task}</ListGroup.Item>
                             ))}
 
                         </ListGroup>

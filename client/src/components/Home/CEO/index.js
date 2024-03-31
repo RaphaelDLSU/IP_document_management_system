@@ -45,9 +45,9 @@ const CEOHome = () => {
                 console.log(err);
             })
 
-            const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid));
+            const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid),where("status",'!=','done'));
 
-            const fs = query(collection(database, 'requests'), where('assignTo', '==', user.data.uid))
+            const fs = query(collection(database, 'requests'), where('assignTo', '==', user.data.uid),where("status",'!=','done'))
 
             const something = async () => {
                 await getDocs(q).then(async (task) => {

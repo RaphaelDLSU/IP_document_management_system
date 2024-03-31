@@ -246,7 +246,7 @@ const TaskMonitoring = () => {
                     {task.workflowname ? (
                       <td>{task.workflowname}</td>
                     ) : (
-                      <td>None</td>
+                      <td>Request</td>
                     )}
                     <td>{task.project}</td>
                     <td>{task.task}</td>

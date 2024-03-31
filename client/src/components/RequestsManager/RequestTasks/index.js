@@ -27,6 +27,7 @@ import '../../../App.css'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase/storage";
 
 const RequestTasks = () => {
+    const [role, setRole] = useState()
     const [validated, setValidated] = useState(false);
     const dispatch = useDispatch();
     const [show5, setShow5] = useState(false);
@@ -74,7 +75,7 @@ const RequestTasks = () => {
     }
 
     useEffect(async () => {
-        const q = query(collection(database, "requests"),where('status','!=','done'));
+        const q = query(collection(database, "requests"), where('status', '!=', 'done'));
 
         await getDocs(q).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
@@ -95,6 +96,13 @@ const RequestTasks = () => {
 
         }
         getEmployees()
+
+        const s = query(collection(database, "users"), where("email", "==", user.data.uid));
+        const querySnapshot = await getDocs(s);
+        querySnapshot.forEach((doc) => {
+            setRole(doc.data().role)
+        });
+
 
 
     }, []);
@@ -178,7 +186,7 @@ const RequestTasks = () => {
                         id: request.identifier,
                         step: 2,
                         origId: request.id,
-                        category:request.category
+                        category: request.category
                     })
                 );
             }
@@ -197,7 +205,7 @@ const RequestTasks = () => {
                         step: 2,
                         origId: request.id,
                         check: actionCode,
-                        category:request.category
+                        category: request.category
                     })
                 );
             }
@@ -266,7 +274,7 @@ const RequestTasks = () => {
         const requestDocRef = doc(database, "requests", request.id)
         await updateDoc(requestDocRef, {
             status: 'for submission',
-            assignTo: request.submitterEMail,
+            assignTo: request.submitterEmail,
             disapproveReason: disapproveResponse
         }).then(() => {
             toast.success('Request Disapproved')
@@ -299,10 +307,18 @@ const RequestTasks = () => {
                                             <ListGroup.Item>Deadline : {moment(request.deadline.toDate()).format('l')}</ListGroup.Item>
                                             <ListGroup.Item>Date : {moment(request.date.toDate()).format('l')}</ListGroup.Item>
                                             <ListGroup.Item>Assigned To : {request.submitter}</ListGroup.Item>
+                                            {role && role == 'Employee' && (
+                                                <>
+                                                    {request && request.disapproveReason && (
+                                                        <ListGroup.Item style={{ color: 'red' }}>Reason for Disapproval : {request.disapproveReason}</ListGroup.Item>
+                                                    )}
+                                                </>
+                                            )}
+
 
                                         </ListGroup>
                                         <Card.Body>
-                                            <Card.Link  target='_blank' href={request.url}>View Request</Card.Link> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;
+                                            <Card.Link target='_blank' href={request.url}>View Request</Card.Link> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;
                                             {request.status == 'for submission' && (
                                                 <Button onClick={() => handleSubmit(request)} variant="primary">Submit</Button>
                                             )}
@@ -329,7 +345,7 @@ const RequestTasks = () => {
                     <Modal.Header closeButton>
                         <Modal.Title>Complete Request</Modal.Title>
                     </Modal.Header>
-                    <Form  onSubmit={submitRequest}>
+                    <Form onSubmit={submitRequest}>
                         <Modal.Body>
 
 
@@ -370,11 +386,7 @@ const RequestTasks = () => {
 
 
                         </Modal.Body>
-                        {request && request.disapproveReason && (
-                            <Modal.Body>
-                                <p>Reason for Disapproval : {request.disapproveReason}</p>
-                            </Modal.Body>
-                        )}
+
 
                         <Modal.Footer>
                             <Button variant='secondary' onClick={handleClose}>Close</Button>
@@ -393,7 +405,7 @@ const RequestTasks = () => {
 
                             <Form.Label>Response to RFI</Form.Label> &nbsp;
                             {request && (
-                                <Button href={request.submittedUrl}>View</Button>
+                                <Button target='_blank' href={request.submittedUrl}>View</Button>
                             )}
 
                             <p></p>

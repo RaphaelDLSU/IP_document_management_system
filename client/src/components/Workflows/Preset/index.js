@@ -36,11 +36,13 @@ const Home = () => {
     const [projects, setProjects] = useState()
 
     const [show3, setShow3] = useState(false);
+    const [show4, setShow4] = useState(false);
     const handleClose3 = () => setShow3(false);
 
     const [preset, setPreset] = useState([]);
     const [name, setName] = useState('')
     const [desc, setDesc] = useState('')
+    const [delPre, setDelPre] = useState('')
     const [workflowTask, setWorkflowTask] = useState({})
     const history = useHistory();
     const [approvalTo, setApprovalTo] = useState('')
@@ -94,6 +96,11 @@ const Home = () => {
 
     }
 
+    const deleteWorkflowPre = (id) => {
+        setShow4(true)
+        setDelPre(id)
+    }
+
 
     const [textBoxes, setTextBoxes] = useState([{ id: Math.random().toString(36).slice(2, 7), value: '' }]); // Initial state with one textbox
 
@@ -125,6 +132,7 @@ const Home = () => {
     };
     const submitTask = async (e) => {
 
+        e.preventDefault()
         const gotDoc = await getDoc(presetDocRef)
 
         let updatedObject
@@ -279,6 +287,14 @@ const Home = () => {
         changeStatus(startId, startStarted, startTasks, project)
     };
 
+    const deletePreset = async () => {
+        toast.info('Deleting Preset. Please wait..')
+
+        await deleteDoc(doc(database, "presets", delPre)).then(()=>{
+            toast.success('Preset  Deleted')
+        })
+    };
+
 
     useEffect(() => {
 
@@ -358,12 +374,16 @@ const Home = () => {
                                                                     {task.requirements ? (
                                                                         <>
                                                                             {task.requirements.map((item, index) => (
-                                                                                <span key={index}>
+                                                                                <>
                                                                                     {index ? ', ' : ''}{item.value}
-                                                                                </span>
+                                                                                </>
                                                                             ))}
                                                                         </>
-                                                                    ) : (<span>*Manual Stage*</span>)}
+                                                                    ) : (
+                                                                        <>
+                                                                            *Stage*
+                                                                        </>
+                                                                    )}
 
                                                                 </td>
 
@@ -382,7 +402,7 @@ const Home = () => {
 
                                         </Table>
 
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => addWorkflowtToTask(id)} variant='success'>Add Stage</Button>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => addWorkflowtToTask(id)} variant='success'>Add Stage</Button>&nbsp;&nbsp;<Button onClick={() => deleteWorkflowPre(id)} variant='danger'>Add Stage</Button>
                                     </Accordion.Body>
                                 </Accordion.Item>
                             )}
@@ -424,7 +444,6 @@ const Home = () => {
                             </Form.Group>
 
                             <Modal.Footer>
-                                <Button variant='secondary' onClick={handleClose}>Close</Button>
                                 <Button variant="primary" type="submit">Submit</Button>
                             </Modal.Footer>
                         </Form>
@@ -476,8 +495,9 @@ const Home = () => {
                                     {checked && (
                                         <>
                                             <Form.Group>
-                                                <Form.Select required onChange={(e) => setApprovalTo(e.target.value)} aria-label="Default select example">
-                                                    <option hidden value="">Request Approval to </option>
+                                                <Form.Select onChange={(e) => setApprovalTo(e.target.value)} aria-label="Default select example">
+                                                    <option hidden value>Request Approval to </option>
+                                                    <option value="">None </option>
                                                     <option value="CEO">CEO</option>
                                                     <option value="Manager">Manager</option>
                                                     <option value="Manager and CEO">Manager and CEO</option>
@@ -499,7 +519,6 @@ const Home = () => {
 
                         </Modal.Body>
                         <Modal.Footer>
-                            <button className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleClose2}>Close</button>
                             <button className="btn btn-primary" type='submit'>Create Stage</button>
                         </Modal.Footer>
                     </Form>
@@ -519,19 +538,35 @@ const Home = () => {
                                 onChange={(e) => setProject(e.target.value)}
                             >
                                 <option hidden value>Select Project...</option>
-                                {projects.map((project, index) => (
-                                    <option key={index} value={project.name}>{project.name}</option>
-                                ))}
+                                {projects && (
+                                    <>
+                                        {projects.map((project, index) => (
+                                            <option key={index} value={project.name}>{project.name}</option>
+                                        ))}
+                                    </>
+                                )}
+
                             </Form.Select>
 
 
                         </Modal.Body>
                         <Modal.Footer>
-                            <button className="btn btn-secondary" data-bs-dismiss="modal" onClick={handleClose3}>Close</button>
                             <button className="btn btn-primary" type='submit'>Submit</button>
                         </Modal.Footer>
 
                     </Form>
+
+                </Modal>
+                <Modal show={show4} onHide={() => setShow4(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Delete Stage?</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Footer>
+                        <Button variant='secondary' onClick={() => setShow4(false)}>Close</Button>
+                        <Button variant='danger' onClick={deletePreset}>Delete</Button>
+                    </Modal.Footer>
+
 
                 </Modal>
             </>

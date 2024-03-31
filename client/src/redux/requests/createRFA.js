@@ -45,30 +45,35 @@ export const createRFA =
       const checkbox_D = form.getCheckBox("Checkbox_d");
       const checkbox_E = form.getCheckBox("Checkbox_e");
 
-      //Fill in basic fields
+      //DATE
       rfaField.setText(id);
       if (step == 1) {
         dateField.setText(moment(new Date()).format('l'));
       } else if (step == 2) {
-        dateField.setText(moment(new Date(date)).format('l'));
+        dateField.setText(moment(date.toDate()).format('l'));
       }
-      // Create a Date object from the timestamp
-      const dateObject = new Date(deadline * 1000); // Multiply by 1000 to convert seconds to milliseconds
-
-      // Extract the components (month, day, and year)
-      const month = dateObject.getMonth() + 1; // Months are zero-based, so add 1
-      const day = dateObject.getDate();
-      const year = dateObject.getFullYear();
-      const formattedDate = `${month}/${day}/${year}`
 
       submitToField.setText('Manager');
-      neededByField.setText(moment(new Date(deadline)).format('l'));
+
+
+      //DEADLINE DATE
+      if (step == 1) {
+        neededByField.setText(moment(new Date(deadline)).format('l'));
+      } else if (step == 2) {
+        neededByField.setText(moment(deadline.toDate()).format('l'));
+      }
+
+      
+
+
       projectNameField.setText(project);
       projectNumberField.setText(category);
       submitByField.setText(name);
       rfiDescriptionField.setText(desc);
       submitByField2.setText(name);
       responseDescriptionField.setText(response);
+
+      //SUBMITTED ON DATE
       if (step == 1) {
         dateField2.setText('');
       } else if (step == 2) {
@@ -167,7 +172,6 @@ export const createRFA =
                 desc: desc,
                 images: images,
                 submitter: submitter,
-                date: date,
                 response: response,
                 url: pdfUrl,
                 status: 'for assign',

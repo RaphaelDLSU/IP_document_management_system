@@ -5,15 +5,15 @@ import { createNotifs } from "../notifs/createNotif";
 import moment from "moment";
 import { toast } from 'react-toastify';
 export const createRFI =
-  ({ category, name, nameEmail, deadline, project, desc, images, submitter, date, response, id, step, origId,date2 }, setError) =>
+  ({ category, name, nameEmail, deadline, project, desc, images, submitter, date, response, id, step, origId, date2 }, setError) =>
     async (dispatch) => {
       const database = getFirestore()
       const storage = getStorage();
       let storageRef
       if (step == 1) {
-        storageRef = ref(storage, 'rfiFiles/before'+id);
+        storageRef = ref(storage, 'rfiFiles/before' + id);
       } else if (step == 2) {
-        storageRef = ref(storage, 'rfiFiles/after'+id);
+        storageRef = ref(storage, 'rfiFiles/after' + id);
       }
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
@@ -45,7 +45,7 @@ export const createRFI =
       if (step == 1) {
         dateField.setText(moment(new Date()).format('l'));
       } else if (step == 2) {
-        dateField.setText(moment(new Date(date)).format('l'));
+        dateField.setText(moment(date.toDate()).format('l'));
       }
 
 
@@ -60,7 +60,12 @@ export const createRFI =
 
 
       submitToField.setText('Manager');
-      neededByField.setText(moment(new Date(deadline)).format('l'));
+      if (step == 1) {
+        neededByField.setText(moment(new Date(deadline)).format('l'));
+      } else if (step == 2) {
+        neededByField.setText(moment(deadline.toDate()).format('l'));
+      }
+
       projectNameField.setText(project);
       projectNumberField.setText(category);
       submitByField.setText(name);

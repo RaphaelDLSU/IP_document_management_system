@@ -33,6 +33,7 @@ const Home = () => {
     const [show2, setShow2] = useState(false);
     const [show4, setShow4] = useState(false);
     const [show5, setShow5] = useState(false);
+    const [show6, setShow6] = useState(false);
     const handleClose2 = () => setShow2(false);
     const { path } = useRouteMatch();
     const [show3, setShow3] = useState(false);
@@ -62,6 +63,7 @@ const Home = () => {
 
     const [presetId, setPresetId] = useState()
     const [preset, setPreset] = useState()
+    const [delId, setDelId] = useState()
 
     const [projectName, setProjectName] = useState()
 
@@ -76,7 +78,15 @@ const Home = () => {
     const [autoEmployee, setAutoEmployee] = useState()
     const [autoEmployeeID, setAutoEmployeeID] = useState()
     const [isChecked, setIsChecked] = useState(false);
-
+    const [role, setRole] = useState();
+    const { isLoggedIn, user, userId } = useSelector(
+        (state) => ({
+            isLoggedIn: state.auth.isLoggedIn,
+            user: state.auth.user,
+            userId: state.auth.userId,
+        }),
+        shallowEqual
+    );
 
 
     const createWorkflow = async (e) => {
@@ -516,6 +526,19 @@ const Home = () => {
     }
 
 
+    const setDeleteId = async (id) => {
+        setDelId(id)
+        setShow6(true)
+    }
+    const deleteStage = async () => {
+
+        toast.info('Deleting Stage. Please wait..')
+
+        await deleteDoc(doc(database, "workflows", delId)).then(() => {
+            setShow6(false)
+            toast.success('Stage Deleted')
+        })
+    }
 
 
     useEffect(() => {
@@ -577,6 +600,21 @@ const Home = () => {
     }, [workflows]);
 
 
+    useEffect(async () => {
+
+        if (user) {
+            let role
+            const q = query(collection(database, "users"), where("email", "==", user.data.uid));
+            let sidebarData
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                role = doc.data().role
+            });
+
+            setRole(role)
+
+        }
+    }, [user])
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -587,24 +625,44 @@ const Home = () => {
         return (
             <>
                 <div className='head' style={{ padding: '20px' }}>
-                    <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
+
+                    {role && role == 'Manager' ? (
+                        <>
+                            <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
+
+                        </>
+                    ) : ((<>
+                        <h2>Workflows</h2>
+                    </>))}
                     <hr></hr>
                     <div className='content' style={{ padding: '5px' }}>
                         {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
                             <>
-                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> {project}</h5>
+                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px',marginTop:'20px'}}> {project}</h5>
                                 <Accordion >
 
                                     <Accordion.Item eventKey={id} >
-                                        <Accordion.Header >{name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
+                                        {role && role == 'Manager' ? (
+                                            <>
+                                                <Accordion.Header >{name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
 
-                                            {inStage && (
-                                                <>
-                                                    &nbsp;<Button onClick={() => moveStage(id)}>End Ongoing Stage</Button>
-                                                </>
+                                                    {inStage && (
+                                                        <>
+                                                            &nbsp;<Button onClick={() => moveStage(id)}>End Ongoing Stage</Button>
+                                                        </>
 
-                                            )}
-                                        </Accordion.Header>
+                                                    )}
+                                                    &nbsp;
+                                                    <Button variant='danger' onClick={() => setDeleteId(id)}>Delete</Button>
+                                                </Accordion.Header>
+                                            </>
+                                        ) : ((<>
+                                            <Accordion.Header >{name}
+
+
+                                            </Accordion.Header>
+                                        </>))}
+
 
 
                                         <Accordion.Body>
@@ -695,6 +753,8 @@ const Home = () => {
                                     </Accordion.Item>
 
                                 </Accordion>
+                               <p>          </p>
+                               <p>          </p>
                             </>
 
                         )}
@@ -841,6 +901,19 @@ const Home = () => {
                             </Modal.Footer>
                         </Form>
                     </Modal.Body>
+                </Modal>
+
+                <Modal show={show6} onHide={() => setShow6(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Delete Stage?</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Footer>
+                        <Button variant='secondary' onClick={() => setShow6(false)}>Close</Button>
+                        <Button variant='danger' onClick={deleteStage}>Delete</Button>
+                    </Modal.Footer>
+
+
                 </Modal>
 
 

@@ -146,7 +146,7 @@ const Home = () => {
                                                     <td> {task.requirements.map((req, index) => (
                                                         <>
                                                             {req.url ? (
-                                                                <a href={req.url}>{req.value}</a>
+                                                                <a target='_blank' href={req.url}>{req.value}</a>
                                                             ) : (
                                                                 <>
                                                                     {req.value}
@@ -163,9 +163,9 @@ const Home = () => {
 
 
                                                 {task.status != 'done' ? (
-                                                    <td style={{ backgroundColor: '#d42b39' }}>Pending</td>
+                                                    <td style={{ backgroundColor: 'red',color:'white'}}>Pending</td>
                                                 ) : (
-                                                    <td style={{ backgroundColor: '#146C43' }}> Done</td>
+                                                    <td style={{ backgroundColor: 'green',color:'white' }}> Done</td>
                                                 )}
 
                                             </tr>
@@ -194,6 +194,7 @@ const Home = () => {
                                                 <td>{request.desc}</td>
                                                 <td>{moment(request.date.toDate()).format('l')}</td>
                                                 <td>{moment(request.deadline.toDate()).format('l')}</td>
+                                                <td>{request.submitter}</td>
                                                 {request.status != 'done' ? (
                                                     <td style={{ backgroundColor: '#d42b39' }}>Pending</td>
                                                 ) : (
