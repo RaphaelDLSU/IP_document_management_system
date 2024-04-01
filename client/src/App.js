@@ -39,6 +39,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import CEOHome from "./components/Home/CEO";
 import ManagerHome from "./components/Home/Manager";
 import EmployeeHome from "./components/Home/Employee";
+import BuildingSurface from "./components/Document Creation/Documents/BuildingSurface";
 const App = () => {
   const database = getFirestore()
   const dispatch = useDispatch();
@@ -144,6 +145,7 @@ const App = () => {
         <Route path="/employees" component={Employees} />
         <Route path="/notifications" component={Notifications} />
         <Route path="/documentcreation" component={DocumentCreation} />
+        <Route path="/documentcreation/create" component={BuildingSurface} />
         <Route path="/registrations" component={Registration} />
         <Route path="/requests" component={Requests} />
       </Switch>
