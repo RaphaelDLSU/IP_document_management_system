@@ -1,14 +1,13 @@
 import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, query, getFirestore, getDoc, setDoc } from 'firebase/firestore'
 
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
 
 const BuildingSurface = () => {
   const database = getFirestore()
-  const [projects, setProjects] = useState([])
   const [existingProjects, setExistingProjects] = useState([])
   const [project, setProject] = useState()
 
@@ -285,47 +284,37 @@ const BuildingSurface = () => {
     const q = doc(database, 'buildingSurface', project)
     const docSnap = await getDoc(q).then((doc) => {
       setFloors(doc.data().floors)
-
     })
 
     console.log('got doc')
   }
 
-  useEffect(() => {
-
-    const getProjects = async () => {
-      const q = query(collection(database, 'projects'))
-      await getDocs(q).then((project) => {
-        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        setProjects(projectData)
-      }).catch((err) => {
-        console.log(err);
-      })
-    }
-    getProjects()
-  }, [])
-
+  //Get project names from buildingSurface collection
   useEffect(() => {
     const getExistingProjects = async () => {
-      const q = query(collection(database, 'buildingSurface'))
-      await getDocs(q).then((existingProject) => {
-        let projectData = existingProject.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        const q = query(collection(database, 'buildingSurface'))
+        await getDocs(q).then((project) => {
+            let projectData = project.docs.map((doc) => ({ 
+                value: doc.id,
+                label: doc.data().project
+            }))
             setExistingProjects(projectData)
-      }).catch((err) => {
-        console.log(err);
-      })
-    }
-    getExistingProjects()
+            }).catch((err) => {
+            console.log(err);
+            })
+        }
+        
+        getExistingProjects()
   }, [])
 
   return (
     <div className='head' style={{ padding: '20px' }}>
       {/* <h1>Create Building Surface Document </h1> */}
       <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-        <option value="" hidden>Project</option>
-        {projects.map((project, index) => (
+        <option value="" hidden>Select existing project</option>
+        {existingProjects.map((project, index) => (
           <>
-            <option value={project.name}>{project.name}</option>
+            <option value={project.value}>{project.label}</option>
           </>
 
         ))}

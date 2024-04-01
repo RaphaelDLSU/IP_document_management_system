@@ -1,7 +1,7 @@
 import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, query, getFirestore, setDoc } from 'firebase/firestore'
 
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
@@ -306,12 +306,11 @@ const DocumentCreation = () => {
   }, [])
 
 
-
   return (
     <div className='head' style={{ padding: '20px' }}>
       {/* <h1>Create Building Surface Document </h1> */}
       <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-        <option value="" hidden>Project</option>
+        <option value="" hidden>Project name</option>
         {projects.map((project, index) => (
           <>
             <option value={project.name}>{project.name}</option>
