@@ -284,7 +284,10 @@ const BuildingSurface = () => {
 
     const q = doc(database, 'buildingSurface', project)
     const docSnap = await getDoc(q).then((doc) => {
-      setFloors(doc.data().floors)
+      if (doc.exists()) {
+        setFloors(doc.data().floors)
+
+      }
 
     })
 
@@ -310,7 +313,7 @@ const BuildingSurface = () => {
       const q = query(collection(database, 'buildingSurface'))
       await getDocs(q).then((existingProject) => {
         let projectData = existingProject.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setExistingProjects(projectData)
+        setExistingProjects(projectData)
       }).catch((err) => {
         console.log(err);
       })
@@ -320,23 +323,26 @@ const BuildingSurface = () => {
 
   return (
     <div className='head' style={{ padding: '20px' }}>
-      {/* <h1>Create Building Surface Document </h1> */}
-      <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-        <option value="" hidden>Project</option>
-        {projects.map((project, index) => (
-          <>
-            <option value={project.name}>{project.name}</option>
-          </>
+      <hr></hr>
+      <Col md={2}>
+        <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
+          <option value="" hidden>Project</option>
+          {projects.map((project, index) => (
+            <>
+              <option value={project.name}>{project.name}</option>
+            </>
 
-        ))}
-      </Form.Select>
+          ))}
+        </Form.Select>
+      </Col>
+      <p></p>
       <div className='content' style={{ padding: '5px' }}>
 
         <Form>
           {floors.map((floor, index) => (
             <Fragment key={index}>
               <Row>
-                <Col>
+                <Col md={4}>
                   <Form.Control
                     size='lg'
                     type="text"
@@ -347,7 +353,9 @@ const BuildingSurface = () => {
                   />
                 </Col>
 
-                <Col>
+                <Col md={2}>
+
+                  <Button variant='danger' onClick={() => removeFloor(floor.id)}>Remove floor</Button>
                 </Col>
               </Row>
               <Floor
@@ -377,12 +385,11 @@ const BuildingSurface = () => {
                 onAddResidentialArea={handleAddResidentialArea}
                 onRemoveResidentialArea={handleRemoveResidentialArea}
               />
-              <Button variant='secondary' onClick={() => removeFloor(floor.id)}>Remove floor</Button>
             </Fragment>
           ))}
         </Form>
-        <Button variant='secondary' onClick={addFloor}>Add Floor</Button>
-        <Button variant="primary" onClick={handleSubmit}>Save and Submit</Button>
+        <Button variant='primary' onClick={addFloor}>Add Floor</Button> &nbsp;
+        <Button variant="success" onClick={handleSubmit}>Submit</Button>
       </div>
     </div>
   );

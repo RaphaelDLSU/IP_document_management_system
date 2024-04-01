@@ -5,8 +5,10 @@ import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import CreateDocument from '../CreateDocument'
 import BuildingSurface from "../Documents/BuildingSurface";
+import FactSheet from "../Documents/FactSheet";
  
 function Home() {
+
     return (
       <div className="App">
         <Tabs
@@ -27,7 +29,7 @@ function Home() {
                 Tab content for Contact
             </Tab>
             <Tab eventKey="factsheet" title="Fact Sheet">
-                Tab content for Contact
+                <FactSheet></FactSheet>
             </Tab>
         </Tabs>
     </div>
