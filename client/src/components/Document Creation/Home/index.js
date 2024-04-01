@@ -6,6 +6,8 @@ import Tabs from 'react-bootstrap/Tabs';
 import CreateDocument from '../CreateDocument'
 import BuildingSurface from "../Documents/BuildingSurface";
 import FactSheet from "../Documents/FactSheet";
+import TechnicalDescription from "../Documents/TechnicalDescription";
+import TabulationArea from '../Documents/TabulationOfAreas';
  
 function Home() {
 
@@ -23,13 +25,13 @@ function Home() {
                 <BuildingSurface />
             </Tab>
             <Tab eventKey="technicaldescription" title="Technical Description">
-                Tab content for Contact
+                <TechnicalDescription />
             </Tab>
             <Tab eventKey="tabulation" title="Tabulation of Areas">
-                Tab content for Contact
+                <TabulationArea />
             </Tab>
             <Tab eventKey="factsheet" title="Fact Sheet">
-                <FactSheet></FactSheet>
+                <FactSheet />
             </Tab>
         </Tabs>
     </div>

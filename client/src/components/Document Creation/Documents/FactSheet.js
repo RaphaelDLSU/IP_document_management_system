@@ -4,7 +4,6 @@ import { Form, Button, Row, Col, Table } from 'react-bootstrap';
 
 
 const FactSheet = () => {
-
     const database = getFirestore()
     const [projects, setProjects] = useState([])
     const [project, setProject] = useState()
