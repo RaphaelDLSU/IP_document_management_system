@@ -1,60 +1,80 @@
-import React from "react";
-import Table from 'react-bootstrap/Table';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+//Bootstrap components
+import { Col, Row, Form, Button } from 'react-bootstrap';
 
-const SaleableArea = () => {
+const SaleableArea = ({floorIndex, saleableArea, onSaleableAreaChange, onAddSaleableArea, onRemoveSaleableArea}) => {
     return (
-        <div className="floorForm">
-            <Table striped>
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Unit No./Tag</th>
-                    <th>Type</th>
-                    <th>Area (sqm)</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>C01</td>
-                    <td>Commercial Retail</td>
-                    <td>10</td>
-                </tr>
-                <tr>
-                    <td colSpan={3}>TOTAL</td>
-                    <td>60</td>
-                </tr>
-                </tbody>
-            </Table>
+        <>
             <Form.Group>
                 <Row>
-                    <Col>
-                        <Form.Control placeholder="Unit No./Tag" />
-                    </Col>
-                    <Col>
-                        <Form.Select aria-label="Default select example">
-                            <option>Select saleable area type</option>
-                            <option value="Commerical Retail">Commerical Retail</option>
-                            <option value="Restaurant">Restaurant</option>
-                            <option value="Conference">Conference</option>
-                        </Form.Select>
-                    </Col>
-                    <Col>
-                        <Form.Control placeholder="Area (sqm)" />
-                    </Col>
-                    <Col>
-                        <Button variant="primary" type="submit">
-                            Add
-                        </Button>
-                    </Col>
+                    <Col></Col>
+                    <Col>Unit No./Tag</Col>
+                    <Col>Type</Col>
+                    <Col>Area (sqm)</Col>
+                    <Col></Col>
                 </Row>
             </Form.Group>
-        </div>
-    );
+            {saleableArea.map((input, index) => {
+                return(
+                    <Form.Group key={index}>
+                        <Row>
+                        {/* Show index/row number */}
+                        <Col>{index + 1}</Col>
+
+                        {/* Unit No. */}
+                        <Col>
+                            <Form.Control
+                            type="text"
+                            placeholder="Unit No./Tag"
+                            name="saleableAreaUnitNumberTag"
+                            value={input.saleableAreaUnitNumberTag}
+                            onChange={(e) => onSaleableAreaChange(floorIndex, index, 'saleableAreaUnitNumberTag', e.target.value)}
+                            />
+                        </Col>
+
+                        {/* Type */}
+                        <Col>
+                            <Form.Select 
+                            aria-label="Default select example"
+                            name="saleableAreaType"
+                            value={input.saleableAreaType}
+                            onChange={(e) => onSaleableAreaChange(floorIndex, index, 'saleableAreaType', e.target.value)}
+                            required
+                            >
+                            <option value="">Select saleable area type</option>
+                            <option value="Commercial Retail">Commercial Retail</option>
+                            <option value="Restaurant">Restaurant</option>
+                            <option value="Conference">Conference</option>
+                            </Form.Select>
+                        </Col>
+
+                        {/* Area size */}
+                        <Col>
+                            <Form.Control 
+                            type="number"
+                            step="0.01"
+                            placeholder="Area (sqm)" 
+                            name="saleableAreaSize"
+                            value={input.saleableAreaSize}
+                            onChange={(e) => onSaleableAreaChange(floorIndex, index, 'saleableAreaSize', e.target.value)}
+                            required
+                            />
+                        </Col>
+
+                        {/* Remove row button */}
+                        <Col>
+                            <Button variant='primary' onClick={() => onRemoveSaleableArea(floorIndex)}>
+                            Remove
+                            </Button>
+                        </Col>
+                        </Row>
+                    </Form.Group>
+                )
+            })}
+            <Button variant="primary" onClick={() => onAddSaleableArea(floorIndex)}>
+            Add row
+            </Button>
+        </>
+    )
 }
 
 export default SaleableArea;
