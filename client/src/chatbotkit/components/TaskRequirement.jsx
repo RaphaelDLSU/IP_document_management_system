@@ -7,8 +7,10 @@ import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query
 import './styles.css'
 import { autoAssign } from '../../redux/workload/autoAssign';
 import { toast } from 'react-toastify';
+import { createNotifs } from '../../redux/notifs/createNotif';
+import { getEstimatedHours } from '../../redux/estimatedhours/getEstimatedHours';
 const TaskRequirement = props => {
-  const { setState, actionProvider, taskName, project,taskDeadline } = props;
+  const { setState, actionProvider, taskName, project, taskDeadline } = props;
   const [displaySelector, toggleDisplaySelector] = useState(true);
   const [task, setTask] = useState('');
   const [textBoxes, setTextBoxes] = useState(['']);
@@ -59,24 +61,43 @@ const TaskRequirement = props => {
       const employeeRef = doc(database, "users", something)
       const employee = await getDoc(employeeRef)
 
-      const setTasksRef = collection(database, 'tasks')
-      await addDoc(setTasksRef, {
-        task: taskName,
-        isChecked: false,
-        timestamp: serverTimestamp(),
-        deadline: taskDeadline,
-        employee: employee.data().name,
-        employeeId: employee.data().email,
-        requirements: requirements,
-        status: 'for submission',
-        approval: false,
-        project: project,
-        requestor: user.data.uid,
-        requestorname: user.data.displayName,
-        isRequest: true,
+      let startDate = new Date()
+      let endDate = new Date(taskDeadline)
+      const estHours = dispatch(getEstimatedHours({
+        startDate: startDate,
+        endDate: endDate
+      }))
+      estHours.then(async (estDeadline) => {
+
+        const setTasksRef = collection(database, 'tasks')
+        await addDoc(setTasksRef, {
+          task: taskName,
+          isChecked: false,
+          timestamp: serverTimestamp(),
+          deadline: endDate,
+          employee: employee.data().name,
+          employeeId: employee.data().email,
+          requirements: requirements,
+          status: 'for submission',
+          approval: false,
+          project: project,
+          requestor: user.data.uid,
+          requestorname: user.data.displayName,
+          isRequest: true,
+          hours: estDeadline
+        }).then(() => {
+          dispatch(createNotifs({
+            title: 'NEW TASK REQUEST: ' + taskName,
+            message: 'A request has been sent to you by ' + user.data.displayName + '. Please check the Tasks Manager Page for more information ',
+            receiverID: employee.data().email,
+            link: 'tasks'
+          }))
+          actionProvider.finishTaskCreator()
+        })
+
       })
 
-      actionProvider.finishTaskCreator()
+
     })
   };
 
@@ -95,6 +116,7 @@ const TaskRequirement = props => {
             {textBoxes.map((value, index) => (
               <div key={index}>
                 <input
+                  required
                   type="text"
                   value={value}
                   onChange={(e) => handleTextBoxChange(index, e.target.value)}

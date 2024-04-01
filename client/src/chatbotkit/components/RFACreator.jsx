@@ -31,12 +31,12 @@ const RFACreator = props => {
                     <>
                         {" "}
                         <h2 className="airport-selector-heading">RFA Query</h2>
-                        <textarea onChange={(e) => handleChange(e)}>
+                        <textarea required onChange={(e) => handleChange(e)}>
                         </textarea>
 
                         <h2 className="airport-selector-heading">Deadline</h2>
 
-                        <input type="date" id="myDateInput" name="myDate" onChange={(e) => setDeadline(e.target.value)} />
+                        <input required type="date" id="myDateInput" name="myDate" onChange={(e) => setDeadline(e.target.value)} />
                         <button className="airport-button-confirm" onClick={handleSubmit}>
                             Confirm
                         </button>

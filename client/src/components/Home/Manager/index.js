@@ -16,8 +16,11 @@ import { createNotifs } from '../../../redux/notifs/createNotif';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
-
+import { toast } from 'react-toastify';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
+import moment from 'moment';
 const ManagerHome = () => {
+    const history = useHistory()
     const [notifs, setNotifs] = useState()
     const database = getFirestore()
     const dispatch = useDispatch()
@@ -57,25 +60,29 @@ const ManagerHome = () => {
                 console.log(err);
             })
 
-            const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid));
+            const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid), where("status", "!=", "done"));
 
-            const fs = query(collection(database, 'requests'), where('employeeId', '==', user.data.uid))
+            const fs = query(collection(database, 'requests'), where('assignTo', '==', user.data.uid), where("status", "!=", "done"))
 
             const something = async () => {
-                await getDocs(q).then(async (task) => {
+
+                const tasks = await getDocs(q).then(async (task) => {
+
                     let taskData = task.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
                     setTasks(taskData)
-                    await getDocs(fs).then((request) => {
-                        let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-                        setRequests(requestsData)
-                    }).then(() => {
 
-                    })
                 }).then(() => {
                     setLoading(false)
+
                 }).catch((err) => {
                     console.log(err);
                 })
+
+                const requests = await getDocs(fs).then((request) => {
+                    let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                    setRequests(requestsData)
+                })
+
             }
 
             something()
@@ -83,6 +90,8 @@ const ManagerHome = () => {
     }, [user]);
 
     useEffect(async () => {
+
+
     }, [notifs]);
 
 
@@ -96,19 +105,26 @@ const ManagerHome = () => {
     else {
         return (
             <>
-                <Container style={{ maxWidth: '95%', marginTop: '30px' }}>
-                    <Row>
+                <Container style={{ maxWidth: '95%', marginTop: '30px', borderRadius: '5px' }}>
+                    <Row style={{ height: '45vh', overflow: 'scroll' }}>
                         <Col >
 
-                            <h5> Notifications</h5>
-                            <hr></hr>
+                            <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Notifications</h5>
+
                             <ListGroup>
                                 {notifs ? (
                                     <>
                                         {notifs.map(notif => (
-                                            <a style={{ textDecoration: 'none' }} href={notif.link} rel="noopener noreferrer">
-                                                <ListGroup.Item action>{notif.title}</ListGroup.Item>
-                                            </a>
+                                            <ListGroup.Item action onClick={() => history.push(notif.link)}
+                                                className="d-flex justify-content-between align-items-start"
+                                            >
+                                                <div className="ms-2 me-auto">
+                                                    <div>{notif.title}</div>
+                                                </div>
+                                                <Badge bg="primary" pill>
+                                                    {moment(notif.date.toDate()).format('LLL')}
+                                                </Badge>
+                                            </ListGroup.Item>
 
                                         ))}
                                     </>
@@ -121,25 +137,24 @@ const ManagerHome = () => {
                         </Col>
 
                     </Row>
-                    <Row>
+                    <Row style={{ height: '45vh' }}>
                         <Col>
-                            <h5> Tasks </h5>
-                            <hr></hr>
+                            <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Pending Tasks/Approvals</h5>
                             <Tabs
                                 defaultActiveKey="tasks"
                                 id="uncontrolled-tab-example"
                                 className="mb-3"
                             >
                                 <Tab eventKey="tasks" title="Tasks">
-                                    <ListGroup >
+                                    <ListGroup style={{ overflow: 'scroll' }}>
                                         {tasks ? (
                                             <>
                                                 {tasks.map(task => (
-                                                    <ListGroup.Item action
+                                                    <ListGroup.Item action onClick={()=>history.push('/tasks')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
-                                                            <div>{task.task}</div>
+                                                            <div>{task.task}: {task.requirements[0].value}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
                                                             {task.status}
@@ -154,12 +169,12 @@ const ManagerHome = () => {
 
                                     </ListGroup>
                                 </Tab>
-                                <Tab eventKey="requests" title="Requests">
+                                <Tab eventKey="requests" title="RFA/RFI">
                                     <ListGroup >
                                         {requests ? (
                                             <>
                                                 {requests.map(request => (
-                                                    <ListGroup.Item action
+                                                    <ListGroup.Item action onClick={()=>history.push('/requestsmanager')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
@@ -182,9 +197,8 @@ const ManagerHome = () => {
 
                         </Col>
                         <Col>
-                            <h5> Registrations </h5>
-                            <hr></hr>
-                            <ListGroup >
+                            <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Registrations</h5>
+                            <ListGroup style={{ overflow: 'scroll' }}>
                                 {registrations ? (
                                     <>
                                         {registrations.map(registration => (

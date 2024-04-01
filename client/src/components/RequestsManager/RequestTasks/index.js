@@ -12,19 +12,23 @@ import Table from 'react-bootstrap/Table';
 import { Toast, toast } from 'react-toastify';
 import Form from 'react-bootstrap/Form';
 import ProgressBar from 'react-bootstrap/ProgressBar';
-
+import { IoMdAddCircle } from "react-icons/io";
+import { FaMinusCircle } from "react-icons/fa";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ListGroup } from 'react-bootstrap';
 import { createRFI } from '../../../redux/requests/createRFI';
 import { createRFA } from '../../../redux/requests/createRFA';
-
+import moment from 'moment';
 import '../RequestTasks/index.css'
+import { createNotifs } from '../../../redux/notifs/createNotif';
 
 import Spinner from 'react-bootstrap/Spinner';
 import '../../../App.css'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase/storage";
 
 const RequestTasks = () => {
+    const [role, setRole] = useState()
+    const [validated, setValidated] = useState(false);
     const dispatch = useDispatch();
     const [show5, setShow5] = useState(false);
     const [progress, setProgress] = useState(0)
@@ -71,7 +75,7 @@ const RequestTasks = () => {
     }
 
     useEffect(async () => {
-        const q = query(collection(database, "requests"));
+        const q = query(collection(database, "requests"), where('status', '!=', 'done'));
 
         await getDocs(q).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
@@ -93,11 +97,22 @@ const RequestTasks = () => {
         }
         getEmployees()
 
+        const s = query(collection(database, "users"), where("email", "==", user.data.uid));
+        const querySnapshot = await getDocs(s);
+        querySnapshot.forEach((doc) => {
+            setRole(doc.data().role)
+        });
+
+
 
     }, []);
     const addImageInput = () => {
         setImageButton([...imageButton, { id: imageButton.length }]);
     };
+    const minusInput = () => {
+        const newArray = imageButton.slice(0, imageButton.length - 1);
+        setImageButton(newArray);
+    }
 
     const handleImageUpload = (index, event) => {
         // Handle image upload logic here, e.g., save the image to state or perform other actions
@@ -109,13 +124,21 @@ const RequestTasks = () => {
 
 
     const submitRequest = (e) => {
+        toast.info('Submitting for Approval. Please wait..')
         e.preventDefault();
         console.log('Submitting')
         let newArray = []
+
         var bar = new Promise((resolve, reject) => {
             imageInputs.forEach((image, index, array) => {
+                let storageRef
+                if (request.type == 'RFA') {
+                    storageRef = ref(storage, 'rfaImages/' + image.name);
+                } else if (request.type == 'RFI') {
+                    storageRef = ref(storage, 'rfaImages/' + image.name);
+                }
 
-                const storageRef = ref(storage, 'rfiImages/' + image.name);
+
                 const uploadTask = uploadBytesResumable(storageRef, image);
                 setShow5(true)
                 uploadTask.on('state_changed',
@@ -162,13 +185,14 @@ const RequestTasks = () => {
                         response: response,
                         id: request.identifier,
                         step: 2,
-                        origId: request.id
+                        origId: request.id,
+                        category: request.category
                     })
                 );
             }
             else if (request.type == 'RFA') {
                 dispatch(
-                    createRFI({
+                    createRFA({
                         name: request.name,
                         deadline: request.deadline,
                         project: request.project,
@@ -180,38 +204,55 @@ const RequestTasks = () => {
                         id: request.identifier,
                         step: 2,
                         origId: request.id,
-                        check: actionCode
+                        check: actionCode,
+                        category: request.category
                     })
                 );
             }
 
         });
-        setShow5(false)
-        toast.success('Finished')
-        
+
     }
 
     const approveRFI = async (e) => {
+        toast.info('Approving Request')
         e.preventDefault();
         if (request.assignTo == 'manager@gmail.com') {
             const requestDocRef = doc(database, "requests", request.id)
             await updateDoc(requestDocRef, {
                 assignTo: 'ceo@gmail.com'
+            }).then(() => {
+                dispatch(createNotifs({
+                    title: 'NEW REQUEST APPROVAL: ' + request.desc,
+                    message: 'A Request is submitted that needs your approval.',
+                    receiverID: 'ceo@gmail.com',
+                    link: 'requestsmanager'
+                }))
+                toast.success('Assigned to CEO')
             })
         } else {
             const requestDocRef = doc(database, "requests", request.id)
             await updateDoc(requestDocRef, {
                 status: 'done',
                 url: request.submittedUrl
+            }).then(() => {
+                dispatch(createNotifs({
+                    title: 'REQUEST FINISHED: ' + request.desc,
+                    message: 'Your request is now finished. Please check the Requests page to view your requested output.',
+                    receiverID: request.identifier,
+                    link: 'requests'
+                }))
+                toast.success('Request Approved')
             })
 
             //workload minus
             const q = query(collection(database, "users"), where('email', '==', request.assignTo))
             const querySnapshot = await getDocs(q);
 
-            querySnapshot.forEach(async (doc) => {
-                await updateDoc(doc(database, 'users', doc.id), {
-                    tasks: doc.data().tasks - 1
+            querySnapshot.forEach(async (doc1) => {
+                const userRef = doc(database, 'users', doc1.id)
+                await updateDoc(userRef, {
+                    tasks: doc1.data().tasks - 1
                 })
             });
 
@@ -228,12 +269,15 @@ const RequestTasks = () => {
     }
 
     const disapproveRFI = async (e) => {
+        toast.info('Disapproving Request')
         e.preventDefault();
         const requestDocRef = doc(database, "requests", request.id)
         await updateDoc(requestDocRef, {
             status: 'for submission',
-            assignTo: request.submitterEMail,
+            assignTo: request.submitterEmail,
             disapproveReason: disapproveResponse
+        }).then(() => {
+            toast.success('Request Disapproved')
         })
     }
     if (loading) {
@@ -260,13 +304,21 @@ const RequestTasks = () => {
                                         </Card.Body>
                                         <ListGroup className="list-group-flush">
                                             <ListGroup.Item>Sumbitted by : {request.name}</ListGroup.Item>
-                                            <ListGroup.Item>Deadline : {request.deadline}</ListGroup.Item>
-                                            <ListGroup.Item>Date : {new Date(request.date.seconds * 1000).toLocaleString()}</ListGroup.Item>
+                                            <ListGroup.Item>Deadline : {moment(request.deadline.toDate()).format('l')}</ListGroup.Item>
+                                            <ListGroup.Item>Date : {moment(request.date.toDate()).format('l')}</ListGroup.Item>
                                             <ListGroup.Item>Assigned To : {request.submitter}</ListGroup.Item>
-                                            <ListGroup.Item>Status: {request.status}</ListGroup.Item>
+                                            {role && role == 'Employee' && (
+                                                <>
+                                                    {request && request.disapproveReason && (
+                                                        <ListGroup.Item style={{ color: 'red' }}>Reason for Disapproval : {request.disapproveReason}</ListGroup.Item>
+                                                    )}
+                                                </>
+                                            )}
+
+
                                         </ListGroup>
                                         <Card.Body>
-                                            <Card.Link href={request.url}>View Request</Card.Link> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;
+                                            <Card.Link target='_blank' href={request.url}>View Request</Card.Link> &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;
                                             {request.status == 'for submission' && (
                                                 <Button onClick={() => handleSubmit(request)} variant="primary">Submit</Button>
                                             )}
@@ -299,36 +351,43 @@ const RequestTasks = () => {
 
                             <Form.Label>Response to Query</Form.Label>
 
-                            <Form.Control onChange={(e) => setResponse(e.target.value)} as="textarea" rows={3} />
-                            <Form.Label>Images</Form.Label>
+                            <Form.Control required onChange={(e) => setResponse(e.target.value)} as="textarea" rows={3} />
+                            <Form.Label>Images <IoMdAddCircle onClick={addImageInput} />
+                                {imageButton.length > 0 && (
+                                    <FaMinusCircle onClick={minusInput} />
+                                )}
+
+                            </Form.Label>
                             {imageButton.map((input, index) => (
 
-                                <Form.Control key={input.id}
+                                <Form.Control required key={input.id}
                                     accept="image/*"
                                     type="file"
                                     onChange={(event) => handleImageUpload(index, event)}
                                 />
                             ))}
 
-                            <Button onClick={addImageInput}>Add Image</Button>
+                            {request && request.type == 'RFA' && (
+                                <>
+                                    <p></p>
+                                    <Form.Label>Action Code</Form.Label>
+                                    <Form.Select required onChange={(e) => setActionCode(e.target.value)}>
+                                        <option value="" disabled selected>Select Action Code</option>
+                                        <option value='A'>A (Approved) </option>
+                                        <option value='B'>B (Approved with Comments)</option>
+                                        <option value='C'>C (Approved as noted)</option>
+                                        <option value='D'>D (Disapproved)</option>
+                                        <option value='E'>E (Revised & Resubmit)</option>
+
+                                    </Form.Select>
+                                </>
+
+                            )}
+
 
                         </Modal.Body>
-                        {request && request.disapproveReason && (
-                            <Modal.Body>
-                                <p>Reason for Disapproval : {request.disapproveReason}</p>
-                            </Modal.Body>
-                        )}
-                        {request && request.type == 'RFA' && (
-                            <Form.Select onChange={(e) => setActionCode(e.target.value)}>
-                                <option value="" disabled selected>Select Action Code</option>
-                                <option value='A'>A</option>
-                                <option value='B'>B</option>
-                                <option value='C'>C</option>
-                                <option value='D'>D</option>
-                                <option value='E'>E</option>
 
-                            </Form.Select>
-                        )}
+
                         <Modal.Footer>
                             <Button variant='secondary' onClick={handleClose}>Close</Button>
                             <Button variant="primary" type="submit">Submit</Button>
@@ -344,17 +403,17 @@ const RequestTasks = () => {
                     <Modal.Body>
                         <Form onSubmit={approveRFI}>
 
-                            <Form.Label>Response to RFI</Form.Label>
+                            <Form.Label>Response to RFI</Form.Label> &nbsp;
                             {request && (
-                                <Button href={request.submittedUrl}>View</Button>
+                                <Button target='_blank' href={request.submittedUrl}>View</Button>
                             )}
 
-
+                            <p></p>
 
                             <Modal.Footer>
                                 <Button variant='secondary' onClick={handleClose2}>Close</Button>
                                 <Button variant="primary" type="submit">Approve</Button>
-                                <Button variant="primary" onClick={() => setShow3(true)} type="submit">Disapprove</Button>
+                                <Button variant="danger" onClick={() => setShow3(true)} type="submit">Disapprove</Button>
                             </Modal.Footer>
                         </Form>
                     </Modal.Body>
@@ -367,7 +426,7 @@ const RequestTasks = () => {
                     <Modal.Body>
                         <Form onSubmit={disapproveRFI}>
 
-                            <Form.Label>Response to RFI</Form.Label>
+
                             <Form.Control onChange={(e) => setDisapproveResponse(e.target.value)} as="textarea" rows={3} />
 
 
@@ -379,7 +438,7 @@ const RequestTasks = () => {
                     </Modal.Body>
                 </Modal>
 
-                <Modal show={show5} onHide={()=>setShow5(false)}>
+                <Modal show={show5} onHide={() => setShow5(false)}>
                     <Modal.Header>
                         <Modal.Title>Progress</Modal.Title>
                     </Modal.Header>

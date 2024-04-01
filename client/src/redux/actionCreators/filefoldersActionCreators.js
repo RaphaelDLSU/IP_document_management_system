@@ -85,10 +85,10 @@ export const getUserFolders = (userId) => async (dispatch) => {
 
 export
 
-const addUserFolder = (data) => ({
-  type: ADD_USER_FOLDER,
-  payload: data,
-});
+  const addUserFolder = (data) => ({
+    type: ADD_USER_FOLDER,
+    payload: data,
+  });
 
 export const addFolderUser = (name, userId, parent, path) => (dispatch) => {
   database.docs
@@ -134,26 +134,28 @@ const addUserFile = (data) => ({
 
 export const addFileUser =
   ({ uid, parent, data, name, url, path }) =>
-  (dispatch) => {
-    database.files
-      .add(fileModel(uid, parent, data, name, url, path))
-      .then(async (doc) => {
-        console.log('in async')
-        const data = await doc.get();
-        dispatch(addUserFile({ data: data.data(), docId: data.id }));
-        if (data.data().url === "") {
-          toast.success("File created Successfully!");
-          toast.success("You can double click on the file to open the editor!");
-        } else {
-          toast.success("File uploaded Successfully!");
-        }
-      })
-      .catch((err) => {
-        console.log(uid+parent+data+name+' Url'+url+'path'+path)
-        console.log(err);
-        toast.error("Something went wrong!");
-      });
-  };
+    (dispatch) => {
+      database.files
+        .add(fileModel(uid, parent, data, name, url, path))
+        .then(async (doc) => {
+          console.log('in async')
+          const data = await doc.get();
+          // dispatch(addUserFile({ data: data.data(), docId: data.id }));
+          if (data.data().url === "") {
+            toast.success("File created Successfully!");
+            toast.success("You can double click on the file to open the editor!");
+          } else {
+            window.location.reload()
+            toast.success("File uploaded Successfully!");
+          }
+        })
+        .catch((err) => {
+          console.log(uid + parent + data + name + ' Url' + url + 'path' + path)
+          console.log(err);
+          toast.error("Something went wrong!");
+        });
+
+    };
 
 const updateUserFileData = (data) => ({
   type: UPDATE_USER_FILE_DATA,

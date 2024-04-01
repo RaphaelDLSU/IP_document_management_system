@@ -88,18 +88,7 @@ const App = () => {
         <Route exact path={"/"}>
           <NavbarComponent />
 
-          <div className="app-chatbot-container">
-            <ConditionallyRender
-              ifTrue={showChatbot}
-              show={
-                <Chatbot
-                  config={config}
-                  messageParser={MessageParser}
-                  actionProvider={ActionProvider}
-                />
-              }
-            />
-          </div>
+
 
           {loading ? (
             <>
@@ -110,8 +99,20 @@ const App = () => {
 
           ) : (
             <>
-              {role == 'Requestor' && (
+              {user && role == 'Requestor' && (
                 <>
+                  <div className="app-chatbot-container">
+                    <ConditionallyRender
+                      ifTrue={showChatbot}
+                      show={
+                        <Chatbot
+                          config={config}
+                          messageParser={MessageParser}
+                          actionProvider={ActionProvider}
+                        />
+                      }
+                    />
+                  </div>
                   <button
                     className="app-chatbot-button"
                     onClick={() => toggleChatbot((prev) => !prev)}
@@ -128,7 +129,7 @@ const App = () => {
               {role == 'Manager' && (
                 <ManagerHome></ManagerHome>
               )}
-              {role == 'Employee' &&(
+              {role == 'Employee' && (
                 <EmployeeHome></EmployeeHome>
               )}
             </>

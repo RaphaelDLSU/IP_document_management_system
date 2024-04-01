@@ -114,6 +114,22 @@ class ActionProvider2 {
 
   };
 
+  finishRFIRFACreator= () => {
+
+    console.log('finishTaskCreator Function')
+    const message = this.createChatBotMessage(
+      `Request Created! Click the link below to view your requests`,
+      {
+        loading: true,
+        terminateLoading: true,
+        withAvatar: true,
+        widget: 'requestManagementLink',
+      },
+    );
+    this.addMessageToState(message);
+
+  };
+
   handleRFIImages= () => {
 
     console.log('handleRFI Images Function')

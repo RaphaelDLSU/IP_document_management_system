@@ -33,6 +33,7 @@ const Home = () => {
     const [show2, setShow2] = useState(false);
     const [show4, setShow4] = useState(false);
     const [show5, setShow5] = useState(false);
+    const [show6, setShow6] = useState(false);
     const handleClose2 = () => setShow2(false);
     const { path } = useRouteMatch();
     const [show3, setShow3] = useState(false);
@@ -62,6 +63,7 @@ const Home = () => {
 
     const [presetId, setPresetId] = useState()
     const [preset, setPreset] = useState()
+    const [delId, setDelId] = useState()
 
     const [projectName, setProjectName] = useState()
 
@@ -76,7 +78,15 @@ const Home = () => {
     const [autoEmployee, setAutoEmployee] = useState()
     const [autoEmployeeID, setAutoEmployeeID] = useState()
     const [isChecked, setIsChecked] = useState(false);
-
+    const [role, setRole] = useState();
+    const { isLoggedIn, user, userId } = useSelector(
+        (state) => ({
+            isLoggedIn: state.auth.isLoggedIn,
+            user: state.auth.user,
+            userId: state.auth.userId,
+        }),
+        shallowEqual
+    );
 
 
     const createWorkflow = async (e) => {
@@ -263,7 +273,8 @@ const Home = () => {
                             workflow: statusTask[0].workflow,
                             workflowname: workflow.data().name,
                             approvalTo: statusTask[0].approvalTo,
-                            project: workflow.data().project
+                            project: workflow.data().project,
+                            hours: 40
                         })
 
                         dispatch(createNotifs({
@@ -277,7 +288,7 @@ const Home = () => {
                             task: statusTask[0].name,
                             workflow: statusTask[0].workflow,
                             workflowname: workflow.data().name,
-                            project:statusTask[0].project
+                            project: workflow.data().project
                         })
 
                         await updateDoc(workflowRef, {
@@ -337,6 +348,7 @@ const Home = () => {
     };
 
     const moveStage = async (id) => {
+        toast.info('Ending Stage. Please Wait...')
         const workflowRef = doc(database, "workflows", id);
         const docSnap = await getDoc(workflowRef);
 
@@ -370,13 +382,12 @@ const Home = () => {
                     const querySnapshot = await getDocs(q);
                     querySnapshot.forEach(async (user) => {
                         console.log('USER: ' + user)
-
                         //Notifs
                         dispatch(createNotifs({
                             title: 'NEW TASK: ' + task1.name,
                             message: 'You have been assigned to a new task. Please check the Tasks Manager Page for more information ',
                             receiverID: user.data().email,
-                            link: 'notifs'
+                            link: 'tasks'
                         }))
                         const dateDeadline = new Date();
                         dateDeadline.setDate(dateDeadline.getDate() + 3);
@@ -394,7 +405,8 @@ const Home = () => {
                             workflowname: task1.workflowname,
                             approvalTo: task1.approvalTo,
                             recurring: task1.recurring,
-                            project: task1.project
+                            project: docSnap.data().project,
+                            hours: 40
                         })
                     })
                 } else {
@@ -402,7 +414,7 @@ const Home = () => {
                         task: task1.name,
                         workflow: task1.workflow,
                         workflowname: task1.workflowname,
-                        project: task1.project
+                        project: docSnap.data().project
                     })
                 }
 
@@ -411,11 +423,8 @@ const Home = () => {
             //brush off inactive tasks before finishing
             if (!task1.active && !isTaskActive && !done) {
                 console.log('brush off')
-                if (updateTaskArray = []) {
-                    updateTaskArray = [task1]
-                } else {
-                    updateTaskArray.push(task1)
-                }
+
+                updateTaskArray.push(task1)
             }
             //make active task inactive
             if (task1.active && !done) {
@@ -434,7 +443,8 @@ const Home = () => {
                         recurring: task1.recurring,
                         requirements: task1.requirements,
                         workflow: task1.workflow,
-                        workflowname: task1.workflowname
+                        workflowname: task1.workflowname,
+                        hours: 3
                     })
                 } else {
                     updateTaskArray.push({
@@ -501,7 +511,7 @@ const Home = () => {
 
         }
 
-
+        toast.success('Stage ended')
     }
 
     const createProject = async (e) => {
@@ -516,6 +526,19 @@ const Home = () => {
     }
 
 
+    const setDeleteId = async (id) => {
+        setDelId(id)
+        setShow6(true)
+    }
+    const deleteStage = async () => {
+
+        toast.info('Deleting Stage. Please wait..')
+
+        await deleteDoc(doc(database, "workflows", delId)).then(() => {
+            setShow6(false)
+            toast.success('Stage Deleted')
+        })
+    }
 
 
     useEffect(() => {
@@ -577,6 +600,21 @@ const Home = () => {
     }, [workflows]);
 
 
+    useEffect(async () => {
+
+        if (user) {
+            let role
+            const q = query(collection(database, "users"), where("email", "==", user.data.uid));
+            let sidebarData
+            const querySnapshot = await getDocs(q);
+            querySnapshot.forEach((doc) => {
+                role = doc.data().role
+            });
+
+            setRole(role)
+
+        }
+    }, [user])
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -587,24 +625,44 @@ const Home = () => {
         return (
             <>
                 <div className='head' style={{ padding: '20px' }}>
-                    <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
+
+                    {role && role == 'Manager' ? (
+                        <>
+                            <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
+
+                        </>
+                    ) : ((<>
+                        <h2>Workflows</h2>
+                    </>))}
                     <hr></hr>
                     <div className='content' style={{ padding: '5px' }}>
                         {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
                             <>
-                                <h4>{project}</h4>
+                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px',marginTop:'20px'}}> {project}</h5>
                                 <Accordion >
 
                                     <Accordion.Item eventKey={id} >
-                                        <Accordion.Header >{name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
+                                        {role && role == 'Manager' ? (
+                                            <>
+                                                <Accordion.Header >{name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
 
-                                            {inStage && (
-                                                <>
-                                                    &nbsp;<Button onClick={() => moveStage(id)}>End Ongoing Stage</Button>
-                                                </>
+                                                    {inStage && (
+                                                        <>
+                                                            &nbsp;<Button onClick={() => moveStage(id)}>End Ongoing Stage</Button>
+                                                        </>
 
-                                            )}
-                                        </Accordion.Header>
+                                                    )}
+                                                    &nbsp;
+                                                    <Button variant='danger' onClick={() => setDeleteId(id)}>Delete</Button>
+                                                </Accordion.Header>
+                                            </>
+                                        ) : ((<>
+                                            <Accordion.Header >{name}
+
+
+                                            </Accordion.Header>
+                                        </>))}
+
 
 
                                         <Accordion.Body>
@@ -695,6 +753,8 @@ const Home = () => {
                                     </Accordion.Item>
 
                                 </Accordion>
+                               <p>          </p>
+                               <p>          </p>
                             </>
 
                         )}
@@ -702,15 +762,15 @@ const Home = () => {
 
                 </div>
 
-                <Modal show={show} onHide={() => handleClose} >
+                <Modal show={show} onHide={() => setShow(false)} >
 
                     <Modal.Header closeButton> Create a Workflow</Modal.Header>
                     <Modal.Body>
                         <Form onSubmit={createWorkflow}>
                             <Form.Group className="mb-3" controlId="exampleForm.ControlInput1">
                                 <Form.Label>Workflow Preset</Form.Label>
-                                <Form.Select onChange={(e) => setPresetId(e.target.value)} aria-label="Default select example">
-                                    <option hidden value>Select a preset...</option>
+                                <Form.Select required onChange={(e) => setPresetId(e.target.value)} aria-label="Default select example">
+                                    <option hidden value="">Select a preset...</option>
                                     {presets.map((preset, index) => (
                                         <option key={index} value={preset.id}>{preset.name}</option>
                                     ))}
@@ -727,6 +787,7 @@ const Home = () => {
                                     >
                                         <Form.Label>Workflow Name</Form.Label>
                                         <Form.Control
+                                            required
                                             type="text"
                                             placeholder='Miramonti Construction Process'
                                             rows={2}
@@ -735,12 +796,13 @@ const Home = () => {
                                         />
                                         <Form.Label>Project</Form.Label>
                                         <Form.Select
+                                            required
                                             labelId="demo-simple-select-label"
                                             id="demo-simple-select"
                                             label="Project"
                                             onChange={(e) => setProject(e.target.value)}
                                         >
-                                            <option hidden value>Select Project...</option>
+                                            <option hidden value="">Select Project...</option>
                                             {projects.map((project, index) => (
                                                 <option key={index} value={project.name}>{project.name}</option>
                                             ))}
@@ -770,7 +832,7 @@ const Home = () => {
                             <Form.Select disabled={isChecked} style={{ opacity: isChecked ? 0.5 : 1 }} onChange={(e) => setEmployee(e.target.value)} aria-label="Default select example">
                                 <option value="" disabled selected>Select Employee</option>
                                 {users.map((user, index) => (
-                                    <option key={index} value={user.name}>{user.name}</option>
+                                    <option key={index} value={user.name}>{user.name} &nbsp;(Tasks: {user.tasks})</option>
                                 ))}
 
                             </Form.Select>
@@ -839,6 +901,19 @@ const Home = () => {
                             </Modal.Footer>
                         </Form>
                     </Modal.Body>
+                </Modal>
+
+                <Modal show={show6} onHide={() => setShow6(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Delete Stage?</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Footer>
+                        <Button variant='secondary' onClick={() => setShow6(false)}>Close</Button>
+                        <Button variant='danger' onClick={deleteStage}>Delete</Button>
+                    </Modal.Footer>
+
+
                 </Modal>
 
 

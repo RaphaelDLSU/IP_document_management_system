@@ -7,8 +7,15 @@ import { getCountFromServer, where, collection, getDocs, addDoc, doc, runTransac
 import { createRFI } from "../../redux/requests/createRFI.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase/storage";
 import './styles.css'
+import { toast } from 'react-toastify';
+import ProgressBar from 'react-bootstrap/ProgressBar';
+import Modal from 'react-bootstrap/Modal';
 const RFIImages = props => {
-    const { setState, actionProvider, project, rfiDesc,rfiDeadline } = props;
+
+    const [progress, setProgress] = useState(0)
+
+    const [show5, setShow5] = useState(false);
+    const { setState, actionProvider, project, rfiDesc, rfiDeadline } = props;
     const [displaySelector, toggleDisplaySelector] = useState(true);
     const [category, setCategory] = useState('');
     const [textBoxes, setTextBoxes] = useState(['']);
@@ -47,6 +54,7 @@ const RFIImages = props => {
 
     };
     const handleSubmit = async () => {
+        toast.info('Submitting Request. Please Wait..')
         const coll = collection(database, "requests");
         const snapshot = await getCountFromServer(coll);
 
@@ -56,11 +64,12 @@ const RFIImages = props => {
                 console.log('FILE: ' + image)
                 const storageRef = ref(storage, 'rfiImages/' + image.name);
                 const uploadTask = uploadBytesResumable(storageRef, image);
-
+setShow5(true)
                 uploadTask.on('state_changed',
                     (snapshot) => {
 
                         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        setProgress(progress)
                         console.log('Upload is ' + progress + '% done');
                         switch (snapshot.state) {
                             case 'paused':
@@ -99,6 +108,8 @@ const RFIImages = props => {
                 projectCat = 'MNT'
             } else if (project == 'Muramana') {
                 projectCat = 'MUR'
+            } else {
+                projectCat = 'MUR'
             }
 
             const data = snapshot.data().count + 1
@@ -116,52 +127,71 @@ const RFIImages = props => {
                     id: 'RFI-' + projectCat + '-' + category + '-' + data.toString(),
                     step: 1,
                     nameEmail: user.data.uid,
-                    category:category,
+                    category: category,
                 })
             );
+            setShow5(false)
         });
     };
     return (
-        <div className="airport-selector-container">
-            <ConditionallyRender
-                ifTrue={displaySelector}
-                show={
-                    <>
-                        {imageButton.map((input, index) => (
-                            <div key={input.id}>
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(event) => handleImageUpload(index, event)}
-                                />
-                            </div>
-                        ))}
-                        <p></p>
-                        <select id="mySelect" onChange={(e) => setCategory(e.target.value)}>
-                            <option value="" disabled selected>Select Category</option>
-                            <option value="Arch">Arch</option>
-                            <option value="CS">CS</option>
-                        </select>
+        <>
+            <div className="airport-selector-container">
+                <ConditionallyRender
+                    ifTrue={displaySelector}
+                    show={
+                        <>
+                            {imageButton.map((input, index) => (
+                                <div key={input.id}>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(event) => handleImageUpload(index, event)}
+                                    />
+                                </div>
+                            ))}
+                            <p></p>
+                            <select id="mySelect" onChange={(e) => setCategory(e.target.value)}>
+                                <option value="" disabled selected>Select Category</option>
+                                <option value="Arch">Arch</option>
+                                <option value="CS">CS</option>
+                            </select>
 
-                        {/* Button to add more image upload inputs */}
-                        <button className="airport-button-confirm" onClick={addImageInput}>Add Image</button>
+                            {/* Button to add more image upload inputs */}
+                            <button className="airport-button-confirm" onClick={addImageInput}>Add Image</button>
 
 
-                        <button className="airport-button-confirm" onClick={removeImageInput}>
-                            Remove
-                        </button>
-                        <button className="airport-button-confirm" onClick={handleSubmit}>Confirm</button>
-                    </>
-                }
-                elseShow={
-                    <>
-                        <p>
-                            Great! You have included your images and category for the RFI!
-                        </p>
-                    </>
-                }
-            />
-        </div>
+                            <button className="airport-button-confirm" onClick={removeImageInput}>
+                                Remove
+                            </button>
+                            <button className="airport-button-confirm" onClick={handleSubmit}>Confirm</button>
+                        </>
+                    }
+                    elseShow={
+                        <>
+                            <p>
+                                Great! You have included your images and category for the RFI!
+                            </p>
+                        </>
+                    }
+                />
+            </div>
+
+            <Modal show={show5} onHide={()=>setShow5(false)}>
+                <Modal.Header>
+                    <Modal.Title>Progress</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <ProgressBar now={progress} />
+
+                    {progress == 100 && (
+                        <p>Done! Please wait a little bit more...</p>
+                    )}
+                </Modal.Body>
+
+            </Modal>
+
+        </>
+
     );
 };
 

@@ -332,7 +332,7 @@ const FileComponent = () => {
 
 
                     <p></p><p></p><p></p>
-                    <Button onClick={() => handleSubmit(currentFile.data.url)}>Summarize</Button>
+                    <Button onClick={() => handleSubmit(currentFile.data.url)}>Ask</Button>
 
                     <p></p>
 

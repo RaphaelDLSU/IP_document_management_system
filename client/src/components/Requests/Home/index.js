@@ -19,7 +19,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 import '../../../App.css'
-
+import moment from 'moment'
 import '../../../botstyle.css'
 import MessageParser from "../../../chatbotkit/MessageParser.js";
 import ActionProvider from "../../../chatbotkit/ActionProvider.js";
@@ -133,6 +133,8 @@ const Home = () => {
                                             <th>Task</th>
                                             <th>Requirements</th>
                                             <th>Date Created</th>
+                                            <th>Deadline</th>
+                                            <th>Assigned To</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -142,21 +144,28 @@ const Home = () => {
                                                 <td>{task.task}</td>
                                                 {task.requirements ? (
                                                     <td> {task.requirements.map((req, index) => (
-                                                        <span key={index}>
+                                                        <>
                                                             {req.url ? (
-                                                                <a href={req.url} target='_blank'>{req.value}</a>
-                                                            ) : (<a>{req.value}</a>)}
-                                                            {index < task.length - 1 && ', '}
-                                                        </span>
+                                                                <a target='_blank' href={req.url}>{req.value}</a>
+                                                            ) : (
+                                                                <>
+                                                                    {req.value}
+                                                                </>
+                                                            )}
+
+                                                            {index !== task.requirements.length - 1 && ', '}
+                                                        </>
                                                     ))}</td>
                                                 ) : (<td>None</td>)}
-                                                <td>{task.timestamp.toDate().toDateString()}</td>
+                                                   <td>{moment(task.timestamp.toDate()).format('l')}</td>
+                                                   <td>{moment(task.deadline.toDate()).format('l')}</td>
+                                                   <td>{task.employee}</td>
 
 
                                                 {task.status != 'done' ? (
-                                                    <td style={{ backgroundColor: '#d42b39' }}>Pending</td>
+                                                    <td style={{ backgroundColor: 'red',color:'white'}}>Pending</td>
                                                 ) : (
-                                                    <td style={{ backgroundColor: '#146C43' }}> Done</td>
+                                                    <td style={{ backgroundColor: 'green',color:'white' }}> Done</td>
                                                 )}
 
                                             </tr>
@@ -173,6 +182,8 @@ const Home = () => {
                                             <th>Project</th>
                                             <th>Description</th>
                                             <th>Date Created</th>
+                                            <th>Deadline</th>
+                                            <th>Assigned To</th>
                                             <th>Status</th>
                                         </tr>
                                     </thead>
@@ -181,7 +192,9 @@ const Home = () => {
                                             <tr key={request.id}>
                                                 <td>{request.project}</td>
                                                 <td>{request.desc}</td>
-                                                <td>{request.date.toDate().toDateString()}</td>
+                                                <td>{moment(request.date.toDate()).format('l')}</td>
+                                                <td>{moment(request.deadline.toDate()).format('l')}</td>
+                                                <td>{request.submitter}</td>
                                                 {request.status != 'done' ? (
                                                     <td style={{ backgroundColor: '#d42b39' }}>Pending</td>
                                                 ) : (

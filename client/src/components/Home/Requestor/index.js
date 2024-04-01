@@ -16,8 +16,10 @@ import { createNotifs } from '../../../redux/notifs/createNotif';
 import Tab from 'react-bootstrap/Tab';
 import Tabs from 'react-bootstrap/Tabs';
 import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
-
+import moment from 'moment';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 const RequestorHome = () => {
+  const history = useHistory()
   const [notifs, setNotifs] = useState()
   const database = getFirestore()
   const [role, setRole] = useState()
@@ -100,15 +102,22 @@ const RequestorHome = () => {
           <Row >
             <Col>
 
-              <h5> Notifications</h5>
-              <hr></hr>
+              <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Notifications</h5>
+
               <ListGroup>
                 {notifs ? (
                   <>
                     {notifs.map(notif => (
-                      <a style={{textDecoration:'none'}} href={notif.link}  rel="noopener noreferrer">
-                        <ListGroup.Item action>{notif.title}</ListGroup.Item>
-                      </a>
+                      <ListGroup.Item action onClick={() => history.push(notif.link)}
+                        className="d-flex justify-content-between align-items-start"
+                      >
+                        <div className="ms-2 me-auto">
+                          <div>{notif.title}</div>
+                        </div>
+                        <Badge bg="primary" pill>
+                          {moment(notif.date.toDate()).format('LLL')}
+                        </Badge>
+                      </ListGroup.Item>
 
                     ))}
                   </>
@@ -119,10 +128,11 @@ const RequestorHome = () => {
               </ListGroup>
 
 
+
             </Col>
             <Col>
-              <h5>Requests</h5>
-              <hr></hr>
+              <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Requests</h5>
+
 
               <Tabs
                 defaultActiveKey="tasks"
@@ -134,11 +144,11 @@ const RequestorHome = () => {
                     {tasks ? (
                       <>
                         {tasks.map(task => (
-                          <ListGroup.Item action
+                          <ListGroup.Item action onClick={()=>history.push('/requests')}
                             className="d-flex justify-content-between align-items-start"
                           >
                             <div className="ms-2 me-auto">
-                              <div>{task.task}</div>
+                              <div>{task.task}: {task.requirements[0].value}</div>
                             </div>
                             <Badge bg="primary" pill>
                               {task.status}
@@ -153,12 +163,12 @@ const RequestorHome = () => {
 
                   </ListGroup>
                 </Tab>
-                <Tab eventKey="requests" title="Requests">
+                <Tab eventKey="requests" title="RFA/RFI">
                   <ListGroup >
                     {requests ? (
                       <>
                         {requests.map(request => (
-                          <ListGroup.Item action
+                          <ListGroup.Item action onClick={()=>history.push('/requests')}
                             className="d-flex justify-content-between align-items-start"
                           >
                             <div className="ms-2 me-auto">
