@@ -1,58 +1,82 @@
-import React from "react";
-import Table from 'react-bootstrap/Table';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+//Bootstrap components
+import { Col, Row, Form, Button } from 'react-bootstrap';
 
-const ResidentialArea = () => {
+const ResidentialArea = ({floorIndex, residentialArea, onResidentialAreaChange, onAddResidentialArea, onRemoveResidentialArea}) => {
     return (
-        <div className="floorForm">
-            <Table striped>
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Unit Type</th>
-                    <th>No. of Units</th>
-                    <th>Unit size (sqm)</th>
-                    <th>Total Area (sqm)</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>C01</td>
-                    <td>5</td>
-                    <td>10</td>
-                    <td>10</td>
-                </tr>
-                <tr>
-                    <td colSpan={2}>TOTAL</td>
-                    <td colSpan={2}>60</td>
-                    <td>60</td>
-                </tr>
-                </tbody>
-            </Table>
+        <>
             <Form.Group>
                 <Row>
-                    <Col>
-                        <Form.Control placeholder="Unit No./Tag" />
-                    </Col>
-                    <Col>
-                        <Form.Control placeholder="No. of Units" />
-                    </Col>
-                    <Col>
-                        <Form.Control placeholder="Unit Size (sqm)" />
-                    </Col>
-                    <Col>
-                        <Button variant="primary" type="submit">
-                            Add
-                        </Button>
-                    </Col>
+                    <Col></Col>
+                    <Col>Unit No./Tag</Col>
+                    <Col>No. of Unit</Col>
+                    <Col>Unit Size (sqm)</Col>
+                    <Col>Total Area (sqm)</Col>
+                    <Col></Col>
                 </Row>
             </Form.Group>
-        </div>
-    );
+            {residentialArea.map((input, index) => {
+                return(
+                    <Form.Group key={index}>
+                        <Row>
+                        {/* Show index/row number */}
+                        <Col>{index + 1}</Col>
+
+                        {/* Unit Type */}
+                        <Col>
+                            <Form.Control
+                            type="text"
+                            placeholder="Unit Type"
+                            name="residentialAreaUnitType"
+                            value={input.residentialAreaUnitType}
+                            onChange={(e) => onResidentialAreaChange(floorIndex, index, 'residentialAreaUnitType', e.target.value)}
+                            />
+                        </Col>
+
+                        {/* No. of Unit */}
+                        <Col>
+                            <Form.Control
+                            type="number"
+                            placeholder="No. of Unit"
+                            name="residentialAreaNumberUnit"
+                            value={input.residentialAreaNumberUnit}
+                            onChange={(e) => onResidentialAreaChange(floorIndex, index, 'residentialAreaNumberUnit', e.target.value)}
+                            required
+                            />
+                        </Col>
+
+                        {/* Unit size */}
+                        <Col>
+                            <Form.Control 
+                            type="number"
+                            step="0.01"
+                            placeholder="Area (sqm)"
+                            name="residentialAreaSize"
+                            value={input.residentialAreaSize}
+                            onChange={(e) => onResidentialAreaChange(floorIndex, index, 'residentialAreaSize', e.target.value)}
+                            required
+                            />
+                        </Col>
+
+                        {/* Total area */}
+                        <Col>
+                            {input.residentialTotalArea}
+                        </Col>
+
+                        {/* Remove row button */}
+                        <Col>
+                            <Button variant='primary' onClick={() => onRemoveResidentialArea(floorIndex)}>
+                            Remove
+                            </Button>
+                        </Col>
+                        </Row>
+                    </Form.Group>
+                )
+            })}
+            <Button variant="primary" onClick={() => onAddResidentialArea(floorIndex)}>
+            Add row
+            </Button>
+        </>
+    )
 }
 
 export default ResidentialArea;

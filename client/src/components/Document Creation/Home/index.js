@@ -1,433 +1,342 @@
-import React, { useEffect, useState } from "react";
-import ReactDOM from 'react-dom';
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc, QueryConstraint } from 'firebase/firestore'
-import { getStorage, ref, uploadBytesResumable, getDownloadURL, } from "firebase/storage";
+import { useState, Fragment } from 'react';
+import Floor from '../Floor'
+import { v4 as uuidv4 } from 'uuid';
 
 //Bootstrap components
-import Spinner from 'react-bootstrap/Spinner';
-import Table from 'react-bootstrap/Table';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
-import Accordion from 'react-bootstrap/Accordion';
+import { Form, Button, Row, Col } from 'react-bootstrap';
 
-//Import forms
-import ServiceArea from "../Forms/ServiceArea";
-import SaleableArea from "../Forms/SaleableArea";
-import ParkingArea from "../Forms/ParkingArea";
-import { AccordionItem } from "react-bootstrap";
-import AmenitiesArea from "../Forms/AmenitiesArea";
-import ResidentialArea from "../Forms/ResidentialArea";
+//Firebase imports
+// import { addDoc, collection } from "firebase/firestore";
+// import { db } from "./firebase"
 
 const DocumentCreation = () => {
-    const database = getFirestore()
-    const [loading, setLoading] = useState(true)
-
-    const [open, setOpen] = useState(false);
-
-    const [inputs, setInputs] = useState({});
-    const [number1, setNumber1] = useState('');
-    const [number2, setNumber2] = useState('');
-    const [sum, setSum] = useState('');
-    const [show, setShow] = useState(false);
-    
-    const handleChange = (event) => {
-        const name = event.target.name;
-        const value = event.target.value;
-        setInputs((values) => ({ ...values, [name]: value }));
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        console.log('Form data:', inputs);
-
-        const documentRef = collection(database,'buildingSurface')
-
-        await addDoc(documentRef,{
-            inputs:inputs
-        })
-    };
-
-    const addition = (e, inputNumber) => {
-        const inputValue = e.target.value;
-
-        if (inputNumber === 'number1') {
-            setNumber1(inputValue);
-        } else if (inputNumber === 'number2') {
-            setNumber2(inputValue);
+  //Array of floors. Floors are identified by id that is created using uuid
+  const [floors, setFloors] = useState([
+    {
+      id: uuidv4(),
+      floorName: '',
+      saleableArea: [
+        {
+          saleableAreaUnitNumberTag: '',
+          saleableAreaType: '',
+          saleableAreaSize: ''
         }
-
-        const result = Number(number1) + Number(number2);
-        setSum(result);
+      ],
+      serviceArea: [
+        {
+          serviceAreaUnitNumberTag: '',
+          serviceAreaType: '',
+          serviceAreaSize: ''
+        }
+      ],
+      parkingArea: [
+        {
+          parkingAreaUnitNumberTag: '',
+          numberOfParking: '',
+          parkingSlotSize: '',
+          parkingTotalArea: ''
+        }
+      ],
+      amenitiesArea: [
+        {
+          amenitiesAreaUnitNumberTag: '',
+          amenitiesAreaType: '',
+          amenitiesAreaSize: ''
+        }
+      ],
+      residentialArea: [
+        {
+          residentialAreaUnitType: '',
+          residentialAreaNumberUnit: '',
+          residentialAreaSize: '',
+          residentialTotalArea: ''
+        }
+      ]
     }
-    
-    const handleAddition = (number1, number2) => {
-        const sum = Number(number1) + Number(number2);
-            setSum(sum);
+  ])
+
+  //Change handler for Floor name
+  const handleFloorNameChange = (index, event) => {
+    let data = [...floors];
+    data[index][event.target.name] = event.target.value;
+    setFloors(data);
+  }
+
+  //Add new floor by creating and adding a new id to floors.id
+  const addFloor = () => {
+    const newFloor = {
+      id: uuidv4(),
+      floorName: '',
+      saleableArea: [
+        {
+          saleableAreaUnitNumberTag: '',
+          saleableAreaType: '',
+          saleableAreaSize: ''
+        }
+      ],
+      serviceArea: [
+        {
+          serviceAreaUnitNumberTag: '',
+          serviceAreaType: '',
+          serviceAreaSize: ''
+        }
+      ],
+      parkingArea: [
+        {
+          parkingAreaUnitNumberTag: '',
+          numberOfParking: '',
+          parkingSlotSize: '',
+          parkingTotalArea: ''
+        }
+      ],
+      amenitiesArea: [
+        {
+          amenitiesAreaUnitNumberTag: '',
+          amenitiesAreaType: '',
+          amenitiesAreaSize: ''
+        }
+      ],
+      residentialArea: [
+        {
+          residentialAreaUnitType: '',
+          residentialAreaNumberUnit: '',
+          residentialAreaSize: '',
+          residentialTotalArea: ''
+        }
+      ]
+    }
+    setFloors((prevFloors) => [...prevFloors, newFloor])
+  }
+
+  //Remove floor from array by using index
+  const removeFloor = (index) => {
+    setFloors((prevFloors) => prevFloors.filter((floor) => floor.id !== index));
+  }
+
+  /* SALEABLE AREA FUNCTIONS */
+  //Saleable Area Form change handler
+  const handleSaleableAreaChange = (floorIndex, areaIndex, field, value) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].saleableArea[areaIndex][field] = value;
+    setFloors(updatedFloors);
+  };
+
+  //For adding more inputs to Saleable Area
+  const handleAddSaleableArea = (floorIndex) => {
+    const newSaleableArea = { 
+      saleableAreaUnitNumberTag: '',
+      saleableAreaType: '',
+      saleableAreaSize: ''
     };
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].saleableArea.push(newSaleableArea);
+    setFloors(updatedFloors);
+  };
 
-    const submitTask = async (e) => {
-        // e.preventDefault();
-        // console.log('WAHEHE')
+  //For removing inputs from Saleable Area
+  const handleRemoveSaleableArea = (floorIndex, areaIndex) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].saleableArea.splice(areaIndex, 1);
+    setFloors(updatedFloors);
+  };
 
-        // console.log('INPUTS' + JSON.stringify(inputs))
-        // for (const input of inputs) {
-        //     console.log(input.employee)
-        //     const taskRef = collection(database, "tasks");
+  /* SERVICE AREA FUNCTIONS */
+  //Service Area Form change handler
+  const handleServiceAreaChange = (floorIndex, areaIndex, field, value) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].serviceArea[areaIndex][field] = value;
+    setFloors(updatedFloors);
+  };
 
-        //     const q = query(collection(database, "users"), where("email", "==", input.employee));
-
-        //     console.log('there are inputs :)')
-        //     const querySnapshot = await getDocs(q);
-        //     querySnapshot.forEach(async (user) => {
-
-        //         let approvalTemp = false
-        //         let isApproval = ''
-        //         if (approval == '') {
-        //             approvalTemp = 'Manager and CEO'
-        //             isApproval = true
-        //         }
-        //         await addDoc(taskRef, {
-        //             approval: isApproval,
-        //             approvalTo: approvalTemp,
-        //             employee: user.data().name,
-        //             employeeId: user.data().email,
-        //             project: project,
-        //             requirements: [{ value: input.requirement, id: Math.random().toString(36).slice(2, 7) }],
-        //             status: 'for submission',
-        //             task: plan,
-        //             timestamp: new Date(),
-        //             stage: stage,
-        //             hours: hours,
-        //             deadline: deadline,
-        //             workflowname: workflowOfStage,
-        //             workflow: workflowIdOfStage
-        //         })
-        //     });
-
-        // }
-        // console.log('finished')
+  //For adding more inputs to Service Area
+  const handleAddServiceArea = (floorIndex) => {
+    const newServiceArea = { 
+      serviceAreaUnitNumberTag: '',
+      serviceAreaType: '',
+      serviceAreaSize: ''
     };
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].serviceArea.push(newServiceArea);
+    setFloors(updatedFloors);
+  };
 
-    return (
-        <div className="form" style={{ padding: '20px' }}>
-            <h2>Document Creation</h2> 
-            <p>Create Building Surface Document</p>
-            <Button onClick={() => setShow(true)}>Add Floor</Button>
-            <hr></hr>
-            <Form onSubmit={handleSubmit}>
-                <div className="fullForm">
-                    <h3>Ground Floor</h3>
-                    <Accordion defaultActiveKey={['0']} alwaysOpen>
-                        <Accordion.Item eventKey="0">
-                            <Accordion.Header>Description of the Saleable Area</Accordion.Header>
-                            <Accordion.Body>   
-                                <SaleableArea></SaleableArea>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                        <Accordion.Item eventKey="1">
-                            <Accordion.Header>Description of the Service Area</Accordion.Header>
-                            <Accordion.Body>
-                                <ServiceArea></ServiceArea>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                        <Accordion.Item eventKey="2">
-                            <Accordion.Header>Parking Area</Accordion.Header>
-                            <Accordion.Body>
-                                <ParkingArea></ParkingArea>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                        <Accordion.Item eventKey="3">
-                            <Accordion.Header>Description of the Amenities Area</Accordion.Header>
-                            <Accordion.Body>
-                                <AmenitiesArea></AmenitiesArea>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                        <Accordion.Item eventKey="4">
-                            <Accordion.Header>Description of the Residential Area</Accordion.Header>
-                            <Accordion.Body>
-                                <ResidentialArea></ResidentialArea>
-                            </Accordion.Body>
-                        </Accordion.Item>
-                    </Accordion>
-                </div>
-            </Form>
-        </div>
+  //For removing inputs from Service Area
+  const handleRemoveServiceArea = (floorIndex, areaIndex) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].serviceArea.splice(areaIndex, 1);
+    setFloors(updatedFloors);
+  };
 
-        // <form onSubmit={handleSubmit}>
-        //   <label>
-        //     Project Name:
-        //     <input
-        //       type="text"
-        //       name="projectName"
-        //       value={inputs.projectName || ""}
-        //       onChange={handleChange}
-        //     />
-        //   </label>
-        //   <br />
-        //   <label>
-        //     Location:
-        //     <input
-        //       type="text"
-        //       name="location"
-        //       value={inputs.location || ""}
-        //       onChange={handleChange}
-        //     />
-        //   </label>
-        //   <fieldset class="buildingSurface">
-        //     <legend>Total Building Surface</legend>
-        //     <label>Lot area: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="lotArea"
-        //          value={inputs.lotArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <label>Total Gross Floor Area: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="totalGrossFloorArea"
-        //          value={inputs.totalGrossFloorArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <br />
-        //     <p>Commercial</p>
-        //     <label>Commercial Gross Floor Area: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="commercialGrossFloorArea"
-        //          value={inputs.commercialGrossFloorArea || ""}
-        //          onChange={handleChange}
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <label>Commercial Saleable Area: 
-        //         {/* <input
-        //          type="number"
-        //          step="0.01"
-        //          name="commercialSaleableArea"
-        //          value={inputs.commercialSaleableArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm */}
-        //         <input 
-        //         type="number"
-        //         value={number1}
-        //         onChange={(e) => addition(e, 'number1')}
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Commercial Service Area: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="commercialServiceArea"
-        //          value={inputs.commercialServiceArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <label>Efficiency Ratio: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="commercialEfficiencyRatio"
-        //          value={inputs.commercialEfficiencyRatio || ""}
-        //          onChange={handleChange} 
-        //         /> [%]
-        //     </label>
-        //     <br />
-        //     <label>Number of Commercial Units: 
-        //         <input
-        //          type="number"
-        //          name="commercialUnits"
-        //          value={inputs.commercialUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Number of Parking Slots: 
-        //         <input
-        //          type="number"
-        //          name="commercialParkingSlots"
-        //          value={inputs.commercialParkingSlots || ""}
-        //          onChange={handleChange} 
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <br />
-        //     <p>Residential</p>
-        //     <label>Residential Gross Floor Area: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="residentialGrossFloorArea"
-        //          value={inputs.residentialGrossFloorArea || ""}
-        //          onChange={handleChange}
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <label>Residential Saleable Area: 
-        //         {/* <input
-        //          type="number"
-        //          step="0.01"
-        //          name="residentialSaleableArea"
-        //          value={inputs.residentialSaleableArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm */}
-        //         <input 
-        //         type="number"
-        //         value={number2}
-        //         onChange={(e) => addition(e, 'number2')}
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Residential Service Area: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="residentialServiceArea"
-        //          value={inputs.residentialServiceArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm
-        //     </label>
-        //     <br />
-        //     <label>Efficiency Ratio: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="residentialEfficiencyRatio"
-        //          value={inputs.residentialEfficiencyRatio || ""}
-        //          onChange={handleChange} 
-        //         /> [%]
-        //     </label>
-        //     <br />
-        //     <label>Number of Residential Units: 
-        //         <input
-        //          type="number"
-        //          name="residentialUnits"
-        //          value={inputs.residentialUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Number of Studio Units: 
-        //         <input
-        //          type="number"
-        //          name="studioUnits"
-        //          value={inputs.studioUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Number of 1 Bedroom Units: 
-        //         <input
-        //          type="number"
-        //          name="oneBedroomUnits"
-        //          value={inputs.oneBedroomUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Number of Parking Slots: 
-        //         <input
-        //          type="number"
-        //          name="residentialParkingSlots"
-        //          value={inputs.residentialParkingSlots || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <br />
-        //     <p>Gross and Total Values</p>
-        //     <label>Gross Saleable Area: 
-        //         {/* <input
-        //          type="number"
-        //          step="0.01"
-        //          name="grossSaleableArea"
-        //          value={inputs.grossSaleableArea || ""}
-        //          onChange={handleChange}
-        //         /> sqm */}
-        //         <p>{sum}</p>
-        //     </label>
-        //     <br />
-        //     <label>Gross Service Area: 
-        //         {/* <input
-        //          type="number"
-        //          step="0.01"
-        //          name="grossServiceArea"
-        //          value={inputs.grossServiceArea || ""}
-        //          onChange={handleChange} 
-        //         /> sqm */}
-        //     </label>
-        //     <br />
-        //     <label>Efficiency Ratio: 
-        //         <input
-        //          type="number"
-        //          step="0.01"
-        //          name="grossEfficiencyRatio"
-        //          value={inputs.grossEfficiencyRatio || ""}
-        //          onChange={handleChange} 
-        //         /> [%]
-        //     </label>
-        //     <br />
-        //     <label>Total Number of Commercial Units: 
-        //         <input
-        //          type="number"
-        //          name="totalCommercialUnits"
-        //          value={inputs.totalCommercialUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Total Number of Residential Units: 
-        //         <input
-        //          type="number"
-        //          name="totalResidentialUnits"
-        //          value={inputs.totalResidentialUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Total Number of Studio Units: 
-        //         <input
-        //          type="number"
-        //          name="totalStudioUnits"
-        //          value={inputs.totalStudioUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Total Number of 1 Bedroom Units: 
-        //         <input
-        //          type="number"
-        //          name="totalOneBedroomUnits"
-        //          value={inputs.totalOneBedroomUnits || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //     <label>Total Number of Parking Slots: 
-        //         <input
-        //          type="number"
-        //          name="totalParkingSlots"
-        //          value={inputs.totalParkingSlots || ""}
-        //          onChange={handleChange} 
-        //         />
-        //     </label>
-        //     <br />
-        //   </fieldset>
-        //   <br />
-        //   <input type="submit" />
-        // </form>
-    );
-};
+  /* PARKING AREA FUNCTIONS */
+  //Parking Area Form change handler
+  const handleParkingAreaChange = (floorIndex, areaIndex, field, value) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].parkingArea[areaIndex][field] = value;
+
+    //Calculate Total Parking Area by multiplying No. of Parking and Slot Size
+    updatedFloors[floorIndex].parkingArea[areaIndex].parkingTotalArea = 
+      updatedFloors[floorIndex].parkingArea[areaIndex].numberOfParking * 
+      updatedFloors[floorIndex].parkingArea[areaIndex].parkingSlotSize;
+
+    setFloors(updatedFloors);
+  };
+
+  //For adding more inputs to Parking Area
+  const handleAddParkingArea = (floorIndex) => {
+    const newParkingArea = { 
+      parkingAreaUnitNumberTag: '',
+      numberOfParking: '',
+      parkingSlotSize: '',
+      parkingTotalArea: ''
+    };
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].parkingArea.push(newParkingArea);
+    setFloors(updatedFloors);
+  };
+
+  //For removing inputs from Parking Area
+  const handleRemoveParkingArea = (floorIndex, areaIndex) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].parkingArea.splice(areaIndex, 1);
+    setFloors(updatedFloors);
+  };
+
+  /* AMENITIES AREA FUNCTIONS */
+  //Amenities Area Form change handler
+  const handleAmenitiesAreaChange = (floorIndex, areaIndex, field, value) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].amenitiesArea[areaIndex][field] = value;
+    setFloors(updatedFloors);
+  };
+
+  //For adding more inputs to Amenities Area
+  const handleAddAmenitiesArea = (floorIndex) => {
+    const newAmenitiesArea = { 
+      amenitiesAreaUnitNumberTag: '',
+      amenitiesAreaType: '',
+      amenitiesAreaSize: ''
+    };
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].amenitiesArea.push(newAmenitiesArea);
+    setFloors(updatedFloors);
+  };
+
+  //For removing inputs from Amenities Area
+  const handleRemoveAmenitiesArea = (floorIndex, areaIndex) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].amenitiesArea.splice(areaIndex, 1);
+    setFloors(updatedFloors);
+  };
+
+  /* RESIDENTIAL AREA FUNCTIONS */
+  //Residential Area Form change handler
+  const handleResidentialAreaChange = (floorIndex, areaIndex, field, value) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].residentialArea[areaIndex][field] = value;
+
+    //Calculate Total Parking Area by multiplying No. of Parking and Slot Size
+    updatedFloors[floorIndex].residentialArea[areaIndex].residentialTotalArea = 
+      updatedFloors[floorIndex].residentialArea[areaIndex].residentialAreaSize * 
+      updatedFloors[floorIndex].residentialArea[areaIndex].residentialAreaNumberUnit;
+
+    setFloors(updatedFloors);
+  };
+
+  //For adding more inputs to Residential Area
+  const handleAddResidentialArea = (floorIndex) => {
+    const newResidentialArea = { 
+      residentialAreaUnitType: '',
+      residentialAreaNumberUnit: '',
+      residentialAreaSize: '',
+      residentialTotalArea: ''
+    };
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].residentialArea.push(newResidentialArea);
+    setFloors(updatedFloors);
+  };
+
+  //For removing inputs from Residential Area
+  const handleRemoveResidentialArea = (floorIndex, areaIndex) => {
+    const updatedFloors = [...floors];
+    updatedFloors[floorIndex].residentialArea.splice(areaIndex, 1);
+    setFloors(updatedFloors);
+  };
+
+  //Submits the contents of inputs
+//   const handleSubmit = async () => {
+//     try {
+//       // Assuming 'floors' is the state you want to upload
+//       const docRef = await addDoc(collection(db, 'buildingSurface'), {
+//         floors: floors,
+//       });
+//       console.log(floors);
+//       console.log('Document written with ID: ', docRef.id);
+//     } catch (e) {
+//       console.error('Error adding document: ', e);
+//     }
+//   }
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    console.log(floors);
+  }
+
+  return (
+    <div className='home'>
+      <h1>Create Building Surface Document</h1>
+      <Form>
+        {floors.map((floor, index) => (
+            <Fragment key={index}>
+              <Row>
+                <Col>
+                  <Form.Control
+                  size='lg'
+                  type="text"
+                  placeholder="Floor name"
+                  name="floorName"
+                  value={floors.floorName}
+                  onChange={event => handleFloorNameChange(index, event)}
+                  />
+                </Col>
+                <Col>
+                  
+                </Col>
+              </Row>
+              <Floor
+                floorIndex={index}
+                saleableArea={floor.saleableArea}
+                onSaleableAreaChange={handleSaleableAreaChange}
+                onAddSaleableArea={handleAddSaleableArea}
+                onRemoveSaleableArea={handleRemoveSaleableArea}
+
+                serviceArea={floor.serviceArea}
+                onServiceAreaChange={handleServiceAreaChange}
+                onAddServiceArea={handleAddServiceArea}
+                onRemoveServiceArea={handleRemoveServiceArea}
+
+                parkingArea={floor.parkingArea}
+                onParkingAreaChange={handleParkingAreaChange}
+                onAddParkingArea={handleAddParkingArea}
+                onRemoveParkingArea={handleRemoveParkingArea}
+
+                amenitiesArea={floor.amenitiesArea}
+                onAmenitiesAreaChange={handleAmenitiesAreaChange}
+                onAddAmenitiesArea={handleAddAmenitiesArea}
+                onRemoveAmenitiesArea={handleRemoveAmenitiesArea}
+
+                residentialArea={floor.residentialArea}
+                onResidentialAreaChange={handleResidentialAreaChange}
+                onAddResidentialArea={handleAddResidentialArea}
+                onRemoveResidentialArea={handleRemoveResidentialArea}
+              />
+              <Button variant='secondary' onClick={() => removeFloor(floor.id)}>Remove floor</Button>
+            </Fragment>
+        ))}
+      </Form>
+      <Button variant='secondary' onClick={addFloor}>Add Floor</Button>
+      <Button variant="primary" onClick={handleSubmit}>Submit</Button>
+    </div>
+  );
+}
 
 export default DocumentCreation;
