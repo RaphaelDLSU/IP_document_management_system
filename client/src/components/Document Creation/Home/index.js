@@ -1,6 +1,7 @@
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
+import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
 
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
@@ -10,6 +11,10 @@ import { Form, Button, Row, Col } from 'react-bootstrap';
 // import { db } from "./firebase"
 
 const DocumentCreation = () => {
+  const [projects, setProjects] = useState([])
+  const database = getFirestore()
+  const [project, setProject] = useState()
+
   //Array of floors. Floors are identified by id that is created using uuid
   const [floors, setFloors] = useState([
     {
@@ -123,7 +128,7 @@ const DocumentCreation = () => {
 
   //For adding more inputs to Saleable Area
   const handleAddSaleableArea = (floorIndex) => {
-    const newSaleableArea = { 
+    const newSaleableArea = {
       saleableAreaUnitNumberTag: '',
       saleableAreaType: '',
       saleableAreaSize: ''
@@ -150,7 +155,7 @@ const DocumentCreation = () => {
 
   //For adding more inputs to Service Area
   const handleAddServiceArea = (floorIndex) => {
-    const newServiceArea = { 
+    const newServiceArea = {
       serviceAreaUnitNumberTag: '',
       serviceAreaType: '',
       serviceAreaSize: ''
@@ -174,8 +179,8 @@ const DocumentCreation = () => {
     updatedFloors[floorIndex].parkingArea[areaIndex][field] = value;
 
     //Calculate Total Parking Area by multiplying No. of Parking and Slot Size
-    updatedFloors[floorIndex].parkingArea[areaIndex].parkingTotalArea = 
-      updatedFloors[floorIndex].parkingArea[areaIndex].numberOfParking * 
+    updatedFloors[floorIndex].parkingArea[areaIndex].parkingTotalArea =
+      updatedFloors[floorIndex].parkingArea[areaIndex].numberOfParking *
       updatedFloors[floorIndex].parkingArea[areaIndex].parkingSlotSize;
 
     setFloors(updatedFloors);
@@ -183,7 +188,7 @@ const DocumentCreation = () => {
 
   //For adding more inputs to Parking Area
   const handleAddParkingArea = (floorIndex) => {
-    const newParkingArea = { 
+    const newParkingArea = {
       parkingAreaUnitNumberTag: '',
       numberOfParking: '',
       parkingSlotSize: '',
@@ -211,7 +216,7 @@ const DocumentCreation = () => {
 
   //For adding more inputs to Amenities Area
   const handleAddAmenitiesArea = (floorIndex) => {
-    const newAmenitiesArea = { 
+    const newAmenitiesArea = {
       amenitiesAreaUnitNumberTag: '',
       amenitiesAreaType: '',
       amenitiesAreaSize: ''
@@ -235,8 +240,8 @@ const DocumentCreation = () => {
     updatedFloors[floorIndex].residentialArea[areaIndex][field] = value;
 
     //Calculate Total Parking Area by multiplying No. of Parking and Slot Size
-    updatedFloors[floorIndex].residentialArea[areaIndex].residentialTotalArea = 
-      updatedFloors[floorIndex].residentialArea[areaIndex].residentialAreaSize * 
+    updatedFloors[floorIndex].residentialArea[areaIndex].residentialTotalArea =
+      updatedFloors[floorIndex].residentialArea[areaIndex].residentialAreaSize *
       updatedFloors[floorIndex].residentialArea[areaIndex].residentialAreaNumberUnit;
 
     setFloors(updatedFloors);
@@ -244,7 +249,7 @@ const DocumentCreation = () => {
 
   //For adding more inputs to Residential Area
   const handleAddResidentialArea = (floorIndex) => {
-    const newResidentialArea = { 
+    const newResidentialArea = {
       residentialAreaUnitType: '',
       residentialAreaNumberUnit: '',
       residentialAreaSize: '',
@@ -263,43 +268,79 @@ const DocumentCreation = () => {
   };
 
   //Submits the contents of inputs
-//   const handleSubmit = async () => {
-//     try {
-//       // Assuming 'floors' is the state you want to upload
-//       const docRef = await addDoc(collection(db, 'buildingSurface'), {
-//         floors: floors,
-//       });
-//       console.log(floors);
-//       console.log('Document written with ID: ', docRef.id);
-//     } catch (e) {
-//       console.error('Error adding document: ', e);
-//     }
-//   }
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    console.log(floors);
+  const handleSubmit = async () => {
+    try {
+      // Assuming 'floors' is the state you want to upload
+      const docRef = await setDoc(doc(database, 'buildingSurface', project), {
+        floors: floors,
+        project: project
+      });
+    } catch (e) {
+      console.error('Error adding document: ', e);
+    }
   }
 
+
+  const getProject = async (project) => {
+
+    setProject(project)
+
+    const q = doc(database, 'buildingSurface', project)
+    const docSnap = await getDoc(q).then((doc) => {
+      setFloors(doc.data().floors)
+
+    })
+
+    console.log('got doc')
+  }
+
+  useEffect(() => {
+
+    const getProjects = async () => {
+      const q = query(collection(database, 'projects'))
+      await getDocs(q).then((project) => {
+        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setProjects(projectData)
+      }).catch((err) => {
+        console.log(err);
+      })
+    }
+    getProjects()
+  }, [])
+
+
+
   return (
-    <div className='home'>
-      <h1>Create Building Surface Document</h1>
-      <Form>
-        {floors.map((floor, index) => (
+    <div className='head' style={{ padding: '20px' }}>
+      <h1>Create Building Surface Document </h1>
+      <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
+        <option value="" hidden>Project</option>
+        {projects.map((project, index) => (
+          <>
+            <option value={project.name}>{project.name}</option>
+          </>
+
+        ))}
+      </Form.Select>
+      <div className='content' style={{ padding: '5px' }}>
+
+
+        <Form>
+          {floors.map((floor, index) => (
             <Fragment key={index}>
               <Row>
                 <Col>
                   <Form.Control
-                  size='lg'
-                  type="text"
-                  placeholder="Floor name"
-                  name="floorName"
-                  value={floors.floorName}
-                  onChange={event => handleFloorNameChange(index, event)}
+                    size='lg'
+                    type="text"
+                    placeholder="Floor name"
+                    name="floorName"
+                    value={floor.floorName}
+                    onChange={event => handleFloorNameChange(index, event)}
                   />
                 </Col>
+
                 <Col>
-                  
                 </Col>
               </Row>
               <Floor
@@ -331,10 +372,11 @@ const DocumentCreation = () => {
               />
               <Button variant='secondary' onClick={() => removeFloor(floor.id)}>Remove floor</Button>
             </Fragment>
-        ))}
-      </Form>
-      <Button variant='secondary' onClick={addFloor}>Add Floor</Button>
-      <Button variant="primary" onClick={handleSubmit}>Submit</Button>
+          ))}
+        </Form>
+        <Button variant='secondary' onClick={addFloor}>Add Floor</Button>
+        <Button variant="primary" onClick={handleSubmit}>Submit</Button>
+      </div>
     </div>
   );
 }
