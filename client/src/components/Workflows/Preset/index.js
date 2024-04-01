@@ -402,7 +402,7 @@ const Home = () => {
 
                                         </Table>
 
-                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => addWorkflowtToTask(id)} variant='success'>Add Stage</Button>&nbsp;&nbsp;<Button onClick={() => deleteWorkflowPre(id)} variant='danger'>Add Stage</Button>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<Button onClick={() => addWorkflowtToTask(id)} variant='success'>Add Stage</Button>&nbsp;&nbsp;<Button onClick={() => deleteWorkflowPre(id)} variant='danger'>Delete Stage</Button>
                                     </Accordion.Body>
                                 </Accordion.Item>
                             )}

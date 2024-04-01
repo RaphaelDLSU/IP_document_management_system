@@ -6,7 +6,6 @@ const SaleableArea = ({floorIndex, saleableArea, onSaleableAreaChange, onAddSale
         <>
             <Form.Group>
                 <Row>
-                    <Col></Col>
                     <Col>Unit No./Tag</Col>
                     <Col>Type</Col>
                     <Col>Area (sqm)</Col>
@@ -18,7 +17,7 @@ const SaleableArea = ({floorIndex, saleableArea, onSaleableAreaChange, onAddSale
                     <Form.Group key={index}>
                         <Row>
                         {/* Show index/row number */}
-                        <Col>{index + 1}</Col>
+                     
 
                         {/* Unit No. */}
                         <Col>
@@ -62,7 +61,7 @@ const SaleableArea = ({floorIndex, saleableArea, onSaleableAreaChange, onAddSale
 
                         {/* Remove row button */}
                         <Col>
-                            <Button variant='primary' onClick={() => onRemoveSaleableArea(floorIndex)}>
+                            <Button variant='danger' onClick={() => onRemoveSaleableArea(floorIndex)}>
                             Remove
                             </Button>
                         </Col>
@@ -70,6 +69,7 @@ const SaleableArea = ({floorIndex, saleableArea, onSaleableAreaChange, onAddSale
                     </Form.Group>
                 )
             })}
+            <p></p>
             <Button variant="primary" onClick={() => onAddSaleableArea(floorIndex)}>
             Add row
             </Button>

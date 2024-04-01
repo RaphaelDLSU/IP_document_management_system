@@ -235,7 +235,7 @@ const TaskMonitoring = () => {
     }
     else if (sort == 'No. of Hours Ascending') {
 
-      const filter = tasksPending.sort((a, b) => a.hours - a.hours)
+      const filter = tasksPending.sort((a, b) => a.hours - b.hours)
       setTasksPending([...filter])
     }
   }
@@ -308,7 +308,7 @@ const TaskMonitoring = () => {
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksPending.filter((d) => {
-        if (d.deadline.toDate().getTime()) {
+        if (d.deadline) {
           return d.deadline.toDate().getTime() >= seventhDay.getTime();
 
         }
@@ -322,7 +322,7 @@ const TaskMonitoring = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksPending.filter((d) => {
-        if (d.deadline.toDate().getTime()) {
+        if (d.deadline) {
           return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
 
         }
@@ -336,7 +336,7 @@ const TaskMonitoring = () => {
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksPending.filter((d) => {
-        if (d.deadline.toDate().getTime()) {
+        if (d.deadline) {
           return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
 
         }
@@ -352,7 +352,11 @@ const TaskMonitoring = () => {
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksCompleted.filter((d) => {
-        return d.timestamp.toDate().getTime() >= seventhDay.getTime();
+        if (d.timestamp) {
+          return d.timestamp.toDate().getTime() >= seventhDay.getTime();
+        }
+
+
       });
 
 
@@ -362,7 +366,10 @@ const TaskMonitoring = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksCompleted.filter((d) => {
-        return d.timestamp.toDate().getTime() >= thirtyDaysAgo.getTime();
+        if (d.timestamp) {
+          return d.timestamp.toDate().getTime() >= thirtyDaysAgo.getTime();
+
+        }
       });
 
       setTasksCompleted(filteredData)
@@ -371,7 +378,9 @@ const TaskMonitoring = () => {
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksCompleted.filter((d) => {
-        return d.timestamp.toDate().getTime() >= threeMonthsAgo.getTime();
+        if (d.timestamp) {
+          return d.timestamp.toDate().getTime() >= threeMonthsAgo.getTime();
+        }
       });
 
       setTasksCompleted(filteredData)
@@ -384,7 +393,10 @@ const TaskMonitoring = () => {
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksCompleted.filter((d) => {
-        return d.deadline.toDate().getTime() >= seventhDay.getTime();
+        if (d.deadline) {
+          return d.deadline.toDate().getTime() >= seventhDay.getTime();
+
+        }
       });
 
       setTasksCompleted(filteredData)
@@ -393,7 +405,10 @@ const TaskMonitoring = () => {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksCompleted.filter((d) => {
-        return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+        if (d.deadline) {
+          return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+
+        }
       });
 
       setTasksCompleted(filteredData)
@@ -402,7 +417,10 @@ const TaskMonitoring = () => {
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksCompleted.filter((d) => {
-        return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+        if (d.deadline) {
+          return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+
+        }
       });
 
       setTasksCompleted(filteredData)

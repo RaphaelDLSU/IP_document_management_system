@@ -6,7 +6,6 @@ const ParkingArea = ({floorIndex, parkingArea, onParkingAreaChange, onAddParking
         <>
             <Form.Group>
                 <Row>
-                    <Col></Col>
                     <Col>Unit No./Tag</Col>
                     <Col>No. of Parking</Col>
                     <Col>Slot Size (sqm)</Col>
@@ -19,7 +18,6 @@ const ParkingArea = ({floorIndex, parkingArea, onParkingAreaChange, onAddParking
                     <Form.Group key={index}>
                         <Row>
                         {/* Show index/row number */}
-                        <Col>{index + 1}</Col>
 
                         {/* Unit No. */}
                         <Col>
@@ -64,7 +62,7 @@ const ParkingArea = ({floorIndex, parkingArea, onParkingAreaChange, onAddParking
 
                         {/* Remove row button */}
                         <Col>
-                            <Button variant='primary' onClick={() => onRemoveParkingArea(floorIndex)}>
+                            <Button variant='danger' onClick={() => onRemoveParkingArea(floorIndex)}>
                             Remove
                             </Button>
                         </Col>
@@ -72,6 +70,7 @@ const ParkingArea = ({floorIndex, parkingArea, onParkingAreaChange, onAddParking
                     </Form.Group>
                 )
             })}
+            <p></p>
             <Button variant="primary" onClick={() => onAddParkingArea(floorIndex)}>
             Add row
             </Button>

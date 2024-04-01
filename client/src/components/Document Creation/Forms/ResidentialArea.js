@@ -6,7 +6,6 @@ const ResidentialArea = ({floorIndex, residentialArea, onResidentialAreaChange, 
         <>
             <Form.Group>
                 <Row>
-                    <Col></Col>
                     <Col>Unit No./Tag</Col>
                     <Col>No. of Unit</Col>
                     <Col>Unit Size (sqm)</Col>
@@ -19,7 +18,6 @@ const ResidentialArea = ({floorIndex, residentialArea, onResidentialAreaChange, 
                     <Form.Group key={index}>
                         <Row>
                         {/* Show index/row number */}
-                        <Col>{index + 1}</Col>
 
                         {/* Unit Type */}
                         <Col>
@@ -64,7 +62,7 @@ const ResidentialArea = ({floorIndex, residentialArea, onResidentialAreaChange, 
 
                         {/* Remove row button */}
                         <Col>
-                            <Button variant='primary' onClick={() => onRemoveResidentialArea(floorIndex)}>
+                            <Button variant='danger' onClick={() => onRemoveResidentialArea(floorIndex)}>
                             Remove
                             </Button>
                         </Col>
@@ -72,6 +70,7 @@ const ResidentialArea = ({floorIndex, residentialArea, onResidentialAreaChange, 
                     </Form.Group>
                 )
             })}
+            <p></p>
             <Button variant="primary" onClick={() => onAddResidentialArea(floorIndex)}>
             Add row
             </Button>

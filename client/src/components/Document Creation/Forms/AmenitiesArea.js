@@ -6,7 +6,6 @@ const AmenitiesArea = ({floorIndex, amenitiesArea, onAmenitiesAreaChange, onAddA
         <>
             <Form.Group>
                 <Row>
-                    <Col></Col>
                     <Col>Unit No./Tag</Col>
                     <Col>Type</Col>
                     <Col>Area (sqm)</Col>
@@ -18,7 +17,6 @@ const AmenitiesArea = ({floorIndex, amenitiesArea, onAmenitiesAreaChange, onAddA
                     <Form.Group key={index}>
                         <Row>
                         {/* Show index/row number */}
-                        <Col>{index + 1}</Col>
 
                         {/* Unit No. */}
                         <Col>
@@ -62,7 +60,7 @@ const AmenitiesArea = ({floorIndex, amenitiesArea, onAmenitiesAreaChange, onAddA
 
                         {/* Remove row button */}
                         <Col>
-                            <Button variant='primary' onClick={() => onRemoveAmenitiesArea(floorIndex)}>
+                            <Button variant='danger' onClick={() => onRemoveAmenitiesArea(floorIndex)}>
                             Remove
                             </Button>
                         </Col>
@@ -70,6 +68,7 @@ const AmenitiesArea = ({floorIndex, amenitiesArea, onAmenitiesAreaChange, onAddA
                     </Form.Group>
                 )
             })}
+            <p></p>
             <Button variant="primary" onClick={() => onAddAmenitiesArea(floorIndex)}>
             Add row
             </Button>
