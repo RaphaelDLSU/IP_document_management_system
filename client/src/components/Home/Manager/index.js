@@ -39,6 +39,7 @@ const ManagerHome = () => {
     );
 
 
+      
 
     useEffect(async () => {
         if (user) {
@@ -150,14 +151,14 @@ const ManagerHome = () => {
                                         {tasks ? (
                                             <>
                                                 {tasks.map(task => (
-                                                    <ListGroup.Item action onClick={()=>history.push('/tasks')}
+                                                    <ListGroup.Item action variant={task.deadline.toDate() < new Date() ? "danger":''} onClick={()=>history.push('/tasks')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
                                                             <div>{task.task}: {task.requirements[0].value}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
-                                                            {task.status}
+                                                        {moment(task.deadline.toDate()).format('LLL')}
                                                         </Badge>
                                                     </ListGroup.Item>
                                                 ))}
@@ -174,15 +175,14 @@ const ManagerHome = () => {
                                         {requests ? (
                                             <>
                                                 {requests.map(request => (
-                                                    <ListGroup.Item action onClick={()=>history.push('/requestsmanager')}
+                                                    <ListGroup.Item action variant={request.deadline.toDate() < new Date() ? "danger":''} onClick={()=>history.push('/requestsmanager')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
                                                             <div>{request.desc}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
-                                                            {request.status}
-                                                        </Badge>
+                                                        {moment(request.deadline.toDate()).format('LLL')}                                                        </Badge>
                                                     </ListGroup.Item>
                                                 ))}
                                             </>

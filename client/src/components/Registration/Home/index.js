@@ -14,6 +14,7 @@ import Form from 'react-bootstrap/Form';
 import { toast } from "react-toastify";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import Spinner from 'react-bootstrap/Spinner';
+import { AES, enc } from 'crypto-js';
 
 
 import '../../../App.css'
@@ -34,27 +35,32 @@ const Home = () => {
     }
 
     const approveRegistration = async () => {
+        let bytes
+        bytes = AES.decrypt(registration.password, "test_key");
+        const decrypted = bytes.toString(enc.Utf8);
+
+
         toast.info('Approving Registration. Please wait')
 
         const data = {
             name: registration.name,
             email: registration.email,
-            password: registration.password,
+            password: decrypted,
             role: registration.role
         };
 
         await deleteDoc(doc(database, "registrations", registration.id));
         dispatch(registerUser(data, setError));
-        
+
 
     }
     const disapproveRegistration = async () => {
         toast.info('Disproving Registration. Please wait')
 
-        await deleteDoc(doc(database, "registrations", registration.id)).then(()=>{
+        await deleteDoc(doc(database, "registrations", registration.id)).then(() => {
             toast.done('Registration Application removed')
         });
-        
+
 
     }
     useEffect(async () => {
@@ -64,8 +70,8 @@ const Home = () => {
             let registrationData = registration.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
             setRegistrations(registrationData)
 
-        }).then(() => { 
-           setLoading(false)
+        }).then(() => {
+            setLoading(false)
         }).catch((err) => {
             console.log(err);
         })
@@ -111,7 +117,7 @@ const Home = () => {
                     </div>
                 </div>
 
-                <Modal show={show} onHide={()=>setShow(false)}>
+                <Modal show={show} onHide={() => setShow(false)}>
 
 
                     {registration && (
@@ -126,7 +132,7 @@ const Home = () => {
 
                     )}
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={()=>setShow(false)}>
+                        <Button variant="secondary" onClick={() => setShow(false)}>
                             Close
                         </Button>
                         <Button variant="primary" onClick={approveRegistration}>

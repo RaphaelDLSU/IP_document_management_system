@@ -64,7 +64,7 @@ const RFIImages = props => {
                 console.log('FILE: ' + image)
                 const storageRef = ref(storage, 'rfiImages/' + image.name);
                 const uploadTask = uploadBytesResumable(storageRef, image);
-setShow5(true)
+                setShow5(true)
                 uploadTask.on('state_changed',
                     (snapshot) => {
 
@@ -109,7 +109,21 @@ setShow5(true)
             } else if (project == 'Muramana') {
                 projectCat = 'MUR'
             } else {
-                projectCat = 'MUR'
+
+                function capitalizeFirstThreeLetters(word) {
+                    // Ensure the word has at least three characters
+                    if (word.length >= 3) {
+                        const firstThreeLetters = word.slice(0, 3).toUpperCase();
+                        const restOfWord = word.slice(3);
+                        return firstThreeLetters;
+                    } else {
+                        // If the word is too short, return it as is
+                        return word;
+                    }
+                }
+
+                projectCat = capitalizeFirstThreeLetters(project);
+
             }
 
             const data = snapshot.data().count + 1
@@ -176,7 +190,7 @@ setShow5(true)
                 />
             </div>
 
-            <Modal show={show5} onHide={()=>setShow5(false)}>
+            <Modal show={show5} onHide={() => setShow5(false)}>
                 <Modal.Header>
                     <Modal.Title>Progress</Modal.Title>
                 </Modal.Header>

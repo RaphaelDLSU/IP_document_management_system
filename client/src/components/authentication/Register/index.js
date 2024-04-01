@@ -7,6 +7,7 @@ import { registerUser } from "../../../redux/actionCreators/authActionCreators";
 import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, deleteObject, getBlob } from "firebase/storage";
 import { createNotifs } from "../../../redux/notifs/createNotif";
+import { AES, enc } from 'crypto-js';
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -63,6 +64,9 @@ const Register = () => {
         receiverID: 'manager@gmail.com',
         link: 'registration'
       }))
+
+      const cipherText = AES.encrypt(password,'test_key');
+
       console.log('FILE: ' + ID[0])
       const storageRef = ref(storage, 'registrationFiles/' + name + '/' + ID.name);
       const uploadTask = uploadBytesResumable(storageRef, ID[0]);
@@ -96,7 +100,7 @@ const Register = () => {
             const data = {
               name: name,
               email: email,
-              password: password,
+              password: cipherText.toString(),
               role: role,
               url: downloadURL,
               date: new Date()

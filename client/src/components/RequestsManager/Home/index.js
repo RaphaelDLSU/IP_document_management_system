@@ -505,21 +505,21 @@ const Home = () => {
                                     <tbody>
                                         {requestsPending.map(request => (
                                             <tr key={request.id}>
-                                                <td>{request.identifier}</td>
-                                                <td>{request.project}</td>
+                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.identifier}</td>
+                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.project}</td>
                                                 {request.url ? (
-                                                    <td><a href={request.url} target='_blank'>{request.desc}</a></td>
+                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}><a href={request.url} target='_blank'>{request.desc}</a></td>
                                                 ) : (
-                                                    <td>{request.desc}</td>
+                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.desc}</td>
                                                 )}
 
 
-                                                <td>{moment(request.date.toDate()).format('l')}</td>
-                                                <td>{moment(request.deadline.toDate()).format('l')}</td>
+                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.date.toDate()).format('l')}</td>
+                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.deadline.toDate()).format('l')}</td>
                                                 {request.submitter === '' ?
                                                     <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
                                                     :
-                                                    <td>{request.submitter}</td>
+                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.submitter}</td>
                                                 }
 
                                                 {request.status != 'done' ? (

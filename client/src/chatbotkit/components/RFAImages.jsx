@@ -112,6 +112,20 @@ const RFAImages = props => {
                 projectCat = 'MNT'
             } else if (project == 'Muramana') {
                 projectCat = 'MUR'
+            } else {
+                function capitalizeFirstThreeLetters(word) {
+                    // Ensure the word has at least three characters
+                    if (word.length >= 3) {
+                        const firstThreeLetters = word.slice(0, 3).toUpperCase();
+                        const restOfWord = word.slice(3);
+                        return firstThreeLetters;
+                    } else {
+                        // If the word is too short, return it as is
+                        return word;
+                    }
+                }
+
+                projectCat = capitalizeFirstThreeLetters(project);
             }
 
             const data = snapshot.data().count + 1

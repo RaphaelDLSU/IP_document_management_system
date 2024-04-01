@@ -183,7 +183,7 @@ const TaskMonitoring = () => {
     }
     else if (sort == 'No. of Hours Ascending') {
 
-      const filter = tasksCompleted.sort((a, b) => a.hours - a.hours)
+      const filter = tasksCompleted.sort((a, b) => a.hours - b.hours)
       setTasksCompleted([...filter])
     }
   }
@@ -257,60 +257,89 @@ const TaskMonitoring = () => {
   }
   const filterStartPending = (filter) => {
     if (filter == '1 week') {
+      setTasksPending(tasksPendingInit)
       const seventhDay = new Date();
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksPending.filter((d) => {
-        return d.timestamp.toDate().getTime() >= seventhDay.getTime();
+        if (d.timestamp) {
+          return d.timestamp.toDate().getTime() >= seventhDay.getTime();
+        }
+
       });
 
       setTasksPending(filteredData)
     } else if (filter == '1 month') {
+      setTasksPending(tasksPendingInit)
+
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksPending.filter((d) => {
-        return d.timestamp.getTime() >= thirtyDaysAgo.getTime();
+        if (d.timestamp) {
+          return d.timestamp.toDate().getTime() >= thirtyDaysAgo.getTime();
+        }
+
       });
 
       setTasksPending(filteredData)
     } else if (filter == '3 months') {
+      setTasksPending(tasksPendingInit)
+
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksPending.filter((d) => {
-        return d.timestamp.getTime() >= threeMonthsAgo.getTime();
+        if (d.timestamp) {
+          return d.timestamp.toDate().getTime() >= threeMonthsAgo.getTime();
+        }
+
       });
 
       setTasksPending(filteredData)
     }
   }
   const filterEndPending = (filter) => {
+    setTasksPending(tasksPendingInit)
+
 
     if (filter == '1 week') {
       const seventhDay = new Date();
       seventhDay.setDate(seventhDay.getDate() - 7);
 
       const filteredData = tasksPending.filter((d) => {
-        return d.deadline.toDate().getTime() >= seventhDay.getTime();
+        if (d.deadline.toDate().getTime()) {
+          return d.deadline.toDate().getTime() >= seventhDay.getTime();
+
+        }
       });
 
       setTasksPending(filteredData)
     } else if (filter == '1 month') {
+      setTasksPending(tasksPendingInit)
+
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       const filteredData = tasksPending.filter((d) => {
-        return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+        if (d.deadline.toDate().getTime()) {
+          return d.deadline.toDate().getTime() >= thirtyDaysAgo.getTime();
+
+        }
       });
 
       setTasksPending(filteredData)
     } else if (filter == '3 months') {
+      setTasksPending(tasksPendingInit)
+
       const threeMonthsAgo = new Date();
       threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 
       const filteredData = tasksPending.filter((d) => {
-        return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+        if (d.deadline.toDate().getTime()) {
+          return d.deadline.toDate().getTime() >= threeMonthsAgo.getTime();
+
+        }
       });
 
       setTasksPending(filteredData)
@@ -500,16 +529,17 @@ const TaskMonitoring = () => {
               </thead>
               <tbody>
                 {tasksPending.map(task => (
-                  <tr key={task.id}>
-                    {task.workflowname !== '' ? (
-                      <td>{task.workflowname}</td>
+                  <tr key={task.id}  >
+
+                    {task.workflowname ? (
+                      <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}> {task.workflowname}</td>
                     ) : (
-                      <td>None</td>
+                      <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>Request</td>
                     )}
-                    <td>{task.project}</td>
-                    <td>{task.task}</td>
+                    <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{task.project}</td>
+                    <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{task.task}</td>
                     {task.requirements ? (
-                      <td> {task.requirements.map((req, index) => (
+                      <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}> {task.requirements.map((req, index) => (
                         <>
                           {req.url ? (
                             <a href={req.url} target='_blank'>{req.value}</a>
@@ -522,19 +552,19 @@ const TaskMonitoring = () => {
                           {index !== task.requirements.length - 1 && ', '}
                         </>
                       ))}</td>
-                    ) : (<td>None</td>)}
+                    ) : (<td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>None</td>)}
 
-                    <td>{task.hours}</td>
-                    <td>{task.employee}</td>
-                    <td>{moment(task.timestamp.toDate()).format('l')}</td>
+                    <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{task.hours}</td>
+                    <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{task.employee}</td>
+                    <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(task.timestamp.toDate()).format('l')}</td>
                     {task.deadline == 'None' ? (
-                      <td>None</td>
+                      <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>None</td>
                     ) : (
-                      <td>{moment(task.deadline.toDate()).format('l')}</td>
+                      <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(task.deadline.toDate()).format('l')}</td>
 
                     )}
                     {task.status == 'for submission' && (
-                      <td style={{ backgroundColor: "red", color: 'white'  }}>Pending</td>
+                      <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
                     )}
                     {task.status == 'done' && (
                       <td style={{ backgroundColor: "green", color: 'white' }}>Completed</td>
@@ -686,7 +716,7 @@ const TaskMonitoring = () => {
 
                     )}
                     {task.status == 'for submission' && (
-                      <td style={{ backgroundColor: "red", color: 'white'  }}>Pending</td>
+                      <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
                     )}
                     {task.status == 'done' && (
                       <td style={{ backgroundColor: "green", color: 'white' }}>Completed</td>

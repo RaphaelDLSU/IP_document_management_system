@@ -10,7 +10,7 @@ class MessageParser2 {
       return this.actionProvider.handleDog();
     }
     if (
-      message.includes("Help") ||  message.includes("help") || ( message.includes("what") &&  message.includes("do")) ||  message.includes("features") ||  message.includes("functions")
+      message.includes("Help") ||  message.includes("help") || ( message.includes("what") &&  message.includes("do")) ||  message.includes("features") ||  message.includes("functions") ||  message.includes("guide")
     ) {
       return this.actionProvider.handleHelp();
     }
