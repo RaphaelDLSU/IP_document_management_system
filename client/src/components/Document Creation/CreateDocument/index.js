@@ -6,10 +6,9 @@ import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
 
-const BuildingSurface = () => {
-  const database = getFirestore()
+const DocumentCreation = () => {
   const [projects, setProjects] = useState([])
-  const [existingProjects, setExistingProjects] = useState([])
+  const database = getFirestore()
   const [project, setProject] = useState()
 
   //Array of floors. Floors are identified by id that is created using uuid
@@ -283,14 +282,14 @@ const BuildingSurface = () => {
     setProject(project)
 
     const q = doc(database, 'buildingSurface', project)
-    const docSnap = await getDoc(q).then((doc) => {
-      setFloors(doc.data().floors)
-
-    })
+    // const docSnap = await getDoc(q).then((doc) => {
+    //   setFloors(doc.data().floors)
+    // })
 
     console.log('got doc')
   }
 
+  //Gets projects from projects document
   useEffect(() => {
 
     const getProjects = async () => {
@@ -302,21 +301,11 @@ const BuildingSurface = () => {
         console.log(err);
       })
     }
+
     getProjects()
   }, [])
 
-  useEffect(() => {
-    const getExistingProjects = async () => {
-      const q = query(collection(database, 'buildingSurface'))
-      await getDocs(q).then((existingProject) => {
-        let projectData = existingProject.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setExistingProjects(projectData)
-      }).catch((err) => {
-        console.log(err);
-      })
-    }
-    getExistingProjects()
-  }, [])
+
 
   return (
     <div className='head' style={{ padding: '20px' }}>
@@ -388,4 +377,4 @@ const BuildingSurface = () => {
   );
 }
 
-export default BuildingSurface;
+export default DocumentCreation;
