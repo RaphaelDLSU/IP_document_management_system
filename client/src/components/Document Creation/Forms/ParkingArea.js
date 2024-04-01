@@ -1,58 +1,82 @@
-import React from "react";
-import Table from 'react-bootstrap/Table';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Form from 'react-bootstrap/Form';
-import Button from 'react-bootstrap/Button';
+//Bootstrap components
+import { Col, Row, Form, Button } from 'react-bootstrap';
 
-const ParkingArea = () => {
+const ParkingArea = ({floorIndex, parkingArea, onParkingAreaChange, onAddParkingArea, onRemoveParkingArea}) => {
     return (
-        <div className="floorForm">
-            <Table striped>
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Unit No./Tag</th>
-                    <th>No. of Parking</th>
-                    <th>Slot size (sqm)</th>
-                    <th>Total Area (sqm)</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td>1</td>
-                    <td>C01</td>
-                    <td>5</td>
-                    <td>10</td>
-                    <td>10</td>
-                </tr>
-                <tr>
-                    <td colSpan={2}>TOTAL</td>
-                    <td colSpan={2}>60</td>
-                    <td>60</td>
-                </tr>
-                </tbody>
-            </Table>
+        <>
             <Form.Group>
                 <Row>
-                    <Col>
-                        <Form.Control placeholder="Unit No./Tag" />
-                    </Col>
-                    <Col>
-                        <Form.Control placeholder="No. of Parking" />
-                    </Col>
-                    <Col>
-                        <Form.Control placeholder="Slot size (sqm)" />
-                    </Col>
-                    <Col>
-                        <Button variant="primary" type="submit">
-                            Add
-                        </Button>
-                    </Col>
+                    <Col></Col>
+                    <Col>Unit No./Tag</Col>
+                    <Col>No. of Parking</Col>
+                    <Col>Slot Size (sqm)</Col>
+                    <Col>Total Area (sqm)</Col>
+                    <Col></Col>
                 </Row>
             </Form.Group>
-        </div>
-    );
+            {parkingArea.map((input, index) => {
+                return(
+                    <Form.Group key={index}>
+                        <Row>
+                        {/* Show index/row number */}
+                        <Col>{index + 1}</Col>
+
+                        {/* Unit No. */}
+                        <Col>
+                            <Form.Control
+                            type="text"
+                            placeholder="Unit No./Tag"
+                            name="parkingAreaUnitNumberTag"
+                            value={input.parkingAreaUnitNumberTag}
+                            onChange={(e) => onParkingAreaChange(floorIndex, index, 'parkingAreaUnitNumberTag', e.target.value)}
+                            />
+                        </Col>
+
+                        {/* No. of Parking */}
+                        <Col>
+                            <Form.Control
+                            type="number"
+                            placeholder="No. of Parking"
+                            name="numberOfParking"
+                            value={input.numberOfParking}
+                            onChange={(e) => onParkingAreaChange(floorIndex, index, 'numberOfParking', e.target.value)}
+                            required
+                            />
+                        </Col>
+
+                        {/* Slot size */}
+                        <Col>
+                            <Form.Control 
+                            type="number"
+                            step="0.01"
+                            placeholder="Slot size (sqm)" 
+                            name="parkingSlotSize"
+                            value={input.parkingSlotSize}
+                            onChange={(e) => onParkingAreaChange(floorIndex, index, 'parkingSlotSize', e.target.value)}
+                            required
+                            />
+                        </Col>
+
+                        {/* Total area */}
+                        <Col>
+                            {input.parkingTotalArea}
+                        </Col>
+
+                        {/* Remove row button */}
+                        <Col>
+                            <Button variant='primary' onClick={() => onRemoveParkingArea(floorIndex)}>
+                            Remove
+                            </Button>
+                        </Col>
+                        </Row>
+                    </Form.Group>
+                )
+            })}
+            <Button variant="primary" onClick={() => onAddParkingArea(floorIndex)}>
+            Add row
+            </Button>
+        </>
+    )
 }
 
 export default ParkingArea;
