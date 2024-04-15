@@ -162,6 +162,7 @@ export const createRFA =
             pdfUrl = downloadURL
             console.log('what the fuck')
             const newDeadline = new Date(deadline)
+            newDeadline.setHours(0,0,0,0)
             const requestRef = collection(database, "requests")
             if (step == 1) {
               await addDoc(requestRef, {

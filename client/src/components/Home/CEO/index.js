@@ -18,6 +18,8 @@ import Tabs from 'react-bootstrap/Tabs';
 import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
 import moment from 'moment';
 import { useHistory } from "react-router-dom";
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Popover from 'react-bootstrap/Popover';
 
 const CEOHome = () => {
     const [notifs, setNotifs] = useState()
@@ -45,9 +47,9 @@ const CEOHome = () => {
                 console.log(err);
             })
 
-            const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid),where("status",'!=','done'));
+            const q = query(collection(database, "tasks"), where('employeeId', '==', user.data.uid), where("status", '!=', 'done'));
 
-            const fs = query(collection(database, 'requests'), where('assignTo', '==', user.data.uid),where("status",'!=','done'))
+            const fs = query(collection(database, 'requests'), where('assignTo', '==', user.data.uid), where("status", '!=', 'done'))
 
             const something = async () => {
                 await getDocs(q).then(async (task) => {
@@ -73,6 +75,34 @@ const CEOHome = () => {
     useEffect(async () => {
     }, [notifs]);
 
+    const popover = (
+        <Popover id="popover-basic">
+            <Popover.Header as="h3">System Guide</Popover.Header>
+            <Popover.Body>
+                <strong>Homepage</strong><p></p>
+                Click on a listed notification or task/request to go to the appropriate page <p></p>
+                <strong>Workflows</strong><p></p>
+                View ongoing project workflows/processes <p></p>
+                <strong>Requests Manager</strong><p></p>
+                View ongoing/completed requests from outside the department <p></p>
+                <strong>Tasks</strong><p></p>
+                View ongoing/completed tasks <p></p>
+                <strong>Files</strong><p></p>
+                View Files stored in the system <p></p>
+                <strong>Employees</strong><p></p>
+                View Employees and their tasks <p></p>
+                <strong>Notifications</strong><p></p>
+                View Employees and their tasks <p></p>
+                <strong>Document Creation</strong><p></p>
+                View document creation of technical documents <p></p>
+            </Popover.Body>
+        </Popover>
+    );
+    const Example = () => (
+        <OverlayTrigger  placement="right" overlay={popover}>
+            <Button variant="success">Get Started</Button>
+        </OverlayTrigger>
+    );
 
     if (loading) {
         return (
@@ -85,6 +115,8 @@ const CEOHome = () => {
         return (
             <>
                 <Container style={{ maxWidth: '95%', marginTop: '30px' }}>
+                    <Example />
+                    <p></p>
                     <Row >
                         <Col>
 
@@ -94,16 +126,16 @@ const CEOHome = () => {
                                 {notifs ? (
                                     <>
                                         {notifs.map(notif => (
-                                                <ListGroup.Item action onClick={()=>history.push(notif.link)}
-                                                    className="d-flex justify-content-between align-items-start"
-                                                >
-                                                    <div className="ms-2 me-auto">
-                                                        <div>{notif.title}</div>
-                                                    </div>
-                                                    <Badge bg="primary" pill>
-                                                        {moment(notif.date.toDate()).format('LLL')}
-                                                    </Badge>
-                                                </ListGroup.Item>
+                                            <ListGroup.Item action onClick={() => history.push(notif.link)}
+                                                className="d-flex justify-content-between align-items-start"
+                                            >
+                                                <div className="ms-2 me-auto">
+                                                    <div>{notif.title}</div>
+                                                </div>
+                                                <Badge bg="primary" pill>
+                                                    {moment(notif.date.toDate()).format('LLL')}
+                                                </Badge>
+                                            </ListGroup.Item>
 
                                         ))}
                                     </>
@@ -128,14 +160,14 @@ const CEOHome = () => {
                                         {tasks ? (
                                             <>
                                                 {tasks.map(task => (
-                                                    <ListGroup.Item action variant={task.deadline.toDate() < new Date() ? "danger":''}  onClick={()=>history.push('/tasks')}
+                                                    <ListGroup.Item action variant={task.deadline.toDate() < new Date() ? "danger" : ''} onClick={() => history.push('/tasks')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
                                                             <div>{task.task}: {task.requirements[0].value}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
-                                                        {moment(task.deadline.toDate()).format('LLL')}   
+                                                            {moment(task.deadline.toDate()).format('LLL')}
                                                         </Badge>
                                                     </ListGroup.Item>
                                                 ))}
@@ -152,14 +184,14 @@ const CEOHome = () => {
                                         {requests ? (
                                             <>
                                                 {requests.map(request => (
-                                                    <ListGroup.Item action variant={request.deadline.toDate() < new Date() ? "danger":''} onClick={()=>history.push('/requestsmanager')}
+                                                    <ListGroup.Item action variant={request.deadline.toDate() < new Date() ? "danger" : ''} onClick={() => history.push('/requestsmanager')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
                                                             <div>{request.desc}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
-                                                        {moment(request.deadline.toDate()).format('LLL')}   
+                                                            {moment(request.deadline.toDate()).format('LLL')}
                                                         </Badge>
                                                     </ListGroup.Item>
                                                 ))}

@@ -19,6 +19,8 @@ import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
 import { toast } from 'react-toastify';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 import moment from 'moment';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Popover from 'react-bootstrap/Popover';
 const ManagerHome = () => {
     const history = useHistory()
     const [notifs, setNotifs] = useState()
@@ -39,7 +41,7 @@ const ManagerHome = () => {
     );
 
 
-      
+
 
     useEffect(async () => {
         if (user) {
@@ -95,7 +97,36 @@ const ManagerHome = () => {
 
     }, [notifs]);
 
-
+    const popover = (
+        <Popover id="popover-basic">
+            <Popover.Header as="h3">System Guide</Popover.Header>
+            <Popover.Body>
+            <strong>Homepage</strong><p></p>
+                Click on a listed notification or task/request to go to the appropriate page <p></p>
+                <strong>Workflows</strong><p></p>
+                View ongoing project workflows/processes <p></p>
+                <strong>Requests Manager</strong><p></p>
+                View ongoing/completed requests from outside the department <p></p>
+                <strong>Tasks</strong><p></p>
+                View ongoing/completed tasks <p></p>
+                <strong>Files</strong><p></p>
+                View Files stored in the system <p></p>
+                <strong>Employees</strong><p></p>
+                View Employees and their tasks <p></p>
+                <strong>Notifications</strong><p></p>
+                View Employees and their tasks <p></p>
+                <strong>Document Creation</strong><p></p>
+                View document creation of technical documents <p></p>
+                <strong>Registration</strong><p></p>
+                View registering employees for the system<p></p>
+            </Popover.Body>
+        </Popover>
+    );
+    const Example = () => (
+        <OverlayTrigger  placement="right" overlay={popover}>
+            <Button variant="success">Get Started</Button>
+        </OverlayTrigger>
+    );
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -107,6 +138,8 @@ const ManagerHome = () => {
         return (
             <>
                 <Container style={{ maxWidth: '95%', marginTop: '30px', borderRadius: '5px' }}>
+                    <Example />
+                    <p></p>
                     <Row style={{ height: '45vh', overflow: 'scroll' }}>
                         <Col >
 
@@ -151,14 +184,14 @@ const ManagerHome = () => {
                                         {tasks ? (
                                             <>
                                                 {tasks.map(task => (
-                                                    <ListGroup.Item action variant={task.deadline.toDate() < new Date() ? "danger":''} onClick={()=>history.push('/tasks')}
+                                                    <ListGroup.Item action variant={task.deadline.toDate() < new Date() ? "danger" : ''} onClick={() => history.push('/tasks')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
                                                             <div>{task.task}: {task.requirements[0].value}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
-                                                        {moment(task.deadline.toDate()).format('LLL')}
+                                                            {moment(task.deadline.toDate()).format('LLL')}
                                                         </Badge>
                                                     </ListGroup.Item>
                                                 ))}
@@ -175,14 +208,14 @@ const ManagerHome = () => {
                                         {requests ? (
                                             <>
                                                 {requests.map(request => (
-                                                    <ListGroup.Item action variant={request.deadline.toDate() < new Date() ? "danger":''} onClick={()=>history.push('/requestsmanager')}
+                                                    <ListGroup.Item action variant={request.deadline.toDate() < new Date() ? "danger" : ''} onClick={() => history.push('/requestsmanager')}
                                                         className="d-flex justify-content-between align-items-start"
                                                     >
                                                         <div className="ms-2 me-auto">
                                                             <div>{request.desc}</div>
                                                         </div>
                                                         <Badge bg="primary" pill>
-                                                        {moment(request.deadline.toDate()).format('LLL')}                                                        </Badge>
+                                                            {moment(request.deadline.toDate()).format('LLL')}                                                        </Badge>
                                                     </ListGroup.Item>
                                                 ))}
                                             </>

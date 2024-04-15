@@ -122,6 +122,7 @@ export const createRFI =
 
 
       const newDeadline = new Date(deadline)
+      newDeadline.setHours(0,0,0,0)
       let pdfUrl
       // Serialize the PDFDocument to bytes
       const pdfBytes = await pdfDoc.save();

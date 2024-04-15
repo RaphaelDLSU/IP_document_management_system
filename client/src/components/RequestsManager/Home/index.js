@@ -171,13 +171,13 @@ const Home = () => {
             // const q = query(collectionRef, orderBy('task', 'asc'))
             const q = query(usersRef)
             await getDocs(q).then((users) => {
-              let usersData = users.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-              setUsers(usersData)
+                let usersData = users.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                setUsers(usersData)
             }).catch((err) => {
-              console.log(err);
+                console.log(err);
             })
-          }
-          getUsers()
+        }
+        getUsers()
 
 
     }, []);
@@ -321,7 +321,7 @@ const Home = () => {
             const filter = requestsDone.sort((a, b) => b.date - a.date)
             setRequestsDone([...filter])
         }
-   
+
     }
 
     const filterTaskCompleted = (filter) => {
@@ -439,7 +439,7 @@ const Home = () => {
                                                 <option value="End Date Ascending"> End Date Ascending</option>
                                                 <option value="Start Date Ascending"> Start Date Ascending</option>
                                                 <option value="Start Date Descending"> Start Date Descending</option>
-                                        
+
                                             </Form.Select>
                                         </Col>
                                         <Col>
@@ -601,9 +601,10 @@ const Home = () => {
                                     <thead>
                                         <tr>
                                             <th>Reference</th>
-                                            <th>Description</th>
-                                            <th>Deadline</th>
+                                            <th>Project</th>
+                                            <th>Query</th>
                                             <th>Date Requested</th>
+                                            <th>Deadline</th>
                                             <th>Date Responded</th>
                                             <th>Assigned to </th>
                                             <th>Status </th>
@@ -624,6 +625,7 @@ const Home = () => {
 
                                                 <td>{moment(request.date.toDate()).format('l')}</td>
                                                 <td>{moment(request.deadline.toDate()).format('l')}</td>
+                                                <td>{moment(request.completion.toDate()).format('l')}</td>
                                                 {request.submitter === '' ?
                                                     <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
                                                     :
@@ -632,7 +634,15 @@ const Home = () => {
                                                 {request.status != 'done' ? (
                                                     <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
                                                 ) : (
-                                                    <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
+                                                    <>
+                                                        {request.completion < request.deadline && (
+                                                            <td style={{ backgroundColor: 'yellow', color: 'black' }}>Completed (Late)</td>
+                                                        )}
+                                                          {request.completion > request.deadline && (
+                                                            <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
+                                                        )}
+                                                    </>
+
                                                 )}
 
 

@@ -36,6 +36,7 @@ const Home = () => {
     const dispatch = useDispatch();
     const db = getFirestore()
     const [tasks, setTasks] = useState([]);
+    const [isCustom, setIsCustom] = useState([]);
     const [task, setTask] = useState();
     const [plan, setPlan] = useState();
     const [planCreate, setPlanCreate] = useState();
@@ -239,6 +240,7 @@ const Home = () => {
                 const date = new Date(year, month - 1, day);
                 const timestamp = date.getTime();
                 const timestampReal = new Date(timestamp)
+                timestampReal.setHours(0,0,0,0)
 
                 const estHours = dispatch(getEstimatedHours({
                     startDate: new Date(),
@@ -862,16 +864,30 @@ const Home = () => {
 
     const addInput = () => {
         setInputs([...inputs, { requirement: '', employee: '' }]);
+        setIsCustom([...isCustom,{custom:false}])
     };
 
     const minusInput = () => {
         const newArray = inputs.slice(0, inputs.length - 1);
+        const newArray2 = isCustom.slice(0, isCustom.length - 1);
         setInputs(newArray);
+        setIsCustom(newArray2)
     }
     const handleTextboxChange = (index, event) => {
-        const newInputs = [...inputs];
-        newInputs[index].requirement = event.target.value;
-        setInputs(newInputs);
+        if (event.target.value == 'Custom') {
+            const newInputs2 = [...isCustom];
+            newInputs2[index].custom =true;
+            setIsCustom(newInputs2)
+            const newInputs = [...inputs];
+            newInputs[index].requirement ='';
+            setInputs(newInputs);
+
+        } else {
+            const newInputs = [...inputs];
+            newInputs[index].requirement = event.target.value;
+            setInputs(newInputs);
+        }
+
     };
 
     const handleDropdownChange = (index, event) => {
@@ -1033,6 +1049,7 @@ const Home = () => {
                                 }))
                                 const dateDeadline = new Date();
                                 dateDeadline.setDate(dateDeadline.getDate() + 3);
+                                dateDeadline.setHours(0,0,0,0)
                                 await setDoc(setTasksRef, {
                                     task: task1.name,
                                     timestamp: serverTimestamp(),
@@ -1047,7 +1064,7 @@ const Home = () => {
                                     approvalTo: task1.approvalTo,
                                     recurring: task1.recurring,
                                     project: task.project,
-                                    hours:40
+                                    hours: 40
                                 })
                             })
                         } else {
@@ -1139,7 +1156,8 @@ const Home = () => {
 
             if (!task.recurring) {
                 await updateDoc(doc(database, "tasks", task.id), {
-                    status: 'done'
+                    status: 'done',
+                    completion: new Date()
                 });
 
                 //workload minus
@@ -1192,7 +1210,8 @@ const Home = () => {
 
         if (!task.recurring) {
             await updateDoc(doc(database, "tasks", task.id), {
-                status: 'done'
+                status: 'done',
+                completion: new Date()
             });
 
             //workload minus
@@ -1432,7 +1451,21 @@ const Home = () => {
                                             <>
                                                 <Form.Group className="mb-3" as={Row}>
                                                     <Col sm='6'>
-                                                        <Form.Control column type="text" value={input.requirement} onChange={(event) => handleTextboxChange(index, event)} placeholder="Add Description" />
+                                                        {!isCustom[index].custom && (
+                                                            <Form.Select required value={input.requirement} onChange={(event) => handleTextboxChange(index, event)}>
+                                                                <option value="" disabled selected hidden>Select Requirement</option>
+                                                                <option value="Custom">Custom</option>
+                                                                <option value="Elevation Plan">Elevation Plan</option>
+                                                                <option value="Section Plan">Section Plan</option>
+                                                                <option value="Stair Plan">Stair Plan</option>
+                                                                <option value="Hallway Plan">Hallway Plan</option>
+                                                                <option value="Floor Plan">Floor Plan</option>
+                                                                <option value="Ceiling Plan">Ceiling Plan</option>
+                                                            </Form.Select>
+                                                        )}
+                                                        { isCustom[index].custom && (
+                                                            <Form.Control column type="text" value={input.requirement} onChange={(event) => handleTextboxChange(index, event)} placeholder="Add Requirement" />
+                                                        )}
                                                     </Col>
                                                     <Col sm='6'>
                                                         <Form.Select required value={input.employee} onChange={(event) => handleDropdownChange(index, event)}>

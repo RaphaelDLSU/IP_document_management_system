@@ -18,6 +18,8 @@ import Tabs from 'react-bootstrap/Tabs';
 import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
 import moment from 'moment';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Popover from 'react-bootstrap/Popover';
 const RequestorHome = () => {
   const history = useHistory()
   const [notifs, setNotifs] = useState()
@@ -86,7 +88,29 @@ const RequestorHome = () => {
 
   useEffect(async () => {
   }, [notifs]);
-
+  const popover = (
+    <Popover id="popover-basic">
+        <Popover.Header as="h3">System Guide</Popover.Header>
+        <Popover.Body>
+        <strong>Homepage</strong><p></p>
+            Click on a listed notification or task/request to go to the appropriate page <p></p>
+        
+            <strong>Files</strong><p></p>
+            View Files stored in the system <p></p>
+         
+            <strong>Notifications</strong><p></p>
+            View Employees and their tasks <p></p>
+            <strong>Requests</strong><p></p>
+            View your submitted Task requests and/or RFAs/RFIs <p></p>
+       
+        </Popover.Body>
+    </Popover>
+);
+const Example = () => (
+    <OverlayTrigger placement="right" overlay={popover}>
+        <Button variant="success">Get Started</Button>
+    </OverlayTrigger>
+);
 
   if (loading) {
     return (
@@ -99,6 +123,8 @@ const RequestorHome = () => {
     return (
       <>
         <Container style={{ maxWidth: '95%', marginTop: '30px' }}>
+          <Example></Example>
+          <p></p>
           <Row >
             <Col>
 

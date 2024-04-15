@@ -691,7 +691,8 @@ const TaskMonitoring = () => {
                   <th>No. of Hours</th>
                   <th>Assign</th>
                   <th>Start Date</th>
-                  <th>End Date</th>
+                  <th>Deadline</th>
+                  <th>Date Completed</th>
                   <th>Status</th>
                 </tr>
               </thead>
@@ -733,11 +734,17 @@ const TaskMonitoring = () => {
                       <td>{moment(task.deadline.toDate()).format('l')}</td>
 
                     )}
+                    <td>{moment(task.completion.toDate()).format('l')}</td>
                     {task.status == 'for submission' && (
                       <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
                     )}
-                    {task.status == 'done' && (
-                      <td style={{ backgroundColor: "green", color: 'white' }}>Completed</td>
+                    {task.status == 'done' && task.completion < task.deadline &&  (
+                      <td style={{ backgroundColor: "green", color: 'white' }}>Completed
+                      </td>
+                    )}
+                     {task.status == 'done' && task.completion > task.deadline &&  (
+                      <td style={{ backgroundColor: "yellow", color: 'black' }}>Completed (Late)
+                      </td>
                     )}
                     {task.status == 'for approval' && (
                       <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>

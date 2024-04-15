@@ -256,6 +256,7 @@ const Home = () => {
 
                 const dateDeadline = new Date();
                 dateDeadline.setDate(dateDeadline.getDate() + 3);
+                dateDeadline.setHours(0,0,0,0)
                 querySnapshot.forEach(async (user) => {
                     const setTasksRef = doc(database, 'tasks', statusTask[0].parentId)
                     const stageRef = doc(database, 'stages', statusTask[0].parentId)
@@ -391,6 +392,7 @@ const Home = () => {
                         }))
                         const dateDeadline = new Date();
                         dateDeadline.setDate(dateDeadline.getDate() + 3);
+                        dateDeadline.setHours(0,0,0,0)
                         await setDoc(setTasksRef, {
                             task: task1.name,
                             isChecked: false,
@@ -502,7 +504,8 @@ const Home = () => {
             await updateDoc(workflowRef, {
                 started: false,
                 tasks: updateTaskArray,
-                inStage: false
+                inStage: false,
+                isFinished: true
             })
         } else {
             await updateDoc(workflowRef, {
@@ -628,7 +631,7 @@ const Home = () => {
 
                     {role && role == 'Manager' ? (
                         <>
-                            <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button></h2>
+                            <h2 >Workflows &nbsp;<Button onClick={() => setShow(true)} variant="success"><FaPlus /></Button>   <Button onClick={() => setShow5(true)} variant="success">   Manage Projects</Button> <Button onClick={() => history.push(`${path}/preset`)} variant="success">Go to Presets</Button>  <Button onClick={() => history.push(`/tasks`)} variant="success">Go to Tasks</Button></h2>
 
                         </>
                     ) : ((<>
@@ -636,13 +639,13 @@ const Home = () => {
                     </>))}
                     <hr></hr>
                     <div className='content' style={{ padding: '5px' }}>
-                        {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage }) =>
+                        {workflows.map(({ name, description, id, tasks, started, project, outputs, inStage, isFinished }) =>
                             <>
-                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px',marginTop:'20px'}}> {project}</h5>
+                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px', marginTop: '20px' }}> {project}</h5>
                                 <Accordion >
 
                                     <Accordion.Item eventKey={id} >
-                                        {role && role == 'Manager' ? (
+                                        {role && role == 'Manager' && !isFinished ? (
                                             <>
                                                 <Accordion.Header >{name} &nbsp;&nbsp;&nbsp;{!started ? <Button onClick={() => changeStatus(id, started, tasks, project)} variant='success'> Start </Button> : <Button onClick={() => changeStatus(id, started, tasks, project)} variant='danger' className='button-overlap'> Stop </Button>}
 
@@ -753,8 +756,8 @@ const Home = () => {
                                     </Accordion.Item>
 
                                 </Accordion>
-                               <p>          </p>
-                               <p>          </p>
+                                <p>          </p>
+                                <p>          </p>
                             </>
 
                         )}

@@ -196,9 +196,9 @@ const Home = () => {
                                                 <td>{moment(request.deadline.toDate()).format('l')}</td>
                                                 <td>{request.submitter}</td>
                                                 {request.status != 'done' ? (
-                                                    <td style={{ backgroundColor: '#d42b39' }}>Pending</td>
+                                                    <td style={{backgroundColor: 'red',color:'white' }}>Pending</td>
                                                 ) : (
-                                                    <td style={{ backgroundColor: '#146C43' }}>Done</td>
+                                                    <td style={{backgroundColor: 'green',color:'white' }}>Done</td>
                                                 )}
                                                 <td><a target="_blank" href={request.url}> View </a></td>
                                             </tr>

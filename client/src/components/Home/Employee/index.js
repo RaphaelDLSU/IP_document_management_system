@@ -18,6 +18,8 @@ import Tabs from 'react-bootstrap/Tabs';
 import TaskRequirement from '../../../chatbotkit/components/TaskRequirement';
 import moment from 'moment';
 import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Popover from 'react-bootstrap/Popover';
 const EmployeeHome = () => {
     const [notifs, setNotifs] = useState()
     const database = getFirestore()
@@ -73,7 +75,30 @@ const EmployeeHome = () => {
     useEffect(async () => {
     }, [notifs]);
 
-
+    const popover = (
+        <Popover id="popover-basic">
+            <Popover.Header as="h3">System Guide</Popover.Header>
+            <Popover.Body>
+                <strong>Homepage</strong><p></p>
+                Click on a listed notification or task/request to go to the appropriate page <p></p>
+                <strong>Requests Manager</strong><p></p>
+                View ongoing/completed requests from outside the department <p></p>
+                <strong>Tasks</strong><p></p>
+                View ongoing/completed tasks <p></p>
+                <strong>Files</strong><p></p>
+                View Files stored in the system <p></p>
+                <strong>Notifications</strong><p></p>
+                View Employees and their tasks <p></p>
+                <strong>Document Creation</strong><p></p>
+                View document creation of technical documents <p></p>
+            </Popover.Body>
+        </Popover>
+    );
+    const Example = () => (
+        <OverlayTrigger placement="right" overlay={popover}>
+            <Button variant="success">Get Started</Button>
+        </OverlayTrigger>
+    );
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -85,6 +110,8 @@ const EmployeeHome = () => {
         return (
             <>
                 <Container style={{ maxWidth: '95%', marginTop: '30px' }}>
+                <Example />
+                <p></p>
                     <Row >
                         <Col>
 

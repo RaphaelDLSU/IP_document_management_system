@@ -63,6 +63,7 @@ const TaskRequirement = props => {
 
       let startDate = new Date()
       let endDate = new Date(taskDeadline)
+      endDate.setHours(0,0,0,0)
       const estHours = dispatch(getEstimatedHours({
         startDate: startDate,
         endDate: endDate
