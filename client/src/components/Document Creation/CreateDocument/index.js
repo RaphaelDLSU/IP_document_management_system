@@ -6,55 +6,10 @@ import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
 
-const DocumentCreation = () => {
+const DocumentCreation = ({floors, setFloors, handleSaleableAreaChange, handleAddSaleableArea, handleRemoveSaleableArea}) => {
   const [projects, setProjects] = useState([])
   const database = getFirestore()
   const [project, setProject] = useState()
-
-  //Array of floors. Floors are identified by id that is created using uuid
-  const [floors, setFloors] = useState([
-    {
-      id: uuidv4(),
-      floorName: '',
-      saleableArea: [
-        {
-          saleableAreaUnitNumberTag: '',
-          saleableAreaType: '',
-          saleableAreaSize: ''
-        }
-      ],
-      serviceArea: [
-        {
-          serviceAreaUnitNumberTag: '',
-          serviceAreaType: '',
-          serviceAreaSize: ''
-        }
-      ],
-      parkingArea: [
-        {
-          parkingAreaUnitNumberTag: '',
-          numberOfParking: '',
-          parkingSlotSize: '',
-          parkingTotalArea: ''
-        }
-      ],
-      amenitiesArea: [
-        {
-          amenitiesAreaUnitNumberTag: '',
-          amenitiesAreaType: '',
-          amenitiesAreaSize: ''
-        }
-      ],
-      residentialArea: [
-        {
-          residentialAreaUnitType: '',
-          residentialAreaNumberUnit: '',
-          residentialAreaSize: '',
-          residentialTotalArea: ''
-        }
-      ]
-    }
-  ])
 
   //Change handler for Floor name
   const handleFloorNameChange = (index, event) => {
@@ -113,33 +68,6 @@ const DocumentCreation = () => {
   const removeFloor = (index) => {
     setFloors((prevFloors) => prevFloors.filter((floor) => floor.id !== index));
   }
-
-  /* SALEABLE AREA FUNCTIONS */
-  //Saleable Area Form change handler
-  const handleSaleableAreaChange = (floorIndex, areaIndex, field, value) => {
-    const updatedFloors = [...floors];
-    updatedFloors[floorIndex].saleableArea[areaIndex][field] = value;
-    setFloors(updatedFloors);
-  };
-
-  //For adding more inputs to Saleable Area
-  const handleAddSaleableArea = (floorIndex) => {
-    const newSaleableArea = {
-      saleableAreaUnitNumberTag: '',
-      saleableAreaType: '',
-      saleableAreaSize: ''
-    };
-    const updatedFloors = [...floors];
-    updatedFloors[floorIndex].saleableArea.push(newSaleableArea);
-    setFloors(updatedFloors);
-  };
-
-  //For removing inputs from Saleable Area
-  const handleRemoveSaleableArea = (floorIndex, areaIndex) => {
-    const updatedFloors = [...floors];
-    updatedFloors[floorIndex].saleableArea.splice(areaIndex, 1);
-    setFloors(updatedFloors);
-  };
 
   /* SERVICE AREA FUNCTIONS */
   //Service Area Form change handler
@@ -305,22 +233,22 @@ const DocumentCreation = () => {
     getProjects()
   }, [])
 
-
-
   return (
     <div className='head' style={{ padding: '20px' }}>
-      {/* <h1>Create Building Surface Document </h1> */}
-      <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-        <option value="" hidden>Project</option>
-        {projects.map((project, index) => (
-          <>
-            <option value={project.name}>{project.name}</option>
-          </>
-
-        ))}
-      </Form.Select>
+      <h2>Document Creation</h2>
+      <p>Input Building Surface Document data to create other documents</p>
+      <hr></hr>
+      <Col md={2}>
+        <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
+          <option value="" hidden>Select project</option>
+          {projects.map((project, index) => (
+            <>
+              <option value={project.name}>{project.name}</option>
+            </>
+          ))}
+        </Form.Select>
+      </Col>
       <div className='content' style={{ padding: '5px' }}>
-
         <Form>
           {floors.map((floor, index) => (
             <Fragment key={index}>
@@ -370,8 +298,8 @@ const DocumentCreation = () => {
             </Fragment>
           ))}
         </Form>
-        <Button variant='secondary' onClick={addFloor}>Add Floor</Button>
-        <Button variant="primary" onClick={handleSubmit}>Save and Submit</Button>
+        <Button variant='primary' onClick={addFloor}>Add Floor</Button> &nbsp;
+        <Button variant="success" onClick={handleSubmit}>Save and Submit</Button>
       </div>
     </div>
   );

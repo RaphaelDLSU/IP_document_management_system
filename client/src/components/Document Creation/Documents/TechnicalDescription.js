@@ -45,7 +45,7 @@ const TechnicalDescription = () => {
                 <hr></hr>
                 <Col md={2}>
                     <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-                        <option value="" hidden>Project</option>
+                        <option value="" hidden>Select project to view</option>
                         {projects.map((project, index) => (
                             <>
                                 <option value={project.name}>{project.name}</option>
