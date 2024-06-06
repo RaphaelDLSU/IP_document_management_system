@@ -2,13 +2,18 @@ import { collection, getDocs, doc, query, getFirestore, updateDoc, getDoc, setDo
 import React, { useEffect, useState } from 'react'
 import { Form, Button, Col, Table } from 'react-bootstrap';
 
-const FactSheet = ({handleSaleableAreaChange}) => {
+const FactSheet = ({onSaleableAreaChange, onHandleExport}) => {
     const database = getFirestore()
     const [projects, setProjects] = useState([])
     const [project, setProject] = useState()
     const [editID, setEditID] = useState(-1)
+    const [isEditing, setIsEditing] = useState(false)
 
     const [floors, setFloors] = useState([])
+
+    const [remark, setRemark] = useState('')
+    const [price, setPrice] = useState('')
+
     useEffect(() => {
         const getProjects = async () => {
             const q = query(collection(database, 'projects'))
@@ -37,7 +42,12 @@ const FactSheet = ({handleSaleableAreaChange}) => {
     //Allows the edit button to function
     const handleEdit = (numberTag) => {
         setEditID(numberTag)
-    } 
+    }
+
+    //Allows cancel button to function
+    const handleCancel = () => {
+        setEditID(-1)
+    }
 
     //CURRENT BUG/MISSING FUNCTION: CANNOT UPDATE THE PROPER FIELD IN FIREBASE
     //Update firebase data
@@ -60,12 +70,11 @@ const FactSheet = ({handleSaleableAreaChange}) => {
                             <>
                                 <option value={project.name}>{project.name}</option>
                             </>
-
                         ))}
                     </Form.Select>
                 </Col>
                 <div className='content' style={{ padding: '5px' }}>
-                    <Table striped bordered hover>
+                    <Table striped bordered hover id='myTable'>
                         <thead>
                             <tr>
                                 <th>FLOOR LOCATION</th>
@@ -90,13 +99,28 @@ const FactSheet = ({handleSaleableAreaChange}) => {
                                                 <td>{floor.floorName}</td>
                                             </tr>
                                             {floor.saleableArea.map((sale, index) => (
-                                                sale.saleableAreaUnitNumberTag === editID ? 
+                                                sale.saleableAreaUnitNumberTag === editID ?
                                                 <tr>
                                                     <td></td>
                                                     <td>{sale.saleableAreaUnitNumberTag}</td>
                                                     <td>{sale.saleableAreaType}</td>
-                                                    <td><input type="text" value={sale.saleableAreaRemark} onChange={handleSaleableAreaChange}/></td>
-                                                    <td><input type="text" value={sale.saleableAreaPriceSqm} onChange={handleSaleableAreaChange}/></td>
+                                                    <td>
+                                                        <input
+                                                            type="text" 
+                                                            name='saleableAreaRemark' 
+                                                            value={sale.saleableAreaRemark}
+                                                            onChange={e => setRemark(e.target.value)}
+                                                        />
+                                                    </td>
+                                                    <td>
+                                                        <input 
+                                                            type="number"
+                                                            step="0.01" 
+                                                            name='saleableAreaPriceSqm' 
+                                                            value={sale.saleableAreaPriceSqm}
+                                                            onChange={e => setPrice(e.target.value)}
+                                                        />
+                                                    </td>
                                                     <td>{sale.saleableAreaSize}</td>
                                                     <td>{sale.saleableAreaUnitPrice}</td>
                                                     <td>{sale.saleableAreaVAT}</td>
@@ -104,7 +128,7 @@ const FactSheet = ({handleSaleableAreaChange}) => {
                                                     <td>{sale.saleableAreaTotalPrice}</td>
                                                     <td>
                                                         <Button variant="primary" onClick={() => {handleUpdate(project, sale.saleableAreaRemark, sale.saleableAreaPriceSqm)}}>Update</Button> &nbsp;
-                                                        <Button variant="danger">Cancel</Button>
+                                                        <Button variant="danger" onClick={handleCancel}>Cancel</Button>
                                                     </td>
                                                 </tr>
                                                 :
@@ -121,20 +145,19 @@ const FactSheet = ({handleSaleableAreaChange}) => {
                                                     <td>{sale.saleableAreaTotalPrice}</td> {/* Total Contract Price is Unit Price + 12% VAT + Misc. Fees */}
                                                     <td><Button variant="success" onClick={() => handleEdit(sale.saleableAreaUnitNumberTag)}>Edit</Button></td>
                                                 </tr>
-
                                             ))}
-
                                         </>
-
-
                                     ))}
                                 </>
                             )}
-
                         </tbody>
                     </Table>
-
-
+                    <Button
+                        variant='success'
+                        onClick={onHandleExport}
+                    >
+                        Export as Spreadsheet (.xlsx)
+                    </Button>
                 </div>
             </div>
         </>

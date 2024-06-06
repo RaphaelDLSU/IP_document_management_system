@@ -10,6 +10,9 @@ import TabulationArea from '../Documents/TabulationOfAreas';
 
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+
+import ExcelJS from 'exceljs'
+import saveAs from 'file-saver'
  
 function Home() {
 
@@ -112,6 +115,40 @@ function Home() {
         setFloors(updatedFloors);
     };
 
+    const handleExport = () => {
+        //Get HTML table element by Id
+        const htmlTable = document.getElementById('myTable')
+
+        //Create workbook
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet('Sheet1')
+
+        //Add column names to worksheet
+        const headerRow = worksheet.addRow([])
+        const headerCells = htmlTable.getElementsByTagName('th')
+        for (let i = 0; i < headerCells.length - 1; i++) {
+            headerRow.getCell(i + 1).value = headerCells[i].innerText
+        }
+
+        //Add HTML table data to worksheet
+        const rows = htmlTable.getElementsByTagName('tr')
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td')
+            const rowData = []
+            for (let j=0; j < cells.length; j++) {
+                if(cells[j].innerText !== 'Edit' && cells[j].innerText !== 'Update  Cancel')
+                    rowData.push(cells[j].innerText)
+            }
+            worksheet.addRow(rowData)
+        }
+
+        // Export to Excel file
+        workbook.xlsx.writeBuffer().then((buffer) => {
+            const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, 'FactSheet.xlsx'); // Use the 'file-saver' library for download
+        });
+    }
+
     return (
       <div className="App">
         <Tabs
@@ -123,7 +160,7 @@ function Home() {
                 <CreateDocument floors={floors} setFloors={setFloors} handleSaleableAreaChange={handleSaleableAreaChange} handleAddSaleableArea={handleAddSaleableArea} handleRemoveSaleableArea={handleRemoveSaleableArea}/>
             </Tab>
             <Tab eventKey="buildingsurface" title="Building Surface">
-                <BuildingSurface />
+                <BuildingSurface onHandleExport={handleExport} />
             </Tab>
             <Tab eventKey="technicaldescription" title="Technical Description">
                 <TechnicalDescription />
@@ -132,7 +169,7 @@ function Home() {
                 <TabulationArea />
             </Tab>
             <Tab eventKey="factsheet" title="Fact Sheet">
-                <FactSheet handleSaleableAreaChange={handleSaleableAreaChange} handleAddSaleableArea={handleAddSaleableArea} handleRemoveSaleableArea={handleRemoveSaleableArea}/>
+                <FactSheet onSaleableAreaChange={handleSaleableAreaChange} onHandleExport={handleExport} />
             </Tab>
         </Tabs>
     </div>
