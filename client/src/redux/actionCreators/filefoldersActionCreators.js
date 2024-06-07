@@ -133,10 +133,10 @@ const addUserFile = (data) => ({
 });
 
 export const addFileUser =
-  ({ uid, parent, data, name, url, path }) =>
+  ({ uid, parent, data, name, url, path,metadata }) =>
     (dispatch) => {
       database.files
-        .add(fileModel(uid, parent, data, name, url, path))
+        .add(fileModel(uid, parent, data, name, url, path,metadata))
         .then(async (doc) => {
           console.log('in async')
           const data = await doc.get();

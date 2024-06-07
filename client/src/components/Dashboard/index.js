@@ -26,7 +26,7 @@ const Dashboard = () => {
     }
   }, [isLoggedIn]);
   return (
-    <Container fluid className="px-0" style={{ overflowX: "hidden" }}>
+    <Container fluid className="px-0">
       <NavbarComponent />
       <Switch >
         <Route exact path={path} component={Home} />

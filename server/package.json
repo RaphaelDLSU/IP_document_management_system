@@ -26,5 +26,9 @@
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "webpack": "^5.91.0",
+    "webpack-dev-server": "^5.0.4"
+  }
 }

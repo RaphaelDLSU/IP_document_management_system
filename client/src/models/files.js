@@ -1,4 +1,4 @@
-const fileModel = (uid, parent, data, name, url, path) => {
+const fileModel = (uid, parent, data, name, url, path,metadata) => {
   const model = {
     createdAt: new Date(),
     createdBy: uid,
@@ -8,6 +8,8 @@ const fileModel = (uid, parent, data, name, url, path) => {
     updatedAt: new Date(),
     url: url,
     path: path,
+    metadata:metadata,
+    history:[]
   };
 
   return model;

@@ -73,6 +73,7 @@ const CreateFile = ({ currentFolder }) => {
           name: fileName,
           url: "",
           path: [],
+          metadata:['Document'] 
         })
       );
       setFile("");

@@ -11,7 +11,7 @@ import { Col, Row } from "react-bootstrap";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useHistory } from "react-router-dom";
 import "./index.css";
-
+import Dropdown from 'react-bootstrap/Dropdown';
 import { getFirestore, doc, deleteDoc } from "firebase/firestore";
 import { toast } from "react-toastify";
 import { FaFolder } from "react-icons/fa";
@@ -22,6 +22,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { FaTrash } from "react-icons/fa";
 import Button from 'react-bootstrap/Button';
 import { FaTrashAlt } from "react-icons/fa";
+import Modal from 'react-bootstrap/Modal';
 import {
   getAdminFiles,
   getAdminFolders,
@@ -29,7 +30,7 @@ import {
   getUserFolders,
 } from "../../../redux/actionCreators/filefoldersActionCreators";
 import SubNav from "../SubNav.js";
-
+import { Multiselect } from "multiselect-react-dropdown";
 import '../../../botstyle.css'
 import MessageParser from "../../../chatbotkit/MessageParser.js";
 import ActionProvider from "../../../chatbotkit/ActionProvider.js";
@@ -43,6 +44,9 @@ import CreateFile from "../../CreateFile/index.js";
 import UploadFile from "../../UploadFile/index.js";
 import CreateFolder from "../../CreateFolder/index.js";
 import BreadCrum from "../BreadCrum.js/index.js";
+import Form from 'react-bootstrap/Form';
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+
 const Home = () => {
   const [myState, setMyState] = useState([]);
 
@@ -50,7 +54,46 @@ const Home = () => {
   const [showChatbot, toggleChatbot] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [role, setRole] = useState()
+  const [show, setShow] = useState(false);
+  const [show2, setShow2] = useState(false);
 
+  const [plainArray, setPlainArray] = useState([
+    "Option 1",
+    "Option 2",
+    "Option 3",
+    "Option 4",
+    "Option 5"
+  ]);
+  const [filterArray, setFilterArray] = useState([
+    { name: 'Design', group: 'Type' },
+    { name: 'Document', group: 'Type' },
+    { name: 'RFA', group: 'Type' },
+    { name: 'RFI', group: 'Type' }
+  ])
+  const [fileSelected, setFileSelected] = useState()
+  const [fileSelectedId, setFileSelectedId] = useState()
+
+  const [filterArraySearch, setFilterArraySearch] = useState([])
+  const [projects, setProjects] = useState([])
+
+  const [objectArray, setObjectArray] = useState([
+    { key: "Option 1", cat: "Group 1" },
+    { key: "Option 2", cat: "Group 1" },
+    { key: "Option 3", cat: "Group 1" },
+    { key: "Option 4", cat: "Group 2" },
+    { key: "Option 5", cat: "Group 2" },
+    { key: "Option 6", cat: "Group 2" },
+    { key: "Option 7", cat: "Group 2" }
+  ]);
+
+  const [newArray, setNewArray] = useState([])
+
+
+
+  const [selectedValues, setSelectedValues] = useState([
+    { key: "Option 1", cat: "Group 1" },
+    { key: "Option 2", cat: "Group 1" }
+  ]);
   const handleMouseEnter = (index) => {
     setHoveredItem(index);
   };
@@ -94,6 +137,7 @@ const Home = () => {
 
 
 
+
   const userFolders =
     allUserFolders &&
     allUserFolders.filter((folder) => folder.data.parent === "");
@@ -117,6 +161,8 @@ const Home = () => {
   const [list3, setList3] = useState(uploadedUserFiles);
 
 
+
+
   useEffect(async () => {
     if (user) {
       const s = query(collection(db, "users"), where("email", "==", user.data.uid));
@@ -125,6 +171,22 @@ const Home = () => {
         setRole(doc.data().role)
       });
     }
+    const getProjects = async () => {
+      const q = query(collection(db, 'projects'))
+      await getDocs(q).then((project) => {
+        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+
+
+        setProjects(projectData)
+        setFilterArray(prevState => [...prevState, ...projectData.map(obj => ({ ...obj, group: 'Project' }))])
+
+        console.log(JSON.stringify(filterArray))
+
+      }).catch((err) => {
+        console.log(err);
+      })
+    }
+    getProjects()
   }, [])
 
   useEffect(() => {
@@ -156,18 +218,44 @@ const Home = () => {
     }
   }, [userFolders]);
 
+  useEffect(() => {
+
+
+    console.log('Filter Array : ' + JSON.stringify(filterArray))
+  }, [filterArray]);
+
   const [searchTerm, setSearchTerm] = useState('');
 
 
   const handleSearch = (term) => {
 
+
+
     const filteredList1 = userFolders.filter(item =>
       item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
     );
+    var filteredList2
+    if (searchTerm == "" && !filterArraySearch.length) {
 
-    const filteredList2 = createdUserFiles.filter(item =>
-      item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
-    );
+      filteredList2 = createdUserFiles.filter(item =>
+        item.data.metadata.filter(value => filterArraySearch.includes(value))
+      );
+    } else if (searchTerm != "" && !filterArraySearch.length) {
+
+      filteredList2 = createdUserFiles.filter(item =>
+        item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
+      );
+    } else {
+      console.log(searchTerm)
+
+      filteredList2 = createdUserFiles.filter(item =>
+        item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase() &&
+          item.data.metadata.filter(value => !filterArraySearch.includes(value)))
+      );
+    }
+
+
+
 
     const filteredList3 = uploadedUserFiles.filter(item =>
       item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
@@ -180,8 +268,75 @@ const Home = () => {
 
   };
 
+  const onSelect = (selectedList, selectedItem) => {
 
-  if (isLoading && !list1 && !list2 && !list3) {
+    setFilterArraySearch(prevArray => [...prevArray, selectedItem.name])
+    console.log('selected item: ' + selectedItem.name + 'SetFilterArray onSelect ' + JSON.stringify(filterArraySearch))
+
+
+  }
+
+  const onRemove = (selectedList, selectedItem) => {
+    setFilterArraySearch(filterArraySearch.filter(elem => elem !== selectedItem.name))
+    console.log('SetFilterArray onRemove ' + JSON.stringify(filterArraySearch))
+  }
+
+  const handleVersionHistory = (data, id) => {
+    setShow(true)
+    setFileSelected(data)
+    setFileSelectedId(id)
+
+    console.log('DATA : ' + data.name)
+
+  }
+
+  const handleUpdate = (data, id) => {
+    setShow2(true)
+    setFileSelected(data)
+    setFileSelectedId(id)
+  }
+
+  const handleUploadReq = async (e) => {
+
+
+    const filesRef = doc(db, "files", fileSelectedId);
+    const file = e.target.files;
+
+    const storageRef = ref(storage, 'storedFiles/' + fileSelectedId + '/' + file.name);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed',
+      (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        console.log('Upload is ' + progress + '% done');
+        switch (snapshot.state) {
+          case 'paused':
+            console.log('Upload is paused');
+            break;
+          case 'running':
+            console.log('Upload is running');
+            break;
+        }
+      },
+      (error) => {
+        // Handle unsuccessful uploads
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then(async (downloadURL) => {
+          console.log('File available at', downloadURL);
+
+          await updateDoc(filesRef, {
+            url:downloadURL,
+            history: arrayUnion({ name: file.name, timestamp: serverTimestamp(), user: user.data.displayName })
+          });
+
+        });
+      }
+    );
+
+  }
+
+  if (isLoading && !list1 && !list2 && !list3 && projects == '') {
 
     return (
       <div className='loadingcontain'>
@@ -215,14 +370,7 @@ const Home = () => {
             </button>
           )}
         </>
-
       )}
-
-
-
-
-
-
       <Col
         md={12}
         className={"d-flex align-items-center px-5 pt-3 justify-content-between"}
@@ -244,16 +392,26 @@ const Home = () => {
           </>
         ) : (
           <>
-            <p>Root</p>
-            <div className="ml-auto col-md-5 d-flex justify-content-end">
+            <div className="ml-auto d-flex justify-content-end" >
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
-
+              <Multiselect
+                options={filterArray}
+                groupBy="group"
+                displayValue="name"
+                showCheckbox={true}
+                onSelect={onSelect} // Function will trigger on select event
+                onRemove={onRemove} // Function will trigger on remove event
+              />
               <button onClick={handleSearch}>Search</button>
+
+            </div>
+            <div className="ml-auto col-md-5 d-flex justify-content-end">
+
               <UploadFile currentFolder={currentFolder} />
               &nbsp;
               <CreateFile currentFolder={currentFolder} />
@@ -268,6 +426,7 @@ const Home = () => {
         {userFolders && userFolders.length > 0 && list1 && list1.length > 0 && (
           <>
             {list1.map(({ data, docId }) => (
+
               < ListGroup.Item
                 action onDoubleClick={() => history.push(`/dashboard/folder/${docId}`)}
                 key={docId}
@@ -282,14 +441,29 @@ const Home = () => {
         {createdUserFiles && createdUserFiles.length > 0 && list2 && list2.length > 0 && (
           <>
             {list2.map(({ data, docId }) => (
+              <div class="parent">
+                <div class="children-1">
+                  <ListGroup.Item
+                    action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
+                    key={docId}
+                  >
+                    <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name}
 
-              <ListGroup.Item
-                action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
-                key={docId}
-              >
-                <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name} <Button style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button>
+                  </ListGroup.Item></div>
+                <div class="children-2">
+                  {/* <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button> */}
+                  <Dropdown>
+                    <Dropdown.Toggle variant="success" id="dropdown-basic">
+                    </Dropdown.Toggle>
 
-              </ListGroup.Item>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={() => handleDeleteFile(docId)}>Delete</Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
+                      <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </div>
+              </div>
             ))}
           </>
         )}
@@ -297,11 +471,11 @@ const Home = () => {
           <>
             {list3.map(({ data, docId }) => (
               <ListGroup.Item
-              className="d-flex align-items-center"
+                className="d-flex align-items-center"
                 action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
                 key={docId}
               >
-                <FaFileAlt />{data.name} <Button size="sm"  onClick={()=>handleDeleteFile(docId)}><FaTrashAlt /></Button>
+                <FaFileAlt />{data.name} <Button size="sm" onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button>
 
 
               </ListGroup.Item>
@@ -309,9 +483,51 @@ const Home = () => {
           </>
         )}
       </ListGroup>
+
+      {fileSelected && (
+        <Modal
+          show={show}
+          onHide={() => setShow(false)}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Version History</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            {fileSelected.name}
+          </Modal.Body>
+
+        </Modal>
+      )}
+
+      {fileSelected && (
+        <Modal
+          show={show2}
+          onHide={() => setShow2(false)}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>Update</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+
+            <Form>
+              <Form.Group controlId="formFile" className="mb-3">
+                <Form.Label>  Update the version of the file : {fileSelected.name}</Form.Label>
+                <Form.Control required type="file" onChange={(e) => handleUploadReq(e)} />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShow2(false)}>Close</Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+
     </>
+
   );
 };
+
 
 export default Home;
 

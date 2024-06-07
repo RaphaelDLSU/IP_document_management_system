@@ -298,6 +298,11 @@ const Home = () => {
 
 
     }
+    const isCadFile = (fileName) => {
+        const cadExtensions = ['.dwg', '.dxf', '.step']; // Add other CAD extensions as needed
+        const fileExtension = fileName.toLowerCase().slice(fileName.lastIndexOf('.'));
+        return cadExtensions.includes(fileExtension);
+    }
     const handleUploadReq = (e, req) => {
         e.preventDefault();
         const somethingFiles = e.target.files;
@@ -1177,7 +1182,12 @@ const Home = () => {
                     status: 'for submission'
                 });
             }
-
+            var metadocu
+            if(isCadFile(effectFile)){
+                metadocu = 'Design'
+            }else{
+                metadocu = 'Document'
+            }
 
             dispatch(
                 addFileUser({
@@ -1187,6 +1197,7 @@ const Home = () => {
                     name: effectFile,
                     url: url,
                     path: [{ id: folderId, name: workflowSnap.data().name }, { id: folderId2, name: folderId2Name }],
+                    metadata:[task.project,metadocu]
                 })
             )
             toast('FINISHED')
@@ -1231,6 +1242,13 @@ const Home = () => {
                 status: 'for submission'
             });
         }
+        var metadocu 
+
+        if(isCadFile(effectFile)){
+            metadocu = 'Design'
+        }else{
+            metadocu = 'Document'
+        }
 
         dispatch(
             addFileUser({
@@ -1240,6 +1258,7 @@ const Home = () => {
                 name: effectFile,
                 url: url,
                 path: [{ id: folderId, name: workflowSnap.data().name }, { id: folderId2, name: folderId2Name }, { id: folderId3, name: folderId2Name }],
+                metadata:[task.project,metadocu]
             })
         )
 
