@@ -1,16 +1,15 @@
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, query, getFirestore, updateDoc, getDoc, setDoc } from 'firebase/firestore'
 import React, { useEffect, useState } from 'react'
-import { Form, Button, Row, Col, Table } from 'react-bootstrap';
+import { Form, Button, Col, Table } from 'react-bootstrap';
 
-
-const FactSheet = () => {
+const FactSheet = ({handleSaleableAreaChange}) => {
     const database = getFirestore()
     const [projects, setProjects] = useState([])
     const [project, setProject] = useState()
+    const [editID, setEditID] = useState(-1)
 
     const [floors, setFloors] = useState([])
     useEffect(() => {
-
         const getProjects = async () => {
             const q = query(collection(database, 'projects'))
             await getDocs(q).then((project) => {
@@ -24,19 +23,29 @@ const FactSheet = () => {
     }, [])
 
     const getProject = async (project) => {
-
         setProject(project)
 
         const q = doc(database, 'buildingSurface', project)
         const docSnap = await getDoc(q).then((doc) => {
             if (doc.exists()) {
                 setFloors(doc.data().floors)
-
             }
-
         })
-
         console.log('got doc')
+    }
+
+    //Allows the edit button to function
+    const handleEdit = (numberTag) => {
+        setEditID(numberTag)
+    } 
+
+    //CURRENT BUG/MISSING FUNCTION: CANNOT UPDATE THE PROPER FIELD IN FIREBASE
+    //Update firebase data
+    const handleUpdate = async (project, remark, sqm) => {
+        const floorDoc = doc(database, 'buildingSurface', project)
+        const newRemark = {remark}
+        const newSqm = {sqm}
+        await updateDoc(floorDoc, newRemark, newSqm)
     }
 
     return (
@@ -46,7 +55,7 @@ const FactSheet = () => {
                 <hr></hr>
                 <Col md={2}>
                     <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-                        <option value="" hidden>Project</option>
+                        <option value="" hidden>Select project to view</option>
                         {projects.map((project, index) => (
                             <>
                                 <option value={project.name}>{project.name}</option>
@@ -64,11 +73,12 @@ const FactSheet = () => {
                                 <th>UNIT TYPE</th>
                                 <th>REMARKS</th>
                                 <th>PRICE/SQM</th>
-                                <th>Area (m²)</th>
-                                <th>Unit Price</th>
+                                <th>AREA (m²)</th>
+                                <th>UNIT PRICE</th>
                                 <th>12% VAT</th>
                                 <th>MISC. FEES</th>
                                 <th>TOTAL CONTRACT PRICE</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -80,18 +90,36 @@ const FactSheet = () => {
                                                 <td>{floor.floorName}</td>
                                             </tr>
                                             {floor.saleableArea.map((sale, index) => (
-
+                                                sale.saleableAreaUnitNumberTag === editID ? 
                                                 <tr>
                                                     <td></td>
                                                     <td>{sale.saleableAreaUnitNumberTag}</td>
                                                     <td>{sale.saleableAreaType}</td>
-                                                    <td></td>
-                                                    <td></td>
+                                                    <td><input type="text" value={sale.saleableAreaRemark} onChange={handleSaleableAreaChange}/></td>
+                                                    <td><input type="text" value={sale.saleableAreaPriceSqm} onChange={handleSaleableAreaChange}/></td>
                                                     <td>{sale.saleableAreaSize}</td>
+                                                    <td>{sale.saleableAreaUnitPrice}</td>
+                                                    <td>{sale.saleableAreaVAT}</td>
+                                                    <td>{sale.saleableAreaMiscFees}</td>
+                                                    <td>{sale.saleableAreaTotalPrice}</td>
+                                                    <td>
+                                                        <Button variant="primary" onClick={() => {handleUpdate(project, sale.saleableAreaRemark, sale.saleableAreaPriceSqm)}}>Update</Button> &nbsp;
+                                                        <Button variant="danger">Cancel</Button>
+                                                    </td>
+                                                </tr>
+                                                :
+                                                <tr>
                                                     <td></td>
-                                                    <td></td>
-                                                    <td></td>
-                                                    <td></td>
+                                                    <td>{sale.saleableAreaUnitNumberTag}</td>
+                                                    <td>{sale.saleableAreaType}</td>
+                                                    <td>{sale.saleableAreaRemark}</td>
+                                                    <td>{sale.saleableAreaPriceSqm}</td>
+                                                    <td>{sale.saleableAreaSize}</td>
+                                                    <td>{sale.saleableAreaUnitPrice}</td> {/* Unit Price is PriceSqm x Size */}
+                                                    <td>{sale.saleableAreaVAT}</td> {/* 12% VAT is Unit Price x 0.12 */}
+                                                    <td>{sale.saleableAreaMiscFees}</td> {/* Misc. Fees is Price x 0.08 */}
+                                                    <td>{sale.saleableAreaTotalPrice}</td> {/* Total Contract Price is Unit Price + 12% VAT + Misc. Fees */}
+                                                    <td><Button variant="success" onClick={() => handleEdit(sale.saleableAreaUnitNumberTag)}>Edit</Button></td>
                                                 </tr>
 
                                             ))}

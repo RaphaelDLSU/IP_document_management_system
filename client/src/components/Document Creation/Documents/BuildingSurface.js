@@ -323,21 +323,20 @@ const BuildingSurface = () => {
 
   return (
     <div className='head' style={{ padding: '20px' }}>
+      <h2>Building Surface</h2>
       <hr></hr>
       <Col md={2}>
         <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-          <option value="" hidden>Project</option>
+          <option value="" hidden>Select project to view</option>
           {projects.map((project, index) => (
             <>
               <option value={project.name}>{project.name}</option>
             </>
-
           ))}
         </Form.Select>
       </Col>
       <p></p>
       <div className='content' style={{ padding: '5px' }}>
-
         <Form>
           {floors.map((floor, index) => (
             <Fragment key={index}>
@@ -388,8 +387,6 @@ const BuildingSurface = () => {
             </Fragment>
           ))}
         </Form>
-        <Button variant='primary' onClick={addFloor}>Add Floor</Button> &nbsp;
-        <Button variant="success" onClick={handleSubmit}>Submit</Button>
       </div>
     </div>
   );

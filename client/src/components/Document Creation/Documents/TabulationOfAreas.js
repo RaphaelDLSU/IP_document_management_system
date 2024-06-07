@@ -45,7 +45,7 @@ const TabulationOfAreas = () => {
                 <hr></hr>
                 <Col md={2}>
                     <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
-                        <option value="" hidden>Project</option>
+                        <option value="" hidden>Select project to view</option>
                         {projects.map((project, index) => (
                             <>
                                 <option value={project.name}>{project.name}</option>
@@ -58,7 +58,7 @@ const TabulationOfAreas = () => {
                     <Table striped bordered hover>
                         <thead>
                             <tr>
-                                <th colSpan={4}>Summary of Overal Changes</th>
+                                <th colSpan={4}>Summary of Overall Changes</th>
                             </tr>
                             <tr>
                                 <th>Details</th>
