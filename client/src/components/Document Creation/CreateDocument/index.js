@@ -2,11 +2,12 @@ import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
 import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import axios from 'axios';
 
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
 
-const DocumentCreation = ({floors, setFloors, handleSaleableAreaChange, handleAddSaleableArea, handleRemoveSaleableArea}) => {
+const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleAddSaleableArea, handleRemoveSaleableArea }) => {
   const [projects, setProjects] = useState([])
   const database = getFirestore()
   const [project, setProject] = useState()
@@ -24,41 +25,19 @@ const DocumentCreation = ({floors, setFloors, handleSaleableAreaChange, handleAd
       id: uuidv4(),
       floorName: '',
       saleableArea: [
-        {
-          saleableAreaUnitNumberTag: '',
-          saleableAreaType: '',
-          saleableAreaSize: ''
-        }
+
       ],
       serviceArea: [
-        {
-          serviceAreaUnitNumberTag: '',
-          serviceAreaType: '',
-          serviceAreaSize: ''
-        }
+
       ],
       parkingArea: [
-        {
-          parkingAreaUnitNumberTag: '',
-          numberOfParking: '',
-          parkingSlotSize: '',
-          parkingTotalArea: ''
-        }
+
       ],
       amenitiesArea: [
-        {
-          amenitiesAreaUnitNumberTag: '',
-          amenitiesAreaType: '',
-          amenitiesAreaSize: ''
-        }
+
       ],
       residentialArea: [
-        {
-          residentialAreaUnitType: '',
-          residentialAreaNumberUnit: '',
-          residentialAreaSize: '',
-          residentialTotalArea: ''
-        }
+
       ]
     }
     setFloors((prevFloors) => [...prevFloors, newFloor])
@@ -193,15 +172,85 @@ const DocumentCreation = ({floors, setFloors, handleSaleableAreaChange, handleAd
 
   //Submits the contents of inputs
   const handleSubmit = async () => {
-    try {
-      // Assuming 'floors' is the state you want to upload
-      const docRef = await setDoc(doc(database, 'buildingSurface', project), {
-        floors: floors,
-        project: project
-      });
-    } catch (e) {
-      console.error('Error adding document: ', e);
+
+    const q = doc(database, 'buildingSurface', project)
+    const docSnap = await getDoc(q)
+
+    if (!docSnap.exists()) {
+      try {
+        const docRef = await setDoc(doc(database, 'buildingSurface', project), {
+          floors: floors,
+          project: project
+        }).then(async () => {
+          const q = doc(database, 'buildingSurface', project)
+          const docSnap = await getDoc(q).then(async (doc) => {
+
+            if (!doc.exists()) {
+              try {
+                const { data: res } = await axios.post("http://localhost:5000/sheettest", doc.data())
+                window.open(res.url, '_blank')
+                window.open(res.url2, '_blank')
+                window.open(res.url3, '_blank')
+                console.log('RESPONSE: ' + res.url)
+                await updateDoc(q, {
+                  buildingSurfaceURL: res.url,
+                  technicalDescriptionURL: res.url2,
+                  factSheetURL: res.url3,
+                  factSheetID: res.factSheetID
+                });
+              } catch (error) {
+                console.log(error);
+              }
+            }
+          })
+        })
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
+    } else {
+      try {
+        const q = doc(database, 'buildingSurface', project)
+        const docSnap = await getDoc(q).then(async (doc) => {
+
+          if (doc.exists()) {
+            try {
+              const { data: res } = await axios.post("http://localhost:5000/sheettest", doc.data())
+              window.open(res.url, '_blank')
+              window.open(res.url2, '_blank')
+              window.open(res.url3, '_blank')
+              console.log('RESPONSE: ' + res.url)
+              await updateDoc(q, {
+                buildingSurfaceURL: res.url,
+                technicalDescriptionURL: res.url2,
+                factSheetURL: res.url3,
+                factSheetID: res.factSheetID
+              });
+            } catch (error) {
+              console.log(error);
+            }
+          }
+        })
+      } catch (error) {
+        console.log(error);
+      }
+
     }
+  }
+
+  const handleUpdate = async () => {
+    const q = doc(database, 'buildingSurface', project)
+    const docSnap = await getDoc(q).then(async (doc) => {
+
+      if (doc.exists()) {
+        try {
+          const { data: res } = await axios.post("http://localhost:5000/sheetupdate", doc.data())
+          window.open(res.url, '_blank')
+          console.log('RESPONSE: ' + res.url)
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    })
   }
 
   //Loads existing building surface data from a project
@@ -210,11 +259,14 @@ const DocumentCreation = ({floors, setFloors, handleSaleableAreaChange, handleAd
     setProject(project)
 
     const q = doc(database, 'buildingSurface', project)
-    // const docSnap = await getDoc(q).then((doc) => {
-    //   setFloors(doc.data().floors)
-    // })
+    const docSnap = await getDoc(q).then((doc) => {
+      if (doc.exists()) {
+        setFloors(doc.data().floors)
+      }
+    })
 
     console.log('got doc')
+
   }
 
   //Gets projects from projects document
@@ -300,6 +352,8 @@ const DocumentCreation = ({floors, setFloors, handleSaleableAreaChange, handleAd
         </Form>
         <Button variant='primary' onClick={addFloor}>Add Floor</Button> &nbsp;
         <Button variant="success" onClick={handleSubmit}>Save and Submit</Button>
+        <Button variant="secondary" onClick={handleUpdate}>Update Fact Sheet</Button>
+
       </div>
     </div>
   );

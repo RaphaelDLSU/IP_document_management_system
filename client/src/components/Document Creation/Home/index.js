@@ -22,47 +22,19 @@ function Home() {
             id: uuidv4(),
             floorName: '',
             saleableArea: [
-                {
-                saleableAreaUnitNumberTag: '',
-                saleableAreaType: '',
-                saleableAreaSize: '',
-                saleableAreaRemark: '',
-                saleableAreaPriceSqm: '',
-                saleableAreaUnitPrice: '',
-                saleableAreaVAT: '',
-                saleableAreaMiscFees: '',
-                saleableAreaTotalPrice: ''
-                }
+       
             ],
             serviceArea: [
-                {
-                serviceAreaUnitNumberTag: '',
-                serviceAreaType: '',
-                serviceAreaSize: ''
-                }
+
             ],
             parkingArea: [
-                {
-                parkingAreaUnitNumberTag: '',
-                numberOfParking: '',
-                parkingSlotSize: '',
-                parkingTotalArea: ''
-                }
+
             ],
             amenitiesArea: [
-                {
-                amenitiesAreaUnitNumberTag: '',
-                amenitiesAreaType: '',
-                amenitiesAreaSize: ''
-                }
+          
             ],
             residentialArea: [
-                {
-                residentialAreaUnitType: '',
-                residentialAreaNumberUnit: '',
-                residentialAreaSize: '',
-                residentialTotalArea: ''
-                }
+           
             ]
         }
     ])
@@ -159,9 +131,10 @@ function Home() {
             <Tab eventKey="create" title="Create document">
                 <CreateDocument floors={floors} setFloors={setFloors} handleSaleableAreaChange={handleSaleableAreaChange} handleAddSaleableArea={handleAddSaleableArea} handleRemoveSaleableArea={handleRemoveSaleableArea}/>
             </Tab>
-            <Tab eventKey="buildingsurface" title="Building Surface">
-                <BuildingSurface onHandleExport={handleExport} />
+            <Tab eventKey="buildingsurface" title="View Documents">
+                <BuildingSurface />
             </Tab>
+             {/*
             <Tab eventKey="technicaldescription" title="Technical Description">
                 <TechnicalDescription />
             </Tab>
@@ -170,7 +143,7 @@ function Home() {
             </Tab>
             <Tab eventKey="factsheet" title="Fact Sheet">
                 <FactSheet onSaleableAreaChange={handleSaleableAreaChange} onHandleExport={handleExport} />
-            </Tab>
+            </Tab> */}
         </Tabs>
     </div>
     );
