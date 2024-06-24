@@ -14,8 +14,20 @@ const BuildingSurface = ({ onHandleExport }) => {
     const [isEditing, setIsEditing] = useState(false)
 
     const [floors, setFloors] = useState([])
+    const [isCreated, setIsCreated] = useState(false)
+    const [countParking, setCountParking] = useState()
+    const [countCommercial, setCountCommercial] = useState()
+    const [countResidential1B, setCountResidential1B] = useState()
+    const [countResidential2B, setCountResidential2B] = useState()
+    const [countResidentialPent, setCountResidentialPent] = useState()
 
     const [remark, setRemark] = useState('')
+    const [surfURL, setSurfURL] = useState('')
+
+    const [techURL, setTechURL] = useState('')
+
+    const [factURL, setFactURL] = useState('')
+
     const [price, setPrice] = useState('')
 
     useEffect(() => {
@@ -37,54 +49,55 @@ const BuildingSurface = ({ onHandleExport }) => {
         const q = doc(database, 'buildingSurface', project)
         const docSnap = await getDoc(q).then((doc) => {
             if (doc.exists()) {
+                setIsCreated(true)
                 setFloors(doc.data().floors)
+                setSurfURL(doc.data().buildingSurfaceURL)
+                setFactURL(doc.data().factSheetURL)
+                setTechURL(doc.data().technicalDescriptionURL)
+                var parkingTally = 0
+                var commercialTally = 0
+                var oneBTally = 0
+                var twoBTally = 0
+                var pentTally = 0
+                for (var i = 0; i < doc.data().floors.length; i++) {
+
+
+                    if (doc.data().floors[i].parkingArea.length > 0) {
+                        parkingTally = doc.data().floors[i].parkingArea.length
+                    }
+                    if (doc.data().floors[i].saleableArea.length > 0) {
+                        commercialTally = doc.data().floors[i].saleableArea.length
+                    }
+                    if (doc.data().floors[i].residentialArea.length > 0) {
+                        for (var j = 0; j < doc.data().floors[i].residentialArea.length; j++) {
+                            if (doc.data().floors[i].residentialArea[j].residentialAreaNumberUnit == '1 Bedroom') {
+                                oneBTally += 1
+                            } else if (doc.data().floors[i].residentialArea[j].residentialAreaNumberUnit == '2 Bedroom') {
+                                twoBTally += 1
+                            } else if (doc.data().floors[i].residentialArea[j].residentialAreaNumberUnit == 'Penthouse') {
+                                pentTally += 1
+                            }
+                        }
+                    }
+
+                }
+                setCountParking(parkingTally)
+                setCountCommercial(commercialTally)
+                setCountResidential1B(oneBTally)
+                setCountResidential2B(twoBTally)
+                setCountResidentialPent(pentTally)
+            } else {
+                setIsCreated(false)
             }
         })
         console.log('got doc')
     }
 
-    //Allows the edit button to function
-    const handleEdit = (numberTag) => {
-        setEditID(numberTag)
-    }
-
-    //Allows cancel button to function
-    const handleCancel = () => {
-        setEditID(-1)
-    }
-
-    //CURRENT BUG/MISSING FUNCTION: CANNOT UPDATE THE PROPER FIELD IN FIREBASE
-    //Update firebase data
-    const handleUpdate = async (project, remark, sqm) => {
-        const floorDoc = doc(database, 'buildingSurface', project)
-        const newRemark = { remark }
-        const newSqm = { sqm }
-        await updateDoc(floorDoc, newRemark, newSqm)
-    }
-
-    const handleSheetTest = async () => {
-        const q = doc(database, 'buildingSurface', project)
-        const docSnap = await getDoc(q).then(async (doc) => {
-
-            if (doc.exists()) {
-                try {
-                    const { data: res } = await axios.post("http://localhost:5000/sheettest", doc.data())
-                    window.open(res.url, '_blank')
-                    window.open(res.url2, '_blank')
-                    window.open(res.url3, '_blank')
-                    console.log('RESPONSE: '+res.url)
-
-                } catch (error) {
-                    console.log(error);
-                }
-            }
-        })
 
 
 
 
 
-    }
 
     // //Loads existing building surface data from a project
     // const getProject = async (project) => {
@@ -144,96 +157,61 @@ const BuildingSurface = ({ onHandleExport }) => {
                     ))}
                 </Form.Select>
             </Col>
-            <Button variant="primary" onClick={() => handleSheetTest()}>Sheet Test</Button>
-            <p></p>
-            <div className='content' style={{ padding: '5px' }}>
-                <Table striped bordered hover id='myTable'>
-                    <thead>
-                        <tr>
-                            <th>FLOOR LOCATION</th>
-                            <th>UNIT NO.</th>
-                            <th>UNIT TYPE</th>
-                            <th>REMARKS</th>
-                            <th>PRICE/SQM</th>
-                            <th>AREA (m²)</th>
-                            <th>UNIT PRICE</th>
-                            <th>12% VAT</th>
-                            <th>MISC. FEES</th>
-                            <th>TOTAL CONTRACT PRICE</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {floors && (
-                            <>
-                                {floors.map((floor, index) => (
-                                    <>
-                                        <tr>
-                                            <td>{floor.floorName}</td>
-                                        </tr>
-                                        {floor.saleableArea.map((sale, index) => (
-                                            sale.saleableAreaUnitNumberTag === editID ?
-                                                <tr>
-                                                    <td></td>
-                                                    <td>{sale.saleableAreaUnitNumberTag}</td>
-                                                    <td>{sale.saleableAreaType}</td>
-                                                    <td>
-                                                        <input
-                                                            type="text"
-                                                            name='saleableAreaRemark'
-                                                            value={sale.saleableAreaRemark}
-                                                            onChange={e => setRemark(e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        <input
-                                                            type="number"
-                                                            step="0.01"
-                                                            name='saleableAreaPriceSqm'
-                                                            value={sale.saleableAreaPriceSqm}
-                                                            onChange={e => setPrice(e.target.value)}
-                                                        />
-                                                    </td>
-                                                    <td>{sale.saleableAreaSize}</td>
-                                                    <td>{sale.saleableAreaUnitPrice}</td>
-                                                    <td>{sale.saleableAreaVAT}</td>
-                                                    <td>{sale.saleableAreaMiscFees}</td>
-                                                    <td>{sale.saleableAreaTotalPrice}</td>
-                                                    <td>
-                                                        <Button variant="primary" onClick={() => { handleUpdate(project, sale.saleableAreaRemark, sale.saleableAreaPriceSqm) }}>Update</Button> &nbsp;
-                                                        <Button variant="danger" onClick={handleCancel}>Cancel</Button>
-                                                    </td>
-                                                </tr>
-                                                :
-                                                <tr>
-                                                    <td></td>
-                                                    <td>{sale.saleableAreaUnitNumberTag}</td>
-                                                    <td>{sale.saleableAreaType}</td>
-                                                    <td>{sale.saleableAreaRemark}</td>
-                                                    <td>{sale.saleableAreaPriceSqm}</td>
-                                                    <td>{sale.saleableAreaSize}</td>
-                                                    <td>{sale.saleableAreaUnitPrice}</td> {/* Unit Price is PriceSqm x Size */}
-                                                    <td>{sale.saleableAreaVAT}</td> {/* 12% VAT is Unit Price x 0.12 */}
-                                                    <td>{sale.saleableAreaMiscFees}</td> {/* Misc. Fees is Price x 0.08 */}
-                                                    <td>{sale.saleableAreaTotalPrice}</td> {/* Total Contract Price is Unit Price + 12% VAT + Misc. Fees */}
-                                                    <td><Button variant="success" onClick={() => handleEdit(sale.saleableAreaUnitNumberTag)}>Edit</Button></td>
-                                                </tr>
-                                        ))}
-                                    </>
-                                ))}
-                            </>
-                        )}
-                    </tbody>
-                </Table>
-                <Button
-                    variant='success'
-                    onClick={onHandleExport}
-                >
-                    Export as Spreadsheet (.xlsx)
-                </Button>
-            </div>
+
+            {project && isCreated ? (
+                <>
+                    <p></p>
+                    <Form.Label>Building Surface</Form.Label>
+                    <Button variant="primary" onClick={() => window.open(surfURL, '_blank')}>View</Button>
+                    <p></p>
+                    <p></p>
+
+                    <Form.Label>Technical Description</Form.Label>
+
+                    <Button variant="primary" onClick={() => window.open(techURL, '_blank')}>View</Button>
+                    <p></p>
+                    <p></p>
+                    <Form.Label>Fact Sheet</Form.Label>
+
+
+                    <Button variant="primary" onClick={() => window.open(factURL, '_blank')}>View</Button>
+
+                    <p></p>
+                    <table className="table table-striped">
+                        <tbody>
+                            <tr>
+                                <td>Parking: </td>
+                                <td>{countParking}</td>
+                            </tr>
+                            <tr>
+                                <td>Commercial: </td>
+                                <td>{countCommercial}</td>
+                            </tr>
+
+                            <tr>
+                                <td>Residential 1B: </td>
+                                <td>{countResidential1B}</td>
+                            </tr>
+                            <tr>
+                                <td>Residential 2B: </td>
+                                <td>{countResidential2B}</td>
+                            </tr>
+                            <tr>
+                                <td>Residential Penthouse: </td>
+                                <td>{countResidentialPent}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                </>
+            ) : (
+                <>
+                    <p></p>
+                    <p> No Created Documents</p>
+                </>
+            )}
         </div>
     );
-}
 
+}
 export default BuildingSurface;

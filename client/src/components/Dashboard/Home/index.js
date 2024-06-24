@@ -49,6 +49,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 
 const Home = () => {
   const [myState, setMyState] = useState([]);
+  const storage = getStorage();
 
   const db = getFirestore()
   const [showChatbot, toggleChatbot] = useState(false);

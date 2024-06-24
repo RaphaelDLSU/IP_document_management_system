@@ -6,7 +6,7 @@ const ServiceArea = ({floorIndex, serviceArea, onServiceAreaChange, onAddService
         <>
             <Form.Group>
                 <Row>
-                    <Col>Unit No./Tag</Col>
+                    {/* <Col>Unit No./Tag</Col> */}
                     <Col>Type</Col>
                     <Col>Area (sqm)</Col>
                     <Col></Col>
@@ -19,7 +19,7 @@ const ServiceArea = ({floorIndex, serviceArea, onServiceAreaChange, onAddService
                         {/* Show index/row number */}
 
                         {/* Unit No. */}
-                        <Col>
+                        {/* <Col>
                             <Form.Control
                             type="text"
                             placeholder="Unit No./Tag"
@@ -27,7 +27,7 @@ const ServiceArea = ({floorIndex, serviceArea, onServiceAreaChange, onAddService
                             value={input.serviceAreaUnitNumberTag}
                             onChange={(e) => onServiceAreaChange(floorIndex, index, 'serviceAreaUnitNumberTag', e.target.value)}
                             />
-                        </Col>
+                        </Col> */}
 
                         {/* Type */}
                         <Col>
@@ -79,7 +79,7 @@ const ServiceArea = ({floorIndex, serviceArea, onServiceAreaChange, onAddService
 
                         {/* Remove row button */}
                         <Col>
-                            <Button variant='danger' onClick={() => onRemoveServiceArea(floorIndex)}>
+                            <Button variant='danger' onClick={() => onRemoveServiceArea(floorIndex,index)}>
                             Remove
                             </Button>
                         </Col>

@@ -21,7 +21,11 @@ const UploadFile = ({ currentFolder }) => {
     }),
     shallowEqual
   );
-
+  const isCadFile = (fileName) => {
+    const cadExtensions = ['.dwg', '.dxf', '.step']; // Add other CAD extensions as needed
+    const fileExtension = fileName.toLowerCase().slice(fileName.lastIndexOf('.'));
+    return cadExtensions.includes(fileExtension);
+  }
   const handleFileSubmit = (e) => {
     e.preventDefault();
     if (!file) return toast.dark("Please add file name!");
@@ -57,19 +61,20 @@ const UploadFile = ({ currentFolder }) => {
     if (allowedExtensions.indexOf(fileExtension) === -1) {
       return toast.dark(`File with extension ${fileExtension} not allowed!`);
     }
+
     const filteredFiles =
       currentFolder === "root folder"
         ? userFiles.filter(
-            (file) =>
-              file.data.parent === "" &&
-              file.data.name === fileName.split("\\").reverse()[0]
-          )
+          (file) =>
+            file.data.parent === "" &&
+            file.data.name === fileName.split("\\").reverse()[0]
+        )
         : userFiles.filter(
-            (file) =>
-              file.data.parent === currentFolder.docId &&
-              file.data.name === fileName.split("\\").reverse()[0]
-              
-          );
+          (file) =>
+            file.data.parent === currentFolder.docId &&
+            file.data.name === fileName.split("\\").reverse()[0]
+
+        );
     if (filteredFiles.length > 0)
       return toast.dark("This is already present in folder");
 
@@ -90,10 +95,16 @@ const UploadFile = ({ currentFolder }) => {
         return toast.error(error.message);
       },
       async () => {
-        
+        var metadocu
+        if (isCadFile(file.name)) {
+          metadocu = 'Design'
+        } else {
+          metadocu = 'Document'
+        }
         const url = await uploadFileRef.getDownloadURL();
         console.log("HERE 5")
         if (currentFolder === "root folder") {
+
           dispatch(
             addFileUser({
               uid: userId,
@@ -102,6 +113,8 @@ const UploadFile = ({ currentFolder }) => {
               name: file.name,
               url: url,
               path: [],
+              metadata: [metadocu]
+
             })
           );
           setFile("");
@@ -113,9 +126,9 @@ const UploadFile = ({ currentFolder }) => {
         const path =
           currentFolder.data.path.length > 0
             ? [
-                ...currentFolder.data.path,
-                { id: currentFolder.docId, name: currentFolder.data.name },
-              ]
+              ...currentFolder.data.path,
+              { id: currentFolder.docId, name: currentFolder.data.name },
+            ]
             : [{ id: currentFolder.docId, name: currentFolder.data.name }];
 
         dispatch(
@@ -126,6 +139,8 @@ const UploadFile = ({ currentFolder }) => {
             name: file.name,
             url: url,
             path: path,
+            metadata: [metadocu]
+
           })
         );
         setFile("");
@@ -144,8 +159,8 @@ const UploadFile = ({ currentFolder }) => {
             {progress && progress !== 100
               ? "Uploading..."
               : progress === 100
-              ? "Uploaded"
-              : "Upload File"}
+                ? "Uploaded"
+                : "Upload File"}
           </Modal.Title>
           <Button
             variant="white"

@@ -66,6 +66,7 @@ const Home = () => {
     const [delId, setDelId] = useState()
 
     const [projectName, setProjectName] = useState()
+    const [projectAddress, setProjectAddress] = useState()
 
     const [assignEmployeeTask, setAssignEmployeeTask] = useState()
     const [assignEmployeeWorkflowId, setAssignEmployeeWorkflowId] = useState()
@@ -523,7 +524,7 @@ const Home = () => {
 
         const projectRef = collection(database, "projects")
 
-        await addDoc(projectRef, projectModel(projectName)).then(() => {
+        await addDoc(projectRef, projectModel(projectName,projectAddress)).then(() => {
             toast.success(projectName + ' created')
         })
     }
@@ -874,6 +875,15 @@ const Home = () => {
                                 rows={1}
                                 name='name'
                                 onChange={(e) => setProjectName(e.target.value)}
+                            />
+                            <Form.Label>Project Address</Form.Label>
+
+                             <Form.Control
+                                type="text"
+                                placeholder='123 Main Street, Cityville, Stateville'
+                                rows={1}
+                                name='address'
+                                onChange={(e) => setProjectAddress(e.target.value)}
                             />
 
 

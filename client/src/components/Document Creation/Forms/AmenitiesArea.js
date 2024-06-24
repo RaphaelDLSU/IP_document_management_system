@@ -60,7 +60,7 @@ const AmenitiesArea = ({floorIndex, amenitiesArea, onAmenitiesAreaChange, onAddA
 
                         {/* Remove row button */}
                         <Col>
-                            <Button variant='danger' onClick={() => onRemoveAmenitiesArea(floorIndex)}>
+                            <Button variant='danger' onClick={() => onRemoveAmenitiesArea(floorIndex,index)}>
                             Remove
                             </Button>
                         </Col>

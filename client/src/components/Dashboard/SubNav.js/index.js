@@ -14,7 +14,7 @@ const SubNav = ({ currentFolder }) => {
       {currentFolder && currentFolder !== "root folder" ? (
         <>
           <BreadCrum currentFolder={currentFolder} />
-          {currentFolder.data.createdBy !== "admin" && (
+          {/* {currentFolder.data.createdBy !== "admin" && (
             <div className="ml-auto col-md-5 d-flex justify-content-end">
               <UploadFile currentFolder={currentFolder} />
               &nbsp;
@@ -22,18 +22,18 @@ const SubNav = ({ currentFolder }) => {
               &nbsp;
               <CreateFolder currentFolder={currentFolder} />
             </div>
-          )}
+          )} */}
         </>
       ) : (
         <>
           <p>Root</p>
-          <div className="ml-auto col-md-5 d-flex justify-content-end">
+          {/* <div className="ml-auto col-md-5 d-flex justify-content-end">
             <UploadFile currentFolder={currentFolder} />
             &nbsp;
             <CreateFile currentFolder={currentFolder} />
             &nbsp;
             <CreateFolder currentFolder={currentFolder} />
-          </div>
+          </div> */}
         </>
       )}
     </Col>

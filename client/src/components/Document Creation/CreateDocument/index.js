@@ -3,6 +3,8 @@ import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
 import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
 import axios from 'axios';
+import Modal from 'react-bootstrap/Modal';
+import { toast } from 'react-toastify';
 
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
@@ -11,7 +13,11 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
   const [projects, setProjects] = useState([])
   const database = getFirestore()
   const [project, setProject] = useState()
-
+  const [address, setAddress] = useState()
+  const [isCreated, setIsCreated] = useState()
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+  const [show, setShow] = useState(false);
   //Change handler for Floor name
   const handleFloorNameChange = (index, event) => {
     let data = [...floors];
@@ -165,6 +171,8 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
   //For removing inputs from Residential Area
   const handleRemoveResidentialArea = (floorIndex, areaIndex) => {
+
+    console.log("Floor Index: " + floorIndex + 'areaIndex: ' + areaIndex)
     const updatedFloors = [...floors];
     updatedFloors[floorIndex].residentialArea.splice(areaIndex, 1);
     setFloors(updatedFloors);
@@ -180,39 +188,12 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
       try {
         const docRef = await setDoc(doc(database, 'buildingSurface', project), {
           floors: floors,
-          project: project
+          project: project,
+          address: address
         }).then(async () => {
           const q = doc(database, 'buildingSurface', project)
           const docSnap = await getDoc(q).then(async (doc) => {
 
-            if (!doc.exists()) {
-              try {
-                const { data: res } = await axios.post("http://localhost:5000/sheettest", doc.data())
-                window.open(res.url, '_blank')
-                window.open(res.url2, '_blank')
-                window.open(res.url3, '_blank')
-                console.log('RESPONSE: ' + res.url)
-                await updateDoc(q, {
-                  buildingSurfaceURL: res.url,
-                  technicalDescriptionURL: res.url2,
-                  factSheetURL: res.url3,
-                  factSheetID: res.factSheetID
-                });
-              } catch (error) {
-                console.log(error);
-              }
-            }
-          })
-        })
-      } catch (e) {
-        console.error('Error adding document: ', e);
-      }
-    } else {
-      try {
-        const q = doc(database, 'buildingSurface', project)
-        const docSnap = await getDoc(q).then(async (doc) => {
-
-          if (doc.exists()) {
             try {
               const { data: res } = await axios.post("http://localhost:5000/sheettest", doc.data())
               window.open(res.url, '_blank')
@@ -228,40 +209,88 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
             } catch (error) {
               console.log(error);
             }
-          }
-        })
-      } catch (error) {
-        console.log(error);
-      }
 
+          })
+        })
+      } catch (e) {
+        console.error('Error adding document: ', e);
+      }
+    } else {
     }
   }
 
   const handleUpdate = async () => {
+
     const q = doc(database, 'buildingSurface', project)
     const docSnap = await getDoc(q).then(async (doc) => {
 
       if (doc.exists()) {
+        handleShow()
         try {
           const { data: res } = await axios.post("http://localhost:5000/sheetupdate", doc.data())
           window.open(res.url, '_blank')
+          window.open(res.url2, '_blank')
+          window.open(res.url3, '_blank')
+
+          await updateDoc(q, {
+            buildingSurfaceURL: res.url,
+            technicalDescriptionURL: res.url2,
+            factSheetURL: res.url3,
+          });
           console.log('RESPONSE: ' + res.url)
         } catch (error) {
           console.log(error);
         }
+        handleClose()
+      } else {
+        toast.info('No existing project documents')
+        console.log('No existing project documents')
       }
     })
   }
 
   //Loads existing building surface data from a project
   const getProject = async (project) => {
+    console.log('Changing Project')
 
     setProject(project)
+
+    const j = query(collection(database, "projects"), where("name", "==", project));
+
+    const querySnapshot = await getDocs(j);
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      setAddress(doc.data().address)
+    });
 
     const q = doc(database, 'buildingSurface', project)
     const docSnap = await getDoc(q).then((doc) => {
       if (doc.exists()) {
+        setIsCreated(true)
+
         setFloors(doc.data().floors)
+      } else {
+        setIsCreated(false)
+
+        setFloors([{
+          id: uuidv4(),
+          floorName: '',
+          saleableArea: [
+
+          ],
+          serviceArea: [
+
+          ],
+          parkingArea: [
+
+          ],
+          amenitiesArea: [
+
+          ],
+          residentialArea: [
+
+          ]
+        }])
       }
     })
 
@@ -274,7 +303,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
     const getProjects = async () => {
       const q = query(collection(database, 'projects'))
-      await getDocs(q).then((project) => {
+      await getDocs(q).then(async (project) => {
         let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
         setProjects(projectData)
       }).catch((err) => {
@@ -283,6 +312,9 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
     }
 
     getProjects()
+    console.log(isCreated)
+
+
   }, [])
 
   return (
@@ -300,62 +332,89 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
           ))}
         </Form.Select>
       </Col>
+      <p></p>
       <div className='content' style={{ padding: '5px' }}>
-        <Form>
-          {floors.map((floor, index) => (
-            <Fragment key={index}>
-              <Row>
-                <Col>
-                  <Form.Control
-                    size='lg'
-                    type="text"
-                    placeholder="Floor name"
-                    name="floorName"
-                    value={floor.floorName}
-                    onChange={event => handleFloorNameChange(index, event)}
-                  />
-                </Col>
+        {project && floors && (
+          <Form>
 
-                <Col>
-                </Col>
-              </Row>
-              <Floor
-                floorIndex={index}
-                saleableArea={floor.saleableArea}
-                onSaleableAreaChange={handleSaleableAreaChange}
-                onAddSaleableArea={handleAddSaleableArea}
-                onRemoveSaleableArea={handleRemoveSaleableArea}
+            {floors.map((floor, index) => (
+              <Fragment key={index}>
+                <Row>
+                  <Col>
+                    <Form.Control
+                      size='lg'
+                      type="text"
+                      placeholder="Floor name"
+                      name="floorName"
+                      value={floor.floorName}
+                      onChange={event => handleFloorNameChange(index, event)}
+                    />
+                  </Col>
 
-                serviceArea={floor.serviceArea}
-                onServiceAreaChange={handleServiceAreaChange}
-                onAddServiceArea={handleAddServiceArea}
-                onRemoveServiceArea={handleRemoveServiceArea}
+                  <Col>
+                    <Button variant='danger' onClick={() => removeFloor(floor.id)}>Remove floor</Button>
 
-                parkingArea={floor.parkingArea}
-                onParkingAreaChange={handleParkingAreaChange}
-                onAddParkingArea={handleAddParkingArea}
-                onRemoveParkingArea={handleRemoveParkingArea}
+                  </Col>
+                </Row>
+                <Floor
+                  floorIndex={index}
+                  saleableArea={floor.saleableArea}
+                  onSaleableAreaChange={handleSaleableAreaChange}
+                  onAddSaleableArea={handleAddSaleableArea}
+                  onRemoveSaleableArea={handleRemoveSaleableArea}
 
-                amenitiesArea={floor.amenitiesArea}
-                onAmenitiesAreaChange={handleAmenitiesAreaChange}
-                onAddAmenitiesArea={handleAddAmenitiesArea}
-                onRemoveAmenitiesArea={handleRemoveAmenitiesArea}
+                  serviceArea={floor.serviceArea}
+                  onServiceAreaChange={handleServiceAreaChange}
+                  onAddServiceArea={handleAddServiceArea}
+                  onRemoveServiceArea={handleRemoveServiceArea}
 
-                residentialArea={floor.residentialArea}
-                onResidentialAreaChange={handleResidentialAreaChange}
-                onAddResidentialArea={handleAddResidentialArea}
-                onRemoveResidentialArea={handleRemoveResidentialArea}
-              />
-              <Button variant='secondary' onClick={() => removeFloor(floor.id)}>Remove floor</Button>
-            </Fragment>
-          ))}
-        </Form>
+                  parkingArea={floor.parkingArea}
+                  onParkingAreaChange={handleParkingAreaChange}
+                  onAddParkingArea={handleAddParkingArea}
+                  onRemoveParkingArea={handleRemoveParkingArea}
+
+                  amenitiesArea={floor.amenitiesArea}
+                  onAmenitiesAreaChange={handleAmenitiesAreaChange}
+                  onAddAmenitiesArea={handleAddAmenitiesArea}
+                  onRemoveAmenitiesArea={handleRemoveAmenitiesArea}
+
+                  residentialArea={floor.residentialArea}
+                  onResidentialAreaChange={handleResidentialAreaChange}
+                  onAddResidentialArea={handleAddResidentialArea}
+                  onRemoveResidentialArea={handleRemoveResidentialArea}
+                />
+              </Fragment>
+            ))}
+          </Form>
+        )}
+
         <Button variant='primary' onClick={addFloor}>Add Floor</Button> &nbsp;
-        <Button variant="success" onClick={handleSubmit}>Save and Submit</Button>
-        <Button variant="secondary" onClick={handleUpdate}>Update Fact Sheet</Button>
+        {isCreated != undefined && (
+          <>
+            {!isCreated ? (
+              <Button variant="success" onClick={handleSubmit}>Create Documents</Button>
+
+            ) : (
+              <Button variant="success" onClick={handleUpdate}>Update Documents</Button>
+
+            )}
+          </>
+
+        )}
+
 
       </div>
+
+      <Modal show={show} onHide={handleClose}>
+        <Modal.Header>
+          <Modal.Title>Modal heading</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Creating Documents. Please wait...</Modal.Body>
+
+      </Modal>
     </div>
+
+
   );
 }
 
