@@ -42,69 +42,79 @@ const TaskRequirement = props => {
   };
 
   const handleSubmit = async () => {
-    toast.info("Submitting Task Request. Please Wait")
-    let requirements = []
 
-    textBoxes.forEach(async (req) => {
+    const hasEmptyString = textBoxes.some((element) => element === '');
 
-      let object = {
-        id: Math.random().toString(36).slice(2, 7),
-        value: req
-      }
-      requirements.push(object)
-    })
+    if (hasEmptyString) {
+      toast.info("Please do not leave blank tasks", {
+        position: 'bottom-left'
+      })
+    } else {
 
-    console.log('Requirements" ' + JSON.stringify(requirements))
+      let requirements = []
 
-    const employeeId = dispatch(autoAssign({}))
-    employeeId.then(async (something) => {
-      const employeeRef = doc(database, "users", something)
-      const employee = await getDoc(employeeRef)
+      textBoxes.forEach(async (req) => {
 
-      let startDate = new Date()
-      let endDate = new Date(taskDeadline)
-      endDate.setHours(0,0,0,0)
-      const estHours = dispatch(getEstimatedHours({
-        startDate: startDate,
-        endDate: endDate
-      }))
-      estHours.then(async (estDeadline) => {
-
-        const setTasksRef = collection(database, 'tasks')
-        await addDoc(setTasksRef, {
-          task: taskName,
-          isChecked: false,
-          timestamp: serverTimestamp(),
-          deadline: endDate,
-          employee: employee.data().name,
-          employeeId: employee.data().email,
-          requirements: requirements,
-          status: 'for submission',
-          approval: false,
-          project: project,
-          requestor: user.data.uid,
-          requestorname: user.data.displayName,
-          isRequest: true,
-          hours: estDeadline
-        }).then(() => {
-          dispatch(createNotifs({
-            title: 'NEW TASK REQUEST: ' + taskName,
-            message: 'A request has been sent to you by ' + user.data.displayName + '. Please check the Tasks Manager Page for more information ',
-            receiverID: employee.data().email,
-            link: 'tasks'
-          }))
-          actionProvider.finishTaskCreator()
-        })
-
+        let object = {
+          id: Math.random().toString(36).slice(2, 7),
+          value: req
+        }
+        requirements.push(object)
       })
 
+      console.log('Requirements" ' + JSON.stringify(requirements))
 
-    })
+      const employeeId = dispatch(autoAssign({}))
+      employeeId.then(async (something) => {
+        const employeeRef = doc(database, "users", something)
+        const employee = await getDoc(employeeRef)
+
+        let startDate = new Date()
+        let endDate = new Date(taskDeadline)
+        endDate.setHours(0, 0, 0, 0)
+        const estHours = dispatch(getEstimatedHours({
+          startDate: startDate,
+          endDate: endDate
+        }))
+        estHours.then(async (estDeadline) => {
+
+          const setTasksRef = collection(database, 'tasks')
+          await addDoc(setTasksRef, {
+            task: taskName,
+            isChecked: false,
+            timestamp: serverTimestamp(),
+            deadline: endDate,
+            employee: employee.data().name,
+            employeeId: employee.data().email,
+            requirements: requirements,
+            status: 'for submission',
+            approval: false,
+            project: project,
+            requestor: user.data.uid,
+            requestorname: user.data.displayName,
+            isRequest: true,
+            hours: estDeadline
+          }).then(() => {
+            dispatch(createNotifs({
+              title: 'NEW TASK REQUEST: ' + taskName,
+              message: 'A request has been sent to you by ' + user.data.displayName + '. Please check the Tasks Manager Page for more information ',
+              receiverID: employee.data().email,
+              link: 'tasks'
+            }))
+            actionProvider.finishTaskCreator()
+          })
+
+        })
+
+
+      })
+    }
+
   };
 
   const removeValueFromState = (index) => {
     const updatedTextBoxes = [...textBoxes];
-    updatedTextBoxes.splice(index, 1);
+    updatedTextBoxes.pop();
     setTextBoxes(updatedTextBoxes);
   };
 

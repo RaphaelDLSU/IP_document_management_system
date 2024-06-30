@@ -18,7 +18,7 @@ export const createRFI =
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
       // Create a new PDFDocument
-      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FgHUFtURzuuU0ZW5us1KuogcKpKi2%2FRFI_Template_v2.pdf?alt=media&token=200bdf06-2083-4947-a0b2-4685f74bf5d8";
+      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FJEBJD5aqZ5RS1W86Y6b4oLAF0VD2%2FRFI_Template_v2.pdf?alt=media&token=96343d65-1905-4d2c-adac-2493760ddac0";
       const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
 
       //Load PDF
@@ -59,7 +59,7 @@ export const createRFI =
       const formattedDate = `${month}/${day}/${year}`
 
 
-      submitToField.setText('Manager');
+      submitToField.setText('Mary Elizabeth');
       if (step == 1) {
         neededByField.setText(moment(new Date(deadline)).format('l'));
       } else if (step == 2) {
@@ -170,7 +170,7 @@ export const createRFI =
               }).then(() => {
                 dispatch(createNotifs({
                   title: 'REQUEST SUBMITTED: ' + name,
-                  message: 'An RFI was submitted by ' + id + '. Please check the Requests Manager page to assign an employee to the RFI',
+                  message: 'An RFI was submitted by ' + name + '. Please check the Requests Manager page to assign an employee to the RFI',
                   receiverID: 'manager@gmail.com',
                   link: 'requestsmanager'
                 }))

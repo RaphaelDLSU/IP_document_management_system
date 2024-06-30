@@ -18,7 +18,7 @@ export const createRFA =
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
       // Create a new PDFDocument
-        const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FgHUFtURzuuU0ZW5us1KuogcKpKi2%2FRFA_Template_v5.pdf?alt=media&token=f80e7f10-8e26-48f0-98fd-40e66c961a79";
+        const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FJEBJD5aqZ5RS1W86Y6b4oLAF0VD2%2FRFA_Template_v5.pdf?alt=media&token=fecfc663-fdb5-4a07-baa2-b6edbc104228";
       const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
 
       //Load PDF
@@ -53,7 +53,7 @@ export const createRFA =
         dateField.setText(moment(date.toDate()).format('l'));
       }
 
-      submitToField.setText('Manager');
+      submitToField.setText('Mary Elizabeth');
 
 
       //DEADLINE DATE
@@ -183,7 +183,7 @@ export const createRFA =
               }).then(() => {
                 dispatch(createNotifs({
                   title: 'REQUEST SUBMITTED: ' + name,
-                  message: 'An RFA was submitted by ' + id + '. Please check the Requests Manager page to assign an employee to the RFA',
+                  message: 'An RFA was submitted by ' + name + '. Please check the Requests Manager page to assign an employee to the RFA',
                   receiverID: 'manager@gmail.com',
                   link: 'requestsmanager'
                 }))

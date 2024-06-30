@@ -103,12 +103,6 @@ const NavbarComponent = () => {
             path: "/notifications",
             icon: <IoIosNotifications />,
             cName: "nav-text"
-          },
-          {
-            title: "Document Creation",
-            path: "/documentcreation",
-            icon: <IoDocuments />,
-            cName: "nav-text"
           }
         ]
         setSidebarData1(sidebarData)

@@ -81,7 +81,7 @@ const Home = () => {
             }).then(() => {
                 dispatch(createNotifs({
                     title: 'REQUEST ASSIGNED: ' + request.desc,
-                    message: 'A request was submitted by ' + request.identifier + '. Please check the Requests Manager page to submit the request',
+                    message: 'A request was submitted by ' + request.name + '. Please check the Requests Manager page to submit the request',
                     receiverID: employeeEmail,
                     link: 'requestsmanager'
                 }))
@@ -113,7 +113,7 @@ const Home = () => {
             }).then(() => {
                 dispatch(createNotifs({
                     title: 'REQUEST ASSIGNED: ' + request.desc,
-                    message: 'A request was submitted by ' + request.identifier + '. Please check the Requests Manager page to submit the request',
+                    message: 'A request was submitted by ' + request.name + '. Please check the Requests Manager page to submit the request',
                     receiverID: employeeAutoEmail,
                     link: 'requestsmanager'
                 }))
@@ -635,10 +635,10 @@ const Home = () => {
                                                     <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
                                                 ) : (
                                                     <>
-                                                        {request.completion < request.deadline && (
+                                                        {request.completion > request.deadline && (
                                                             <td style={{ backgroundColor: 'yellow', color: 'black' }}>Completed (Late)</td>
                                                         )}
-                                                          {request.completion > request.deadline && (
+                                                          {request.completion < request.deadline && (
                                                             <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
                                                         )}
                                                     </>

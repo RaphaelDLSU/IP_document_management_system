@@ -11,11 +11,14 @@ import React, { useEffect, useState } from "react";
 import { Col, Row } from "react-bootstrap";
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import { useHistory, useParams } from "react-router";
+import Dropdown from 'react-bootstrap/Dropdown';
+
 import CreateFile from "../../CreateFile/index.js";
 import UploadFile from "../../UploadFile/index.js";
 import CreateFolder from "../../CreateFolder/index.js";
 import Form from 'react-bootstrap/Form';
 import Modal from 'react-bootstrap/Modal';
+import { ReactComponent as ButtonIcon } from "../../../assets/icons/robot.svg";
 
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
@@ -34,13 +37,17 @@ import { toast } from "react-toastify";
 import Button from 'react-bootstrap/Button';
 import { Multiselect } from "multiselect-react-dropdown";
 import { where, collection, getDocs, addDoc, runTransaction, orderBy, query, serverTimestamp, updateDoc, arrayUnion, getDoc, setDoc } from 'firebase/firestore'
-
+import ProgressBar from 'react-bootstrap/ProgressBar';
+import moment from 'moment'
+import Table from 'react-bootstrap/Table';
 import { FaTrashAlt } from "react-icons/fa";
 const FolderComponent = () => {
+  const [showChatbot, toggleChatbot] = useState(false);
+
   const [myState, setMyState] = useState([]);
   const { folderId } = useParams();
   const db = getFirestore()
-  const { folders, isLoading, userId, files,user } = useSelector(
+  const { folders, isLoading, userId, files, user } = useSelector(
     (state) => ({
       folders: state.filefolders.userFolders,
       files: state.filefolders.userFiles,
@@ -51,18 +58,33 @@ const FolderComponent = () => {
     }),
     shallowEqual
   );
+  const [progress, setProgress] = useState(0)
+  const [selectedFile, setSelectedFile] = useState();
+
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
+  const [show3, setShow3] = useState(false);
+  const [show4, setShow4] = useState(false);
   const storage = getStorage();
   const [role, setRole] = useState()
   const [projects, setProjects] = useState([])
+  const [deleteFile, setDeleteFile] = useState()
 
   const dispatch = useDispatch();
   const history = useHistory();
 
   const [searchTerm, setSearchTerm] = useState('');
 
+  const handleDeleteConfirm = async (docId) => {
+    setDeleteFile(docId)
+    setShow4(true)
 
+  };
+  const isCadFile = (fileName) => {
+    const cadExtensions = ['.dwg', '.dxf', '.step']; // Add other CAD extensions as needed
+    const fileExtension = fileName.toLowerCase().slice(fileName.lastIndexOf('.'));
+    return cadExtensions.includes(fileExtension);
+  }
   useEffect(() => {
     if (isLoading) {
       dispatch(getAdminFolders());
@@ -89,7 +111,7 @@ const FolderComponent = () => {
 
 
         setProjects(projectData)
-        setFilterArray(prevState => [...prevState, ...projectData.map(obj => ({ ...obj, group: 'Project' }))])
+        // setFilterArray(prevState => [...prevState, ...projectData.map(obj => ({ ...obj, group: 'Project' }))])
 
         console.log(JSON.stringify(filterArray))
 
@@ -99,6 +121,7 @@ const FolderComponent = () => {
     }
     getProjects()
   }, [])
+
 
   const userFolders =
     folders && folders.filter((file) => file.data.parent === folderId);
@@ -119,10 +142,12 @@ const FolderComponent = () => {
     );
 
 
+
   const [list1, setList1] = useState(userFolders);
   const [list2, setList2] = useState(createdFiles);
   const [list3, setList3] = useState(uploadedFiles);
-  
+  console.log('UPLOADED FILES: ' + uploadedFiles + list3)
+
   const [filterArray, setFilterArray] = useState([
     { name: 'Design', group: 'Type' },
     { name: 'Document', group: 'Type' },
@@ -187,17 +212,54 @@ const FolderComponent = () => {
     setFilterArraySearch(filterArraySearch.filter(elem => elem !== selectedItem.name))
     console.log('SetFilterArray onRemove ' + JSON.stringify(filterArraySearch))
   }
+  const handleVersionHistory = (data, id) => {
+    setShow(true)
+    setFileSelected(data)
+    setFileSelectedId(id)
+
+    console.log('DATA : ' + data.name)
+
+  }
+
+  const handleUpdate = (data, id) => {
+    setShow2(true)
+    setFileSelected(data)
+    setFileSelectedId(id)
+  }
+
   const handleUploadReq = async (e) => {
+    e.preventDefault();
+
+    const file = e.target.files
+    console.log('FILE= ' + file[0])
+
+    setSelectedFile(e.target.files);
+
+  }
+
+  const handleUpdateSubmit = async (e) => {
+    setShow3(true)
+    const file = selectedFile[0]
 
     const filesRef = doc(db, "files", fileSelectedId);
-    const file = e.target.files;
+
+    console.log('FILE ' + user.data.displayName)
+
+    var metadocu
+    if (isCadFile(file.name)) {
+      metadocu = 'Design'
+    } else {
+      metadocu = 'Document'
+    }
 
     const storageRef = ref(storage, 'storedFiles/' + fileSelectedId + '/' + file.name);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const uploadTask = uploadBytesResumable(storageRef, file, '');
 
     uploadTask.on('state_changed',
       (snapshot) => {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgress(progress)
+
         console.log('Upload is ' + progress + '% done');
         switch (snapshot.state) {
           case 'paused':
@@ -216,58 +278,64 @@ const FolderComponent = () => {
           console.log('File available at', downloadURL);
 
           await updateDoc(filesRef, {
-            url:downloadURL,
-            history: arrayUnion({ name: file.name, timestamp: serverTimestamp(), user: user.data.displayName })
-          });
+            url: downloadURL,
+            metadata: [metadocu],
+            name: file.name,
+            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName })
+          }).then(() => {
+            setShow3(false)
+            setShow2(false)
+            toast.success('File Updated!')
+          }
 
+          );
         });
       }
     );
 
   }
-  const handleVersionHistory = (data, id) => {
-    setShow(true)
-    setFileSelected(data)
-    setFileSelectedId(id)
 
-    console.log('DATA : ' + data.name)
+  useEffect(async () => {
 
-  }
+    if (uploadedFiles != null && list3 == null) {
+      setList1(userFolders);
+      setList2(createdFiles);
+      setList3(uploadedFiles)
+      console.log('IN USE EFFECT')
+    }
 
-  const handleUpdate = (data, id) => {
-    setShow2(true)
-    setFileSelected(data)
-    setFileSelectedId(id)
-  }
-  if (isLoading) {
-    return (
-      <Row>
-        <Col md="12">
-          <h1 className="text-center my-5">Fetching data...</h1>
-        </Col>
-      </Row>
-    );
-  }
+  }, [uploadedFiles])
 
-  if (
-    userFolders &&
-    userFolders.length < 1 &&
-    createdFiles &&
-    createdFiles.length < 1 &&
-    uploadedFiles &&
-    uploadedFiles.length < 1
-  ) {
-    return (
-      <>
-        <SubNav currentFolder={currentFolder} />
-        <Row>
-          <Col md="12">
-            <p className="text-center small text-center my-5">Empty Folder</p>
-          </Col>
-        </Row>
-      </>
-    );
-  }
+  useEffect(async () => {
+
+    setList1(userFolders);
+    setList2(createdFiles);
+    setList3(uploadedFiles)
+    console.log('IN USE EFFECT FOLDER ID')
+
+
+  }, [folderId])
+
+
+  // if (
+  //   userFolders &&
+  //   userFolders.length < 1 &&
+  //   createdFiles &&
+  //   createdFiles.length < 1 &&
+  //   uploadedFiles &&
+  //   uploadedFiles.length < 1
+  // ) {
+  //   return (
+  //     <>
+  //       <SubNav currentFolder={currentFolder} />
+  //       <Row>
+  //         <Col md="12">
+  //           <p className="text-center small text-center my-5">Empty Folder</p>
+  //         </Col>
+  //       </Row>
+  //     </>
+  //   );
+  // }
   return (
     <>
       <SubNav currentFolder={currentFolder} />
@@ -277,7 +345,7 @@ const FolderComponent = () => {
       >
         {currentFolder && currentFolder !== "root folder" ? (
           <>
-           <div className="ml-auto d-flex justify-content-end" >
+            <div className="ml-auto d-flex justify-content-end" >
               <input
                 type="text"
                 placeholder="Search..."
@@ -320,9 +388,9 @@ const FolderComponent = () => {
       </Col>
       <p></p><p></p>
       <ListGroup>
-        {userFolders && userFolders.length > 0 && (
+        {userFolders && userFolders.length > 0 && list1 && (
           <>
-            {userFolders.map(({ data, docId }) => (
+            {list1.map(({ data, docId }) => (
               < ListGroup.Item
                 action onDoubleClick={() => history.push(`/dashboard/folder/${docId}`)}
                 key={docId}
@@ -333,32 +401,75 @@ const FolderComponent = () => {
             ))}
           </>
         )}
-        {createdFiles && createdFiles.length > 0 && (
+        {createdFiles && createdFiles.length > 0 && list2 && (
           <>
-            {createdFiles.map(({ data, docId }) => (
+            {list2.map(({ data, docId }) => (
+              <div class="parent">
+                <div class="children-1">
+                  <ListGroup.Item
+                    action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
+                    key={docId}
+                  >
+                    <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name}
 
-              <ListGroup.Item
-                className="d-flex align-items-center"
-                action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
-                key={docId}
-              >
-                <FaFileAlt />{data.name} <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button>
+                  </ListGroup.Item></div>
+                {role && (
+                  <>
+                    {role != 'Requestor' && (
+                      <div class="children-2">
+                        {/* <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button> */}
+                        <Dropdown>
+                          <Dropdown.Toggle variant="success" id="dropdown-basic">
+                          </Dropdown.Toggle>
 
-              </ListGroup.Item>
+                          <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => handleDeleteConfirm(docId)}>Delete</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </div>
+                    )}
+                  </>
+                )}
+
+              </div>
             ))}
           </>
         )}
-        {uploadedFiles && uploadedFiles.length > 0 && (
+        {uploadedFiles && uploadedFiles.length > 0 && list3 && (
           <>
-            {uploadedFiles.map(({ data, docId }) => (
-              <ListGroup.Item
-                className="d-flex align-items-center"
-                action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
-                key={docId}
-              >
-                <FaFileAlt />{data.name} <Button size="sm" style={{ position: 'absolute', right: '0' }} onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button>
+            {list3.map(({ data, docId }) => (
+              <div class="parent">
+                <div class="children-1">
+                  <ListGroup.Item
+                    action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
+                    key={docId}
+                  >
+                    <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name}
 
-              </ListGroup.Item>
+                  </ListGroup.Item></div>
+                {role && (
+                  <>
+                    {role != 'Requestor' && (
+                      <div class="children-2">
+                        {/* <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button> */}
+                        <Dropdown>
+                          <Dropdown.Toggle variant="success" id="dropdown-basic">
+                          </Dropdown.Toggle>
+
+                          <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => handleDeleteConfirm(docId)}>Delete</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </div>
+                    )}
+                  </>
+                )}
+
+              </div>
             ))}
           </>
         )}
@@ -373,7 +484,27 @@ const FolderComponent = () => {
             <Modal.Title>Version History</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {fileSelected.name}
+
+
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>Date Updated</th>
+                  <th>User</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fileSelected.history.map(item => (
+                  <tr key={item}>
+                    <td>{item.name}</td>
+                    <td>{moment(item.timestamp.toDate()).format('l')}</td>
+                    <td>{item.user}</td>
+                  </tr>
+                ))}
+
+              </tbody>
+            </Table>
           </Modal.Body>
 
         </Modal>
@@ -399,8 +530,55 @@ const FolderComponent = () => {
 
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShow2(false)}>Close</Button>
+            <Button variant="primary" onClick={() => handleUpdateSubmit(false)}>Close</Button>
+
           </Modal.Footer>
         </Modal>
+      )}
+
+      <Modal show={show3} onHide={() => setShow3(false)}>
+        <Modal.Header>
+          <Modal.Title>Progress</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ProgressBar now={progress} />
+
+          {progress == 100 && (
+            <p>Done! Please wait a little bit more...</p>
+          )}
+        </Modal.Body>
+
+      </Modal>
+
+      <Modal show={show4} onHide={() => setShow4(false)}>
+        <Modal.Header>
+          <Modal.Title>Confirmation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this file?
+          {progress == 100 && (
+            <p>Done! Please wait a little bit more...</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow4(false)}>Cancel</Button>
+          <Button variant="danger" onClick={() => handleDeleteFile(false)}>Delete</Button>
+
+        </Modal.Footer>
+      </Modal>
+
+
+      {role && (
+        <>
+          {role == 'Requestor' && (
+            <button
+              className="app-chatbot-button"
+              onClick={() => toggleChatbot((prev) => !prev)}
+            >
+              <ButtonIcon className="app-chatbot-button-icon" />
+            </button>
+          )}
+        </>
       )}
     </>
   );

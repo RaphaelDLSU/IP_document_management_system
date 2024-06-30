@@ -23,6 +23,10 @@ import { FaTrash } from "react-icons/fa";
 import Button from 'react-bootstrap/Button';
 import { FaTrashAlt } from "react-icons/fa";
 import Modal from 'react-bootstrap/Modal';
+import ProgressBar from 'react-bootstrap/ProgressBar';
+import moment from 'moment'
+import Table from 'react-bootstrap/Table';
+
 import {
   getAdminFiles,
   getAdminFolders,
@@ -57,7 +61,16 @@ const Home = () => {
   const [role, setRole] = useState()
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
+  const [show3, setShow3] = useState(false);
+  const [show4, setShow4] = useState(false);
 
+  const [progress, setProgress] = useState(0)
+  const [deleteFile, setDeleteFile] = useState()
+  const isCadFile = (fileName) => {
+    const cadExtensions = ['.dwg', '.dxf', '.step']; // Add other CAD extensions as needed
+    const fileExtension = fileName.toLowerCase().slice(fileName.lastIndexOf('.'));
+    return cadExtensions.includes(fileExtension);
+  }
   const [plainArray, setPlainArray] = useState([
     "Option 1",
     "Option 2",
@@ -77,31 +90,11 @@ const Home = () => {
   const [filterArraySearch, setFilterArraySearch] = useState([])
   const [projects, setProjects] = useState([])
 
-  const [objectArray, setObjectArray] = useState([
-    { key: "Option 1", cat: "Group 1" },
-    { key: "Option 2", cat: "Group 1" },
-    { key: "Option 3", cat: "Group 1" },
-    { key: "Option 4", cat: "Group 2" },
-    { key: "Option 5", cat: "Group 2" },
-    { key: "Option 6", cat: "Group 2" },
-    { key: "Option 7", cat: "Group 2" }
-  ]);
+
 
   const [newArray, setNewArray] = useState([])
+  const [selectedFile, setSelectedFile] = useState();
 
-
-
-  const [selectedValues, setSelectedValues] = useState([
-    { key: "Option 1", cat: "Group 1" },
-    { key: "Option 2", cat: "Group 1" }
-  ]);
-  const handleMouseEnter = (index) => {
-    setHoveredItem(index);
-  };
-
-  const handleMouseLeave = () => {
-    setHoveredItem(null);
-  };
 
 
   const handleDeleteFolder = async (docId) => {
@@ -110,10 +103,16 @@ const Home = () => {
 
 
   };
+  const handleDeleteConfirm = async (docId) => {
+    setDeleteFile(docId)
+    setShow4(true)
+
+  };
 
   const handleDeleteFile = async (docId) => {
-    await deleteDoc(doc(db, "files", docId)).then(result => setMyState(result));
+    await deleteDoc(doc(db, "files", deleteFile)).then(result => setMyState(result)).then(setShow4(false));
     toast.success("File deleted Successfully!");
+
 
 
   };
@@ -179,7 +178,7 @@ const Home = () => {
 
 
         setProjects(projectData)
-        setFilterArray(prevState => [...prevState, ...projectData.map(obj => ({ ...obj, group: 'Project' }))])
+        // setFilterArray(prevState => [...prevState, ...projectData.map(obj => ({ ...obj, group: 'Project' }))])
 
         console.log(JSON.stringify(filterArray))
 
@@ -229,34 +228,30 @@ const Home = () => {
 
 
   const handleSearch = (term) => {
-
-
+    console.log('Filter: ' + filterArraySearch)
 
     const filteredList1 = userFolders.filter(item =>
       item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
     );
     var filteredList2
-    if (searchTerm == "" && !filterArraySearch.length) {
+    if (searchTerm == "" && !filterArraySearch.length <= 0) {
 
       filteredList2 = createdUserFiles.filter(item =>
         item.data.metadata.filter(value => filterArraySearch.includes(value))
       );
-    } else if (searchTerm != "" && !filterArraySearch.length) {
+    } else if (searchTerm != "" && filterArraySearch.length <= 0) {
 
       filteredList2 = createdUserFiles.filter(item =>
         item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
       );
     } else {
-      console.log(searchTerm)
+      console.log(filterArraySearch)
 
       filteredList2 = createdUserFiles.filter(item =>
         item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase() &&
           item.data.metadata.filter(value => !filterArraySearch.includes(value)))
       );
     }
-
-
-
 
     const filteredList3 = uploadedUserFiles.filter(item =>
       item.data.name.toString().toLowerCase().includes(searchTerm.toString().toLowerCase())
@@ -298,17 +293,38 @@ const Home = () => {
   }
 
   const handleUploadReq = async (e) => {
+    e.preventDefault();
 
+    const file = e.target.files
+    console.log('FILE= ' + file[0])
+
+    setSelectedFile(e.target.files);
+
+  }
+
+  const handleUpdateSubmit = async (e) => {
+    setShow3(true)
+    const file = selectedFile[0]
 
     const filesRef = doc(db, "files", fileSelectedId);
-    const file = e.target.files;
+
+    console.log('FILE ' + user.data.displayName)
+
+    var metadocu
+    if (isCadFile(file.name)) {
+      metadocu = 'Design'
+    } else {
+      metadocu = 'Document'
+    }
 
     const storageRef = ref(storage, 'storedFiles/' + fileSelectedId + '/' + file.name);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const uploadTask = uploadBytesResumable(storageRef, file, '');
 
     uploadTask.on('state_changed',
       (snapshot) => {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgress(progress)
+
         console.log('Upload is ' + progress + '% done');
         switch (snapshot.state) {
           case 'paused':
@@ -327,10 +343,17 @@ const Home = () => {
           console.log('File available at', downloadURL);
 
           await updateDoc(filesRef, {
-            url:downloadURL,
-            history: arrayUnion({ name: file.name, timestamp: serverTimestamp(), user: user.data.displayName })
-          });
+            url: downloadURL,
+            metadata: [metadocu],
+            name: file.name,
+            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName })
+          }).then(() => {
+            setShow3(false)
+            setShow2(false)
+            toast.success('File Updated!')
+          }
 
+          );
         });
       }
     );
@@ -451,35 +474,64 @@ const Home = () => {
                     <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name}
 
                   </ListGroup.Item></div>
-                <div class="children-2">
-                  {/* <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button> */}
-                  <Dropdown>
-                    <Dropdown.Toggle variant="success" id="dropdown-basic">
-                    </Dropdown.Toggle>
+                {role && (
+                  <>
+                    {role != 'Requestor' && (
+                      <div class="children-2">
+                        {/* <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button> */}
+                        <Dropdown>
+                          <Dropdown.Toggle variant="success" id="dropdown-basic">
+                          </Dropdown.Toggle>
 
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={() => handleDeleteFile(docId)}>Delete</Dropdown.Item>
-                      <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
-                      <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </div>
+                          <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => handleDeleteFile(docId)}>Delete</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </div>
+                    )}
+                  </>
+                )}
+
               </div>
             ))}
           </>
         )}
         {uploadedUserFiles && uploadedUserFiles.length > 0 && list3 && list3.length > 0 && (
           <>
+
             {list3.map(({ data, docId }) => (
-              <ListGroup.Item
-                className="d-flex align-items-center"
-                action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
-                key={docId}
-              >
-                <FaFileAlt />{data.name} <Button size="sm" onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button>
+              <div class="parent">
+                <div class="children-1">
+                  <ListGroup.Item
+                    action onDoubleClick={() => history.push(`/dashboard/file/${docId}`)}
+                    key={docId}
+                  >
+                    <FaFileAlt />&nbsp;&nbsp;&nbsp;{data.name}
 
+                  </ListGroup.Item></div>
+                {role && (
+                  <>
+                    {role != 'Requestor' && (
+                      <div class="children-2">
+                        {/* <Button onClick={() => handleDeleteFile(docId)}><FaTrashAlt /></Button> */}
+                        <Dropdown>
+                          <Dropdown.Toggle variant="success" id="dropdown-basic">
+                          </Dropdown.Toggle>
 
-              </ListGroup.Item>
+                          <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => handleDeleteConfirm(docId)}>Delete</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
+                          </Dropdown.Menu>
+                        </Dropdown>
+                      </div>
+                    )}
+                  </>
+                )}
+
+              </div>
             ))}
           </>
         )}
@@ -494,7 +546,27 @@ const Home = () => {
             <Modal.Title>Version History</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            {fileSelected.name}
+
+
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>File Name</th>
+                  <th>Date Updated</th>
+                  <th>User</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fileSelected.history.map(item => (
+                  <tr key={item}>
+                    <td>{item.name}</td>
+                    <td>{moment(item.timestamp.toDate()).format('l')}</td>
+                    <td>{item.user}</td>
+                  </tr>
+                ))}
+
+              </tbody>
+            </Table>
           </Modal.Body>
 
         </Modal>
@@ -520,9 +592,42 @@ const Home = () => {
 
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShow2(false)}>Close</Button>
+            <Button variant="primary" onClick={() => handleUpdateSubmit(false)}>Close</Button>
+
           </Modal.Footer>
         </Modal>
       )}
+
+      <Modal show={show3} onHide={() => setShow3(false)}>
+        <Modal.Header>
+          <Modal.Title>Progress</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <ProgressBar now={progress} />
+
+          {progress == 100 && (
+            <p>Done! Please wait a little bit more...</p>
+          )}
+        </Modal.Body>
+
+      </Modal>
+
+      <Modal show={show4} onHide={() => setShow4(false)}>
+        <Modal.Header>
+          <Modal.Title>Confirmation</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete this file?
+          {progress == 100 && (
+            <p>Done! Please wait a little bit more...</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow4(false)}>Cancel</Button>
+          <Button variant="danger" onClick={() => handleDeleteFile(false)}>Delete</Button>
+
+        </Modal.Footer>
+      </Modal>
 
     </>
 

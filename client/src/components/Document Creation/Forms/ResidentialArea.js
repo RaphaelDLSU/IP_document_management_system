@@ -34,7 +34,7 @@ const ResidentialArea = ({ floorIndex, residentialArea, onResidentialAreaChange,
                                 <Form.Select
                                     aria-label="Default select example"
                                     name="saleableAreaType"
-                                    value={input.saleableAreaType}
+                                    value={input.residentialAreaNumberUnit}
                                     onChange={(e) => onResidentialAreaChange(floorIndex, index, 'residentialAreaNumberUnit', e.target.value)}                                    required
                                 >
                                     <option value="">Select saleable area type</option>

@@ -185,6 +185,8 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
     const docSnap = await getDoc(q)
 
     if (!docSnap.exists()) {
+      handleShow()
+
       try {
         const docRef = await setDoc(doc(database, 'buildingSurface', project), {
           floors: floors,
@@ -209,6 +211,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
             } catch (error) {
               console.log(error);
             }
+            handleClose()
 
           })
         })
@@ -406,9 +409,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
       </div>
 
       <Modal show={show} onHide={handleClose}>
-        <Modal.Header>
-          <Modal.Title>Modal heading</Modal.Title>
-        </Modal.Header>
+
         <Modal.Body>Creating Documents. Please wait...</Modal.Body>
 
       </Modal>

@@ -11,8 +11,11 @@ export const autoAssign =
                 let r = query(collection(database, "users"), where('tasks', '==', i), where('role', '==', 'Employee'))
                 const querySnapshots = await getDocs(r)
                 if (!querySnapshots.empty) {
-                    querySnapshots.forEach((user) => {
+                    querySnapshots.forEach(async (user) => {
                         q = doc(database,'users',user.id)
+                        await updateDoc(q, {
+                            tasks: user.data().tasks +1
+                          });
                     })
                     break
                 }

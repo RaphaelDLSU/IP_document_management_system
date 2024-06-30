@@ -5,32 +5,78 @@ import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransact
 export const getEstimatedHours =
     ({ startDate, endDate }, setError) =>
         async (dispatch) => {
-            // Handle invalid input
-            if (!(startDate instanceof Date) || !(endDate instanceof Date)) {
-                return new Error("Invalid input: Start and End date must be Date objects");
+            console.log(startDate + ' ' + endDate)
+
+            function getWorkingHours(startDate, endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+
+                // Define working hours
+                const workStartHour = 9;
+                const workEndHour = 17;
+
+                // Helper function to check if a date is a weekend
+                function isWeekend(date) {
+                    const day = date.getDay();
+                    return day === 0 || day === 6;
+                }
+
+                // Helper function to adjust time to working hours
+                function adjustToWorkingHours(date) {
+                    const hours = date.getHours();
+                    if (hours < workStartHour) {
+                        date.setHours(workStartHour, 0, 0, 0);
+                    } else if (hours >= workEndHour) {
+                        date.setHours(workEndHour, 0, 0, 0);
+                    }
+                    return date;
+                }
+
+                // Initialize total working hours
+                let totalHours = 0;
+
+                // Loop through each day between start and end date
+                let currentDate = new Date(start);
+
+                while (currentDate <= end) {
+                    if (!isWeekend(currentDate)) {
+                        // Adjust start and end times within working hours
+                        const workStart = new Date(currentDate);
+                        workStart.setHours(workStartHour, 0, 0, 0);
+                        const workEnd = new Date(currentDate);
+                        workEnd.setHours(workEndHour, 0, 0, 0);
+
+                        let startBoundary = new Date(currentDate);
+                        if (currentDate.getDate() === start.getDate() &&
+                            currentDate.getMonth() === start.getMonth() &&
+                            currentDate.getFullYear() === start.getFullYear()) {
+                            startBoundary = adjustToWorkingHours(start);
+                        } else {
+                            startBoundary = workStart;
+                        }
+
+                        let endBoundary = new Date(currentDate);
+                        if (currentDate.getDate() === end.getDate() &&
+                            currentDate.getMonth() === end.getMonth() &&
+                            currentDate.getFullYear() === end.getFullYear()) {
+                            endBoundary = adjustToWorkingHours(end);
+                        } else {
+                            endBoundary = workEnd;
+                        }
+
+                        // Calculate working hours for the current day
+                        if (startBoundary < endBoundary) {
+                            totalHours += (endBoundary - startBoundary) / (1000 * 60 * 60);
+                        }
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    currentDate.setHours(0, 0, 0, 0); // Reset to the beginning of the day
+                }
+
+                return totalHours;
             }
 
-            // Calculate working hours for a single day within working week
-            const calculateDailyWorkingHours = (date) => {
-                const startOfWork = Math.max(date, new Date(date.getFullYear(), date.getMonth(), date.getDate(), 8, 0));
-                const endOfWork = Math.min(endDate, new Date(date.getFullYear(), date.getMonth(), date.getDate(), 17, 0));
-                return Math.max(0, endOfWork - startOfWork);
-            };
-
-            // Check if dates are within working week (Mon-Fri)
-            if (![...Array(endDate.getDay() + 1).keys()].every(day => new Date(startDate.getTime() + day * 24 * 60 * 60 * 1000).getDay() <= 4)) {
-                return new Error("Start and End date must be within a Monday-Friday work week");
-            }
-
-            // Calculate working hours for start and end days (if applicable)
-            let totalWorkingHours = new Date(0);
-            if (startDate.getDay() !== endDate.getDay()) {
-                totalWorkingHours = new Date(calculateDailyWorkingHours(startDate));
-                totalWorkingHours.setHours(totalWorkingHours.getHours() + calculateDailyWorkingHours(endDate));
-            } else {
-                totalWorkingHours = new Date(calculateDailyWorkingHours(startDate));
-            }
 
             // Convert to hours
-            return totalWorkingHours.getHours()+1;
+            return getWorkingHours(startDate,endDate);
         };

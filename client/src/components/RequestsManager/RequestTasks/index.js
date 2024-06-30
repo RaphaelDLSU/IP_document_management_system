@@ -234,19 +234,20 @@ const RequestTasks = () => {
             const requestDocRef = doc(database, "requests", request.id)
             await updateDoc(requestDocRef, {
                 status: 'done',
-                url: request.submittedUrl
+                url: request.submittedUrl,
+                completion: new Date()
             }).then(() => {
                 dispatch(createNotifs({
                     title: 'REQUEST FINISHED: ' + request.desc,
                     message: 'Your request is now finished. Please check the Requests page to view your requested output.',
-                    receiverID: request.identifier,
+                    receiverID: request.nameEmail,
                     link: 'requests'
                 }))
                 toast.success('Request Approved')
             })
 
             //workload minus
-            const q = query(collection(database, "users"), where('email', '==', request.assignTo))
+            const q = query(collection(database, "users"), where('email', '==', request.submitterEmail))
             const querySnapshot = await getDocs(q);
 
             querySnapshot.forEach(async (doc1) => {

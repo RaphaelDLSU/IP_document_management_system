@@ -27,8 +27,13 @@ import { createNotifs } from '../../../redux/notifs/createNotif';
 import { autoAssign } from '../../../redux/workload/autoAssign';
 import moment from 'moment'
 import { getEstimatedHours } from '../../../redux/estimatedhours/getEstimatedHours';
+import Carousel from 'react-bootstrap/Carousel';
+import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import { useHistory } from 'react-router-dom/cjs/react-router-dom.min';
 
 const Home = () => {
+    const history = useHistory()
+
     const [role, setRole] = useState();
     const [isChecked, setIsChecked] = useState(false);
     const [isChecked2, setIsChecked2] = useState(false);
@@ -80,6 +85,9 @@ const Home = () => {
     const [firstRender3, setFirstRender3] = useState(true);
     const [firstRender2, setFirstRender2] = useState(true);
     const [firstRender4, setFirstRender4] = useState(true);
+    const [techDocument, setTechDocument] = useState()
+    const [techDocumentFolder, setTechDocumentFolder] = useState()
+
     const [reqArray, setReqArray] = useState([])
     const [doneChecker, setDoneChecker] = useState(false)
     const [progress, setProgress] = useState(0)
@@ -89,6 +97,7 @@ const Home = () => {
     const [selectedStages, setSelectedStages] = useState([])
     const [autoEmployee, setAutoEmployee] = useState()
     const [autoEmployeeID, setAutoEmployeeID] = useState()
+    const [isCompleted, setIsCompleted] = useState(false)
     const { isLoggedIn, user, userId } = useSelector(
         (state) => ({
             isLoggedIn: state.auth.isLoggedIn,
@@ -240,7 +249,7 @@ const Home = () => {
                 const date = new Date(year, month - 1, day);
                 const timestamp = date.getTime();
                 const timestampReal = new Date(timestamp)
-                timestampReal.setHours(0,0,0,0)
+                timestampReal.setHours(0, 0, 0, 0)
 
                 const estHours = dispatch(getEstimatedHours({
                     startDate: new Date(),
@@ -272,6 +281,7 @@ const Home = () => {
                             link: 'tasks'
                         }))
                         toast.success('Task Created!')
+                        setShow(false)
                     })
                 })
 
@@ -288,15 +298,31 @@ const Home = () => {
     //Delete Handler
 
     const [reqs, setReqs] = useState([])
-    const submitRequirements = (task) => {
+    const submitRequirements = async (task1) => {
 
 
-        setReqs(task.requirements)
-        setTask(task)
+        setReqs(task1.requirements)
+        setTask(task1)
         setShow2(true)
-        console.log('Task: ' + JSON.stringify(reqs))
 
 
+        const docRef = doc(database, "buildingSurface", task1.project);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            console.log('TECH DOCUMENT: ' + techDocument)
+            setTechDocument(docSnap.data())
+        } else {
+            console.log("No such document!");
+        }
+
+        const q = query(collection(database, "docs"), where("name", "==", task1.project));
+
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            console.log(doc.id, " => ", doc.data());
+            setTechDocumentFolder(doc.id)
+        });
     }
     const isCadFile = (fileName) => {
         const cadExtensions = ['.dwg', '.dxf', '.step']; // Add other CAD extensions as needed
@@ -324,7 +350,10 @@ const Home = () => {
     }
 
     const handleSubmitReq = async () => {
-        selectedFiles.forEach((selectedFile, index) => {
+        var tempReqArray = []
+        var isNotified = false
+        selectedFiles.forEach((selectedFile, index, selectedFiles) => {
+
             console.log('SELECTED FILES: ' + JSON.stringify(selectedFiles))
             Array.from(selectedFile.file).forEach(async file => {
 
@@ -378,7 +407,8 @@ const Home = () => {
                                 }
                                 toast.success('Submitted')
                                 setShow5(false)
-                                setReqArray([...reqArray, newObject])
+
+                                setReqArray(prevItems => [...prevItems, newObject])
                             });
                         }
                     );
@@ -494,9 +524,10 @@ const Home = () => {
                                     fileName: file.name
                                 }
                                 toast.info('Uploaded. Please wait..')
-                                setReqArray([...reqArray, newObject])
-                                setShow5(false)
-
+                                tempReqArray.push(newObject)
+                                if (Object.is(selectedFiles.length - 1, index)) {
+                                    console.log(`Last callback call at index ${index}`);
+                                }
                             });
 
 
@@ -530,9 +561,10 @@ const Home = () => {
 
                             let f
                             let folderName
-                            if (task.isRequest) {
+                            if (task.isRequest && !isNotified) {
+                                isNotified = true
                                 dispatch(createNotifs({
-                                    title: 'REQUEST FINISHED: ' + task.task + ' ' + task.requirements[0].value,
+                                    title: 'REQUEST FINISHED: ' + task.task,
                                     message: 'Your request has been finished by ' + task.employeeId + '. Please go to the Requests page to view your requested output',
                                     receiverID: task.requestor,
                                     link: 'requests'
@@ -585,7 +617,9 @@ const Home = () => {
                                 });
                                 resolve();
                             })
+                            setReqArray(tempReqArray)
                         }
+
                     );
                 }
             });
@@ -596,7 +630,17 @@ const Home = () => {
 
     }
 
-    const viewSubmission = (task) => {
+    const viewSubmission = async (task) => {
+
+        const docRef = doc(database, "buildingSurface", task.project);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            console.log('TECH DOCUMENT: ' + techDocument)
+            setTechDocument(doc.data())
+        } else {
+            console.log("No such document!");
+        }
 
         setReqs(task.requirements)
         setTask(task)
@@ -861,15 +905,31 @@ const Home = () => {
         await setDoc(planRef, {
             name: planCreate,
             project: project
-        });
+        }).then(() => {
 
-        window.location.reload()
+            const getPlans = async () => {
+                const q = query(collection(database, 'plans'))
+                await getDocs(q).then((plan) => {
+                    let plansData = plan.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                    setPlans(plansData)
+                }).catch((err) => {
+                    console.log(err);
+                }).then(() => {
+                    getPlans()
+                    setShow4(false)
+                    toast.success('Plan Created')
+                })
+            }
+
+
+        })
+
 
     }
 
     const addInput = () => {
         setInputs([...inputs, { requirement: '', employee: '' }]);
-        setIsCustom([...isCustom,{custom:false}])
+        setIsCustom([...isCustom, { custom: false }])
     };
 
     const minusInput = () => {
@@ -881,10 +941,10 @@ const Home = () => {
     const handleTextboxChange = (index, event) => {
         if (event.target.value == 'Custom') {
             const newInputs2 = [...isCustom];
-            newInputs2[index].custom =true;
+            newInputs2[index].custom = true;
             setIsCustom(newInputs2)
             const newInputs = [...inputs];
-            newInputs[index].requirement ='';
+            newInputs[index].requirement = '';
             setInputs(newInputs);
 
         } else {
@@ -1054,7 +1114,7 @@ const Home = () => {
                                 }))
                                 const dateDeadline = new Date();
                                 dateDeadline.setDate(dateDeadline.getDate() + 3);
-                                dateDeadline.setHours(0,0,0,0)
+                                dateDeadline.setHours(0, 0, 0, 0)
                                 await setDoc(setTasksRef, {
                                     task: task1.name,
                                     timestamp: serverTimestamp(),
@@ -1169,13 +1229,16 @@ const Home = () => {
                 const q = query(collection(database, "users"), where('email', '==', task.employeeId))
                 const querySnapshot = await getDocs(q);
 
+                if (!isCompleted) {
+                    querySnapshot.forEach(async (doc1) => {
+                        console.log('EMPLOYEE ID: ' + doc1.id)
+                        await updateDoc(doc(database, 'users', doc1.id), {
+                            tasks: doc1.data().tasks - 1
+                        })
+                        setIsCompleted(true)
+                    });
+                }
 
-                querySnapshot.forEach(async (doc1) => {
-                    console.log('EMPLOYEE ID: ' + doc1.id)
-                    await updateDoc(doc(database, 'users', doc1.id), {
-                        tasks: doc1.data().tasks - 1
-                    })
-                });
             } else {
                 await updateDoc(doc(database, "tasks", task.id), {
                     assignTo: task.origUser,
@@ -1183,9 +1246,9 @@ const Home = () => {
                 });
             }
             var metadocu
-            if(isCadFile(effectFile)){
+            if (isCadFile(effectFile)) {
                 metadocu = 'Design'
-            }else{
+            } else {
                 metadocu = 'Document'
             }
 
@@ -1197,12 +1260,13 @@ const Home = () => {
                     name: effectFile,
                     url: url,
                     path: [{ id: folderId, name: workflowSnap.data().name }, { id: folderId2, name: folderId2Name }],
-                    metadata:[task.project,metadocu]
+                    metadata: [task.project, metadocu]
                 })
             )
             toast('FINISHED')
         }
 
+        setShow5(false)
 
     }, [folderId]);
 
@@ -1229,24 +1293,27 @@ const Home = () => {
             const q = query(collection(database, "users"), where('email', '==', task.employeeId))
             const querySnapshot = await getDocs(q);
 
+            if (!isCompleted) {
+                querySnapshot.forEach(async (doc1) => {
+                    console.log('EMPLOYEE ID: ' + doc1.id)
+                    await updateDoc(doc(database, 'users', doc1.id), {
+                        tasks: doc1.data().tasks - 1
+                    })
+                });
+                setIsCompleted(true)
+            }
 
-            querySnapshot.forEach(async (doc1) => {
-                console.log('EMPLOYEE ID: ' + doc1.id)
-                await updateDoc(doc(database, 'users', doc1.id), {
-                    tasks: doc1.data().tasks - 1
-                })
-            });
         } else {
             await updateDoc(doc(database, "tasks", task.id), {
                 assignTo: task.origUser,
                 status: 'for submission'
             });
         }
-        var metadocu 
+        var metadocu
 
-        if(isCadFile(effectFile)){
+        if (isCadFile(effectFile)) {
             metadocu = 'Design'
-        }else{
+        } else {
             metadocu = 'Document'
         }
 
@@ -1258,7 +1325,7 @@ const Home = () => {
                 name: effectFile,
                 url: url,
                 path: [{ id: folderId, name: workflowSnap.data().name }, { id: folderId2, name: folderId2Name }, { id: folderId3, name: folderId2Name }],
-                metadata:[task.project,metadocu]
+                metadata: [task.project, metadocu]
             })
         )
 
@@ -1482,7 +1549,7 @@ const Home = () => {
                                                                 <option value="Ceiling Plan">Ceiling Plan</option>
                                                             </Form.Select>
                                                         )}
-                                                        { isCustom[index].custom && (
+                                                        {isCustom[index].custom && (
                                                             <Form.Control column type="text" value={input.requirement} onChange={(event) => handleTextboxChange(index, event)} placeholder="Add Requirement" />
                                                         )}
                                                     </Col>
@@ -1570,6 +1637,28 @@ const Home = () => {
 
                                     </Form>
 
+                                </>
+                            )}
+
+                            {task && task.status == 'for submission' && (
+                                <>
+                                    <p>Related Documents: </p>
+                                    <ButtonGroup aria-label="Basic example">
+
+                                        {techDocument && (
+                                            <>
+                                                <Button onClick={() => window.open(techDocument.buildingSurfaceURL, "_blank")} variant="secondary" >Building Surface</Button>
+                                                <Button onClick={() => window.open(techDocument.technicalDescriptionURL, "_blank")} variant="secondary">Technical Description</Button>
+                                                <Button onClick={() => window.open(techDocument.factSheetURL, "_blank")} variant="secondary">Fact Sheet</Button>
+                                            </>
+                                        )}
+
+                                        {techDocumentFolder && (
+                                        <Button  onClick={() => history.push(`/dashboard/folder/${techDocumentFolder}`)}  variant="secondary">Go to Project Folder </Button>
+
+                                        )}
+
+                                    </ButtonGroup>
                                 </>
                             )}
                             <Modal.Footer>

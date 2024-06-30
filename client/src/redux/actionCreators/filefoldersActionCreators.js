@@ -133,7 +133,7 @@ const addUserFile = (data) => ({
 });
 
 export const addFileUser =
-  ({ uid, parent, data, name, url, path,metadata }) =>
+  ({ uid, parent, data, name, url, path,metadata,history }) =>
     (dispatch) => {
       database.files
         .add(fileModel(uid, parent, data, name, url, path,metadata))
@@ -145,7 +145,7 @@ export const addFileUser =
             toast.success("File created Successfully!");
             toast.success("You can double click on the file to open the editor!");
           } else {
-            window.location.reload()
+            // window.location.reload()
             toast.success("File uploaded Successfully!");
           }
         })

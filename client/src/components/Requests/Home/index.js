@@ -64,7 +64,8 @@ const Home = () => {
             const something = async () => {
                 await getDocs(q).then(async (task) => {
                     let taskData = task.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-                    setTasks(taskData)
+                    const sortedData = taskData.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    setTasks(sortedData)
                     await getDocs(f).then((request) => {
                         let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
                         setRequests(requestsData)
@@ -157,15 +158,15 @@ const Home = () => {
                                                         </>
                                                     ))}</td>
                                                 ) : (<td>None</td>)}
-                                                   <td>{moment(task.timestamp.toDate()).format('l')}</td>
-                                                   <td>{moment(task.deadline.toDate()).format('l')}</td>
-                                                   <td>{task.employee}</td>
+                                                <td>{moment(task.timestamp.toDate()).format('l')}</td>
+                                                <td>{moment(task.deadline.toDate()).format('l')}</td>
+                                                <td>{task.employee}</td>
 
 
                                                 {task.status != 'done' ? (
-                                                    <td style={{ backgroundColor: 'red',color:'white'}}>Pending</td>
+                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
                                                 ) : (
-                                                    <td style={{ backgroundColor: 'green',color:'white' }}> Done</td>
+                                                    <td style={{ backgroundColor: 'green', color: 'white' }}> Done</td>
                                                 )}
 
                                             </tr>
@@ -196,9 +197,9 @@ const Home = () => {
                                                 <td>{moment(request.deadline.toDate()).format('l')}</td>
                                                 <td>{request.submitter}</td>
                                                 {request.status != 'done' ? (
-                                                    <td style={{backgroundColor: 'red',color:'white' }}>Pending</td>
+                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
                                                 ) : (
-                                                    <td style={{backgroundColor: 'green',color:'white' }}>Done</td>
+                                                    <td style={{ backgroundColor: 'green', color: 'white' }}>Done</td>
                                                 )}
                                                 <td><a target="_blank" href={request.url}> View </a></td>
                                             </tr>

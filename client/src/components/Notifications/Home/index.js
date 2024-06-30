@@ -64,7 +64,8 @@ const Home = () => {
         const f = query(collection(database, "notifs"), where("receiver", "==", employeeId));
         await getDocs(f).then((notif) => {
             let notifData = notif.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setNotifs(notifData)
+            const sortedData = notifData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            setNotifs(sortedData)
         }).catch((err) => {
             console.log(err);
         })

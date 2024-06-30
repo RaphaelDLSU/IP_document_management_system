@@ -9,7 +9,7 @@ const fileModel = (uid, parent, data, name, url, path,metadata) => {
     url: url,
     path: path,
     metadata:metadata,
-    history:[]
+    history:[{ name: name, timestamp: new Date(), user: 'Creation'}]
   };
 
   return model;

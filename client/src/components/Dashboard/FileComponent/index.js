@@ -225,9 +225,8 @@ const FileComponent = () => {
             .split(".")
           [currentFile.data.name.split(".").length - 1].includes("gif") ? (
           <Row
-            className="position-fixed top-0 left-0 m-0 w-100 h-100"
-            style={{ background: "rgba(0, 0, 0, 0.98)" }}
-          >
+            className="position-fixed top-20 left-0 m-0 w-100 h-100"
+            style={{ background: "rgba(0, 0, 0, 0.98)" }}          >
             <Col md={12}>
               <div
                 className="d-flex align-items-center mt-5 mb-3"
@@ -239,7 +238,8 @@ const FileComponent = () => {
                 >
                   {currentFile.data.name}
                 </p>
-                <div className="btns top-5 right-0 ml-auto mr-5">
+                <div className="btns top-20 right-0 ml-auto mr-5">
+
                   <Button
                     variant="outline-light"
                     onClick={() => history.goBack()}
@@ -258,7 +258,7 @@ const FileComponent = () => {
                   </a>
                 </div>
               </div>
-              <Col md={12} style={{ height: "65%" }}>
+              <Col md={12} style={{ height: "100%",overflowY:'auto'}}>
                 <Image
                   src={currentFile.data.url}
                   alt={currentFile.data.url}
@@ -271,9 +271,8 @@ const FileComponent = () => {
           </Row>
         ) : (
           <Row
-            className="position-fixed top-0 left-0 m-0 w-100 h-100"
-            style={{ background: "rgba(0, 0, 0, 0.98)" }}
-          >
+            className="position-fixed top-20 left-0 m-0 w-100 h-100"
+            style={{ background: "rgba(0, 0, 0, 0.98)" }}          >
             <Col md={12}>
               <div
                 className="d-flex align-items-center mt-4 mb-3"

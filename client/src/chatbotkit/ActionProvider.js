@@ -17,7 +17,7 @@ class ActionProvider2 {
   };
   handleHelp = () => {
     const message2 = this.createChatBotMessage(
-      " Task Request : Creates a task that requests a file/output to be created and/or submitted to the requestor ",
+      " Task Request : Creates a task that requests a file/output to be created and/or submitted to the Design Department ",
     );
     const message3 = this.createChatBotMessage(
       " RFA Submission : Creates an RFA File to be submitted to the Design Department  ",
