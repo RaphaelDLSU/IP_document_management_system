@@ -630,20 +630,21 @@ const Home = () => {
 
     }
 
-    const viewSubmission = async (task) => {
+    const viewSubmission = async (task1) => {
 
-        const docRef = doc(database, "buildingSurface", task.project);
+        const docRef = doc(database, "buildingSurface", task1.project);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             console.log('TECH DOCUMENT: ' + techDocument)
-            setTechDocument(doc.data())
+            setTechDocument(docSnap.data())
         } else {
             console.log("No such document!");
         }
 
-        setReqs(task.requirements)
-        setTask(task)
+        console.log('TASK SUB = ' + JSON.stringify(task1.requirements))
+        setReqs(task1.requirements)
+        setTask(task1)
         setShow2(true)
         console.log('Task: ' + JSON.stringify(reqs))
 
@@ -915,12 +916,11 @@ const Home = () => {
                 }).catch((err) => {
                     console.log(err);
                 }).then(() => {
-                    getPlans()
                     setShow4(false)
                     toast.success('Plan Created')
                 })
             }
-
+            getPlans()
 
         })
 
@@ -1616,31 +1616,34 @@ const Home = () => {
                         <Modal.Header closeButton> Approve Submission</Modal.Header>}
                     <Form>
                         <Modal.Body>
-
-                            {reqs.map((req, index) =>
+                            {reqs && (
                                 <>
-                                    <Form>
+                                    {reqs.map((req, index) =>
+                                        <>
+                                            <Form>
 
-                                        <Form.Group className="mb-3" controlId="formPlaintextEmail">
-                                            <Form.Label >
-                                                {req.value}
-                                            </Form.Label>
-                                            &nbsp;&nbsp;&nbsp;
+                                                <Form.Group className="mb-3" controlId="formPlaintextEmail">
+                                                    <Form.Label >
+                                                        {req.value}
+                                                    </Form.Label>
+                                                    &nbsp;&nbsp;&nbsp;
 
-                                            {task.status === 'for submission' ?
-                                                <Form.Control required type="file" onChange={(e) => handleUploadReq(e, req)} />
-                                                :
-                                                <Button href={req.url} target="_blank">View </Button>}
+                                                    {task && task.status === 'for submission' ?
+                                                        <Form.Control required type="file" onChange={(e) => handleUploadReq(e, req)} />
+                                                        :
+                                                        <Button href={req.url} target="_blank">View </Button>}
 
-                                        </Form.Group>
+                                                </Form.Group>
 
 
-                                    </Form>
+                                            </Form>
 
+                                        </>
+                                    )}
                                 </>
                             )}
 
-                            {task && task.status == 'for submission' && (
+                            {task  && (
                                 <>
                                     <p>Related Documents: </p>
                                     <ButtonGroup aria-label="Basic example">
@@ -1654,7 +1657,7 @@ const Home = () => {
                                         )}
 
                                         {techDocumentFolder && (
-                                        <Button  onClick={() => history.push(`/dashboard/folder/${techDocumentFolder}`)}  variant="secondary">Go to Project Folder </Button>
+                                            <Button onClick={() => history.push(`/dashboard/folder/${techDocumentFolder}`)} variant="secondary">Go to Project Folder </Button>
 
                                         )}
 

@@ -60,7 +60,9 @@ const RFAImages = props => {
     };
     const handleSubmit = async () => {
 
-        toast.info('Submitting Request. Please Wait..')
+        toast.info("Submitting Request. Please wait", {
+            position: 'bottom-left'
+        })
         const coll = collection(database, "requests");
         const snapshot = await getCountFromServer(coll);
         let newArray = []

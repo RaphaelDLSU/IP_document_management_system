@@ -98,7 +98,7 @@ const Home = () => {
                                     <th>Email / ID</th>
                                     <th>Role</th>
                                     <th>Date Created</th>
-                                    <th>Identification</th>
+                                    <th>Company I.D Picture</th>
                                 </tr>
                             </thead>
                             <tbody>

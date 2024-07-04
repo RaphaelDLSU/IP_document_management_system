@@ -368,7 +368,7 @@ const Home = () => {
                                                         {tasks.map((task, id) =>
 
                                                             <tr key={id}>
-                                                                <td>{id}</td>
+                                                                <td>{id + 1}</td>
                                                                 <td>{task.name}</td>
                                                                 <td>
                                                                     {task.requirements ? (

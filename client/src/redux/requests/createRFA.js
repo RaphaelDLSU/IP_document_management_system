@@ -18,7 +18,7 @@ export const createRFA =
       console.log('DISPATHCINGGGGs FILES: ' + images)
 
       // Create a new PDFDocument
-        const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FJEBJD5aqZ5RS1W86Y6b4oLAF0VD2%2FRFA_Template_v5.pdf?alt=media&token=fecfc663-fdb5-4a07-baa2-b6edbc104228";
+      const formUrl = "https://firebasestorage.googleapis.com/v0/b/italpinas-dms.appspot.com/o/files%2FJEBJD5aqZ5RS1W86Y6b4oLAF0VD2%2FRFA_Template_v5.pdf?alt=media&token=fecfc663-fdb5-4a07-baa2-b6edbc104228";
       const formPdfBytes = await fetch(formUrl).then((res) => res.arrayBuffer());
 
       //Load PDF
@@ -63,7 +63,7 @@ export const createRFA =
         neededByField.setText(moment(deadline.toDate()).format('l'));
       }
 
-      
+
 
 
       projectNameField.setText(project);
@@ -162,7 +162,7 @@ export const createRFA =
             pdfUrl = downloadURL
             console.log('what the fuck')
             const newDeadline = new Date(deadline)
-            newDeadline.setHours(0,0,0,0)
+            newDeadline.setHours(0, 0, 0, 0)
             const requestRef = collection(database, "requests")
             if (step == 1) {
               await addDoc(requestRef, {
@@ -187,7 +187,9 @@ export const createRFA =
                   receiverID: 'manager@gmail.com',
                   link: 'requestsmanager'
                 }))
-                toast.success('Creation of Request Done')
+                toast.info("Creation of Request Done", {
+                  position: 'bottom-left'
+                })
               })
             }
             if (step == 2) {

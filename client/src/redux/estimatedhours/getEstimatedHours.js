@@ -7,6 +7,10 @@ export const getEstimatedHours =
         async (dispatch) => {
             console.log(startDate + ' ' + endDate)
 
+            endDate.setHours(endDate.getHours() + 23); // Add 23 hours
+            endDate.setMinutes(endDate.getMinutes() + 59); // Add 59 minutes
+            endDate.setSeconds(endDate.getSeconds() + 59); // Add 59 seconds
+
             function getWorkingHours(startDate, endDate) {
                 const start = new Date(startDate);
                 const end = new Date(endDate);
@@ -72,6 +76,7 @@ export const getEstimatedHours =
                     currentDate.setDate(currentDate.getDate() + 1);
                     currentDate.setHours(0, 0, 0, 0); // Reset to the beginning of the day
                 }
+                totalHours = Math.round(totalHours)
 
                 return totalHours;
             }

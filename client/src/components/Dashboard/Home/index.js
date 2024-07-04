@@ -346,7 +346,7 @@ const Home = () => {
             url: downloadURL,
             metadata: [metadocu],
             name: file.name,
-            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName })
+            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName, url: downloadURL })
           }).then(() => {
             setShow3(false)
             setShow2(false)
@@ -559,8 +559,7 @@ const Home = () => {
               <tbody>
                 {fileSelected.history.map(item => (
                   <tr key={item}>
-                    <td>{item.name}</td>
-                    <td>{moment(item.timestamp.toDate()).format('l')}</td>
+                    <td><a href={item.url}>{item.name}</a></td>                    <td>{moment(item.timestamp.toDate()).format('l')}</td>
                     <td>{item.user}</td>
                   </tr>
                 ))}
@@ -592,7 +591,7 @@ const Home = () => {
 
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShow2(false)}>Close</Button>
-            <Button variant="primary" onClick={() => handleUpdateSubmit(false)}>Close</Button>
+            <Button variant="primary" onClick={() => handleUpdateSubmit(false)}>Update</Button>
 
           </Modal.Footer>
         </Modal>

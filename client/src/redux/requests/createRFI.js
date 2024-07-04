@@ -122,7 +122,7 @@ export const createRFI =
 
 
       const newDeadline = new Date(deadline)
-      newDeadline.setHours(0,0,0,0)
+      newDeadline.setHours(0, 0, 0, 0)
       let pdfUrl
       // Serialize the PDFDocument to bytes
       const pdfBytes = await pdfDoc.save();
@@ -174,7 +174,9 @@ export const createRFI =
                   receiverID: 'manager@gmail.com',
                   link: 'requestsmanager'
                 }))
-                toast.success('Creation of Request Done')
+                toast.info("Creation of Request Done", {
+                  position: 'bottom-left'
+                })
               })
             }
             if (step == 2) {
