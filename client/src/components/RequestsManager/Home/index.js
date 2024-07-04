@@ -44,7 +44,14 @@ const Home = () => {
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const [isChecked, setIsChecked] = useState(false);
-
+    const { isLoggedIn, user, userId } = useSelector(
+        (state) => ({
+            isLoggedIn: state.auth.isLoggedIn,
+            user: state.auth.user,
+            userId: state.auth.userId,
+        }),
+        shallowEqual
+    );
     const assignEmployee = (request) => {
         setRequest(request)
         setShow(true)
@@ -516,12 +523,18 @@ const Home = () => {
 
                                                 <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.date.toDate()).format('l')}</td>
                                                 <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.deadline.toDate()).format('l')}</td>
-                                                {request.submitter === '' ?
-                                                    <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
-                                                    :
-                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.submitter}</td>
-                                                }
+                                                {request.submitter === '' ? (
+                                                    <>
+                                                        {user.data.uid === 'manager@gmail.com' ? (
+                                                            <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
 
+                                                        ):(<td> *To be Assigned*</td>)}
+                                                    </>
+                                                )
+                                                    : (
+                                                        <td>{request.submitter}</td>
+                                                    )
+                                                }
                                                 {request.status != 'done' ? (
                                                     <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
                                                 ) : (
@@ -626,10 +639,17 @@ const Home = () => {
                                                 <td>{moment(request.date.toDate()).format('l')}</td>
                                                 <td>{moment(request.deadline.toDate()).format('l')}</td>
                                                 <td>{moment(request.completion.toDate()).format('l')}</td>
-                                                {request.submitter === '' ?
-                                                    <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
-                                                    :
-                                                    <td>{request.submitter}</td>
+                                                {request.submitter === '' ? (
+                                                    <>
+                                                        {user.data.uid === 'manager@gmail.com' && (
+                                                            <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
+
+                                                        )}
+                                                    </>
+                                                )
+                                                    : (
+                                                        <td>{request.submitter}</td>
+                                                    )
                                                 }
                                                 {request.status != 'done' ? (
                                                     <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
@@ -638,7 +658,7 @@ const Home = () => {
                                                         {request.completion > request.deadline && (
                                                             <td style={{ backgroundColor: 'yellow', color: 'black' }}>Completed (Late)</td>
                                                         )}
-                                                          {request.completion < request.deadline && (
+                                                        {request.completion < request.deadline && (
                                                             <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
                                                         )}
                                                     </>

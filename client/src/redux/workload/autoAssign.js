@@ -13,9 +13,7 @@ export const autoAssign =
                 if (!querySnapshots.empty) {
                     querySnapshots.forEach(async (user) => {
                         q = doc(database,'users',user.id)
-                        await updateDoc(q, {
-                            tasks: user.data().tasks +1
-                          });
+                        
                     })
                     break
                 }

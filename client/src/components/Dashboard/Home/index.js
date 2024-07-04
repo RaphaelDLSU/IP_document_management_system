@@ -98,7 +98,7 @@ const Home = () => {
 
 
   const handleDeleteFolder = async (docId) => {
-    await deleteDoc(doc(db, "docs", docId)).then(result => setMyState(result));
+    await deleteDoc(doc(db, "docs", docId));
     toast.success("Folder deleted Successfully!");
 
 
@@ -110,8 +110,12 @@ const Home = () => {
   };
 
   const handleDeleteFile = async (docId) => {
-    await deleteDoc(doc(db, "files", deleteFile)).then(result => setMyState(result)).then(setShow4(false));
-    toast.success("File deleted Successfully!");
+    await deleteDoc(doc(db, "files", deleteFile)).then(() => {
+      setShow4(false)
+      toast.success("File deleted Successfully!");
+
+    })
+
 
 
 
@@ -559,7 +563,8 @@ const Home = () => {
               <tbody>
                 {fileSelected.history.map(item => (
                   <tr key={item}>
-                    <td><a href={item.url}>{item.name}</a></td>                    <td>{moment(item.timestamp.toDate()).format('l')}</td>
+                    <td><a href={item.url}>{item.name}</a></td>
+                    <td>{moment(item.timestamp.toDate()).format('l')}</td>
                     <td>{item.user}</td>
                   </tr>
                 ))}
@@ -623,7 +628,7 @@ const Home = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShow4(false)}>Cancel</Button>
-          <Button variant="danger" onClick={() => handleDeleteFile(false)}>Delete</Button>
+          <Button variant="danger" onClick={() => handleDeleteFile()}>Delete</Button>
 
         </Modal.Footer>
       </Modal>

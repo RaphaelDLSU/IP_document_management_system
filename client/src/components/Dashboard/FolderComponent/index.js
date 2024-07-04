@@ -198,8 +198,12 @@ const FolderComponent = () => {
 
 
   const handleDeleteFile = async (docId) => {
-    await deleteDoc(doc(db, "files", docId)).then(result => setMyState(result));
-    toast.success("File deleted Successfully!");
+    await deleteDoc(doc(db, "files", deleteFile)).then(() => {
+      setShow4(false)
+      toast.success("File deleted Successfully!");
+
+    })
+
   };
 
 
@@ -281,7 +285,7 @@ const FolderComponent = () => {
             url: downloadURL,
             metadata: [metadocu],
             name: file.name,
-            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName })
+            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName, url: downloadURL })
           }).then(() => {
             setShow3(false)
             setShow2(false)
@@ -497,7 +501,7 @@ const FolderComponent = () => {
               <tbody>
                 {fileSelected.history.map(item => (
                   <tr key={item}>
-                    <td>{item.name}</td>
+                    <td><a href={item.url}>{item.name}</a></td>
                     <td>{moment(item.timestamp.toDate()).format('l')}</td>
                     <td>{item.user}</td>
                   </tr>
@@ -530,7 +534,7 @@ const FolderComponent = () => {
 
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShow2(false)}>Close</Button>
-            <Button variant="primary" onClick={() => handleUpdateSubmit(false)}>Close</Button>
+            <Button variant="primary" onClick={() => handleUpdateSubmit(false)}>Update</Button>
 
           </Modal.Footer>
         </Modal>
@@ -562,7 +566,7 @@ const FolderComponent = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShow4(false)}>Cancel</Button>
-          <Button variant="danger" onClick={() => handleDeleteFile(false)}>Delete</Button>
+          <Button variant="danger" onClick={() => handleDeleteFile()}>Delete</Button>
 
         </Modal.Footer>
       </Modal>
