@@ -635,12 +635,23 @@ const Home = () => {
         const docRef = doc(database, "buildingSurface", task1.project);
         const docSnap = await getDoc(docRef);
 
+        console.log('TECH PROJECT: ' + task1.project)
+
         if (docSnap.exists()) {
             console.log('TECH DOCUMENT: ' + techDocument)
             setTechDocument(docSnap.data())
         } else {
             console.log("No such document!");
         }
+
+        
+        const q = query(collection(database, "docs"), where("name", "==", task1.project));
+
+        const querySnapshot = await getDocs(q);
+        querySnapshot.forEach((doc) => {
+            console.log(doc.id, " => ", doc.data());
+            setTechDocumentFolder(doc.id)
+        });
 
         console.log('TASK SUB = ' + JSON.stringify(task1.requirements))
         setReqs(task1.requirements)
@@ -1437,17 +1448,30 @@ const Home = () => {
                                                         <Card.Header>{task.project}</Card.Header>
                                                         <Card.Body>
                                                             <Card.Title>{task.task}</Card.Title>
-                                                            {task.status === 'for submission' ?
-                                                                <Button variant="primary" onClick={() => submitRequirements(task)}>Submit</Button>
-                                                                :
-                                                                <Button variant="primary" onClick={() => viewSubmission(task)}>View</Button>
-                                                            }
+                                                            <Card.Text>
+                                                                Requirements: &nbsp;
+                                                                {task.requirements.map((req, index) => (
+                                                                    <>
+                                                                        {req.value}
+                                                                        {index !== task.requirements.length - 1 && ', '}
+                                                                    </>
+                                                                ))}
+                                                            </Card.Text>
+                                                         
                                                         </Card.Body>
                                                         <ListGroup className="list-group-flush">
                                                             <ListGroup.Item>Deadline : {moment(task.deadline.toDate()).format('l')}</ListGroup.Item>
                                                             <ListGroup.Item>Date : {moment(task.timestamp.toDate()).format('l')}</ListGroup.Item>
                                                             <ListGroup.Item>Assigned To : {task.employee}</ListGroup.Item>
                                                         </ListGroup>
+
+                                                        <Card.Body>
+                                                            {task.status === 'for submission' ?
+                                                                <Button variant="primary" onClick={() => submitRequirements(task)}>Submit</Button>
+                                                                :
+                                                                <Button variant="primary" onClick={() => viewSubmission(task)}>View</Button>
+                                                            }
+                                                        </Card.Body>
                                                     </Card>
 
                                                 </>
@@ -1643,7 +1667,7 @@ const Home = () => {
                                 </>
                             )}
 
-                            {task  && (
+                            {task && (
                                 <>
                                     <p>Related Documents: </p>
                                     <ButtonGroup aria-label="Basic example">
