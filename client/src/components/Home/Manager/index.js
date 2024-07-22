@@ -370,6 +370,33 @@ const ManagerHome = () => {
                                 <>None</>
                             )}
                         </ListGroup>
+
+                        <ListGroup>
+                            {newNotifs ? (
+                                <>
+                                    {newNotifs.some(notif => notif.link === "/files") && <div>Files</div>}
+                                    {newNotifs
+                                        .filter(notif => notif.link === "/files")
+                                        .map(notif => (
+                                            <ListGroup.Item
+                                                action
+                                                onClick={() => history.push(notif.link)}
+                                                className="d-flex justify-content-between align-items-start"
+                                            >
+                                                <div className="ms-2 me-auto">
+                                                    <div>{notif.title}</div>
+                                                </div>
+                                                <Badge bg="primary" pill>
+                                                    {moment(notif.date.toDate()).format('LLL')}
+                                                </Badge>
+                                            </ListGroup.Item>
+                                        ))
+                                    }
+                                </>
+                            ) : (
+                                <>None</>
+                            )}
+                        </ListGroup>
                     </Modal.Body>
 
                 </Modal>
