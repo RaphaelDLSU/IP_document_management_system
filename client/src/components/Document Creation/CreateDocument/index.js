@@ -323,7 +323,8 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
       const querySnapshot = await getDocs(k);
       querySnapshot.forEach((doc) => {
-        setProjects([...project, doc.data().project])
+        console.log('PROJECT ' +doc.data().project)
+        setProjects([...projects, doc.data()])
       });
       // const q = query(collection(database, 'projects'))
       // await getDocs(q).then(async (project) => {
@@ -350,7 +351,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
           <option value="" hidden>Select project</option>
           {projects.map((project, index) => (
             <>
-              <option value={project.name}>{project.name}</option>
+              <option value={project.project}>{project.project}</option>
             </>
           ))}
         </Form.Select>

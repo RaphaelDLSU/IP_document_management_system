@@ -699,7 +699,7 @@ const TaskMonitoring = () => {
   } else {
     return (
       <>
-        {role == 'Manager' || role == 'CEO' && (
+        {(role == 'Manager' || role == 'CEO') && (
           <>
             <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Tasks Records</h5>
             <p></p>
