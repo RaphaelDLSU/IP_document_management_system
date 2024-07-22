@@ -8,6 +8,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import React, { useEffect, useState } from 'react'
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 import Badge from 'react-bootstrap/Badge';
+import Modal from 'react-bootstrap/Modal';
 
 import { limit, where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
 import Button from 'react-bootstrap/Button';
@@ -30,6 +31,8 @@ const ManagerHome = () => {
     const [tasks, setTasks] = useState([])
     const [requests, setRequests] = useState([])
     const [registrations, setRegistrations] = useState([])
+    const [newNotifs, setNewNotifs] = useState([])
+    const [show, setShow] = useState(false);
 
     const { isLoggedIn, user, userId } = useSelector(
         (state) => ({
@@ -89,6 +92,25 @@ const ManagerHome = () => {
             }
 
             something()
+
+            const d = query(collection(database, "notifs"), where("isChecked", "==", false), where("receiver", '==', user.data.uid));
+
+            const querySnapshot = await getDocs(d);
+
+            if (!querySnapshot.empty) {
+                let notifsData = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                setNewNotifs(notifsData)
+                console.log('NOT EMPTY. SHOWING MODAL')
+                setShow(true)
+
+                querySnapshot.forEach(async (doc1) => {
+                    const notifRef = doc(database, "notifs", doc1.id);
+                    await updateDoc(notifRef, {
+                        isChecked: true
+                    });
+                });
+            }
+
         }
     }, [user]);
 
@@ -101,7 +123,7 @@ const ManagerHome = () => {
         <Popover id="popover-basic">
             <Popover.Header as="h3">System Guide</Popover.Header>
             <Popover.Body>
-            <strong>Homepage</strong><p></p>
+                <strong>Homepage</strong><p></p>
                 Click on a listed notification or task/request to go to the appropriate page <p></p>
                 <strong>Workflows</strong><p></p>
                 View ongoing project workflows/processes <p></p>
@@ -123,7 +145,7 @@ const ManagerHome = () => {
         </Popover>
     );
     const Example = () => (
-        <OverlayTrigger  placement="right" overlay={popover}>
+        <OverlayTrigger placement="right" overlay={popover}>
             <Button variant="success">Get Started</Button>
         </OverlayTrigger>
     );
@@ -255,6 +277,102 @@ const ManagerHome = () => {
                     </Row>
 
                 </Container>
+
+                <Modal show={show} onHide={() => setShow(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Welcome Back!</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>While you were away, here are some activity that needs your attention
+
+
+                    </Modal.Body>
+                    <Modal.Body>
+
+                        <ListGroup>
+                            {newNotifs ? (
+                                <>
+                                    {newNotifs.some(notif => notif.link === "/workflows") && <div>Workflows</div>}
+                                    {newNotifs
+                                        .filter(notif => notif.link === "/workflows")
+                                        .map(notif => (
+                                            <ListGroup.Item
+                                                action
+                                                onClick={() => history.push(notif.link)}
+                                                className="d-flex justify-content-between align-items-start"
+                                            >
+                                                <div className="ms-2 me-auto">
+                                                    <div>{notif.title}</div>
+                                                </div>
+                                                <Badge bg="primary" pill>
+                                                    {moment(notif.date.toDate()).format('LLL')}
+                                                </Badge>
+                                            </ListGroup.Item>
+                                        ))
+                                    }
+                                </>
+                            ) : (
+                                <>None</>
+                            )}
+                        </ListGroup>
+
+
+                        <ListGroup>
+                            {newNotifs ? (
+                                <>
+                                    {newNotifs.some(notif => notif.link === "/tasks") && <div>Tasks</div>}
+                                    {newNotifs
+                                        .filter(notif => notif.link === "/tasks")
+                                        .map(notif => (
+                                            <ListGroup.Item
+                                                action
+                                                onClick={() => history.push(notif.link)}
+                                                className="d-flex justify-content-between align-items-start"
+                                            >
+                                                <div className="ms-2 me-auto">
+                                                    <div>{notif.title}</div>
+                                                </div>
+                                                <Badge bg="primary" pill>
+                                                    {moment(notif.date.toDate()).format('LLL')}
+                                                </Badge>
+                                            </ListGroup.Item>
+                                        ))
+                                    }
+                                </>
+                            ) : (
+                                <>None</>
+                            )}
+                        </ListGroup>
+
+
+                        <ListGroup>
+                            {newNotifs ? (
+                                <>
+                                    {newNotifs.some(notif => notif.link === "/requestsmanager") && <div>Requests</div>}
+                                    {newNotifs
+                                        .filter(notif => notif.link === "/requestsmanager")
+                                        .map(notif => (
+                                            <ListGroup.Item
+                                                action
+                                                onClick={() => history.push(notif.link)}
+                                                className="d-flex justify-content-between align-items-start"
+                                            >
+                                                <div className="ms-2 me-auto">
+                                                    <div>{notif.title}</div>
+                                                </div>
+                                                <Badge bg="primary" pill>
+                                                    {moment(notif.date.toDate()).format('LLL')}
+                                                </Badge>
+                                            </ListGroup.Item>
+                                        ))
+                                    }
+                                </>
+                            ) : (
+                                <>None</>
+                            )}
+                        </ListGroup>
+                    </Modal.Body>
+
+                </Modal>
             </>
         )
     }

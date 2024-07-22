@@ -644,7 +644,7 @@ const Home = () => {
             console.log("No such document!");
         }
 
-        
+
         const q = query(collection(database, "docs"), where("name", "==", task1.project));
 
         const querySnapshot = await getDocs(q);
@@ -1376,6 +1376,16 @@ const Home = () => {
                     </>)}
 
                     <hr></hr>
+                    <h5> Ongoing Stages</h5>
+                    <p></p>
+                    <ListGroup horizontal>
+                        {stages.map((stage, index) => (
+
+                            <ListGroup.Item key={index} variant="success">{stage.project}: &nbsp;{stage.task}</ListGroup.Item>
+                        ))}
+
+                    </ListGroup>
+                    <p></p>
                     <div className='content' style={{ padding: '5px' }}>
 
                         <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Pending Tasks</h5>
@@ -1388,7 +1398,7 @@ const Home = () => {
                                             {task.status == 'for submission' && (
                                                 <>
 
-                                                    <Card className='card' border="secondary" style={{ width: '18rem' }} key={index}>
+                                                    <Card  border="secondary" style={{ width: '18rem' }} key={index}>
                                                         <Card.Header>{task.project}</Card.Header>
                                                         <Card.Body>
                                                             <Card.Title>{task.task}</Card.Title>
@@ -1422,6 +1432,8 @@ const Home = () => {
                                                             }
                                                         </Card.Body>
                                                     </Card>
+
+                                                            
                                                 </>
                                             )}
 
@@ -1457,7 +1469,7 @@ const Home = () => {
                                                                     </>
                                                                 ))}
                                                             </Card.Text>
-                                                         
+
                                                         </Card.Body>
                                                         <ListGroup className="list-group-flush">
                                                             <ListGroup.Item>Deadline : {moment(task.deadline.toDate()).format('l')}</ListGroup.Item>
@@ -1487,19 +1499,10 @@ const Home = () => {
 
 
 
-                        <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Tasks Records</h5>
-                        <p></p>
+
                         <TaskMonitoring></TaskMonitoring>
 
-                        <h5> Ongoing Stages</h5>
-                        <p></p>
-                        <ListGroup horizontal>
-                            {stages.map((stage, index) => (
 
-                                <ListGroup.Item key={index} variant="success">{stage.project}: &nbsp;{stage.task}</ListGroup.Item>
-                            ))}
-
-                        </ListGroup>
                     </div>
 
                 </div >

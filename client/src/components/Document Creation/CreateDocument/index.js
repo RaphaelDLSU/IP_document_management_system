@@ -5,6 +5,7 @@ import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query
 import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import { toast } from 'react-toastify';
+import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 //Bootstrap components
 import { Form, Button, Row, Col } from 'react-bootstrap';
@@ -18,6 +19,14 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const [show, setShow] = useState(false);
+  const { isLoggedIn, user, userId } = useSelector(
+    (state) => ({
+      isLoggedIn: state.auth.isLoggedIn,
+      user: state.auth.user,
+      userId: state.auth.userId,
+    }),
+    shallowEqual
+  );
   //Change handler for Floor name
   const handleFloorNameChange = (index, event) => {
     let data = [...floors];
@@ -224,6 +233,8 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
   const handleUpdate = async () => {
 
+    var PRIVATE_KEY = '"-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCixT95UEhBb7AM\nolwTNViaaCUjfTYLlqZiHr1HHhJkwSBCDvZ5rM+2wihz547fnBQQ94LQ1gafUReV\nde2Mdm+doLy8kVNqKda8iNIzsPtHB46bW7hiVdAsLAACg0spimjmQZZdRzF8O0vv\nlC1dYWMjcyRAWH+QokuOJ+DdQjBdHhXoKgE+UZE4TX65Ylrd8z+sUkUIhVet0C/z\nFC4n5O3YgaBfsRn5F3o2LywLbhWeq92mvbArp3IhSNCLL7bDlEjzXXFELu1hmZKe\ndexUEtJ79CSLMSO0TLLCxrUxJGI4UQtJ2IxefRCJ59oHEPU3WtqKuDBO5u1RTW0Q\n6SIW4+JfAgMBAAECggEAEevq4GC9BpYVXwa/YY61meaj9C40oFOu2niCTvgaKVrJ\nl6G4dKQuM0lZv+KRLMCtcELNoKXNZobnXwRJf/YzCuV9nRDZNi6zdIsSAzFWMWIS\ndbuZvRtasjUJWT17LfCN5Tr3zdRpYpbQIRRXvFjdMV7bm8ltXjo9scIP9FH11kKt\nEpvrW/0T6EYz2qv4GZQNuEHJQO/ZX5aXl1y12oY6bU+I8TYgv9nDhQUvwETmJOw0\nAg5w78VG2ZNXX1GRH84+ea358v6I99J7m7zOsUUFxUXafuXclizgzaHSO2qelR04\nvC12FA//FPrZVSvvnEpmK4c8mbUeCqKxSX314gl8AQKBgQDh/hHA47P2mQXdQbFx\nQFKlLFdWkr2tKSX0E+gUiGJcaJfEMBdAXf3Qt8SwTLXrJ4LVENPTamvzGVU/GLLe\n2IPLtjpAptDfx1JUbruzM+fYYbl6t13C/Jn6aIiqRgmMcs4HWIlLsr+uRR9ZxQFy\nBKO5ozg/+/KFOOGQJ2s1VqgWXwKBgQC4YiOhBAp1bF8eQ6VX2UJ4lY5mP3vc/Lvo\nOquCkC/OgSOjXCP6L9PYzgs7+0q+kR4V08a9ZB0xsf0N6Jg0XYmQZ8JwJm30TmrP\nxcPSgpMvVPm95hiEpirlJ4RSkxcfLBQQk4GD5N+q84AuR9JzmQIxycvqToGiRQOj\neq5MBR+0AQKBgQCbWMTnbR72MnY/g7rv+KFW/UYEMtbDw3ddcpmkE6RZlWRN7ijt\njC6/XLON5Q1gWkarI+gYeh0+fHmG5/l9CiR+0gL1EjaevSsw8vV/1/xVV8fiPU3s\njStjYJwhQAesTfamQgwOxw7QQp+sW6oEsH/DShmOkihBv7n+F7qwbaMZzQKBgEGl\nRzQbgTG/TLo0sVhulJjj/lfvAEV0gd4zjT6l4S9vkOWnd3OqtYz6BsvrMvhYKFLz\nHE3vp+k6inL6Pb5fEwwjtPlC5WDWznZ83bREIuz2Hxh6JH6NvrXpdNYFYnUJt3cT\nXUg9I1j06s0PayEW984MH5qjKspAMgRxOD7+kAQBAoGBAIRG84bU4A3ya5IFJBpt\nzRxQ77KYRjVl1kUcGEWJsg4J+l2/CKNBKhJtthLNHPaBQqW26z9T4Lc06dmPeZ+T\nGlF7I6aiEAFJniHQ9wkUKy409eenL33mebecxHPOp8NXjAXVG+NMjoY4hbY68Pr5\nvN77WX6lOu9nc0XkCiVwUGEB\n-----END PRIVATE KEY-----\n"'; const updateRef = doc(database, "buildingSurface", project); await updateDoc(updateRef, { floors: floors })
+
     const q = doc(database, 'buildingSurface', project)
     const docSnap = await getDoc(q).then(async (doc) => {
 
@@ -249,6 +260,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
         toast.info('No existing project documents')
         console.log('No existing project documents')
       }
+      console.log(PRIVATE_KEY)
     })
   }
 
@@ -305,13 +317,21 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
   useEffect(() => {
 
     const getProjects = async () => {
-      const q = query(collection(database, 'projects'))
-      await getDocs(q).then(async (project) => {
-        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        setProjects(projectData)
-      }).catch((err) => {
-        console.log(err);
-      })
+
+
+      const k = query(collection(database, "tasks"), where("employeeId", "==", user.data.uid),where('task','==','Submit Reviewed Building Permit Requirements'));
+
+      const querySnapshot = await getDocs(k);
+      querySnapshot.forEach((doc) => {
+        setProjects([...project, doc.data().project])
+      });
+      // const q = query(collection(database, 'projects'))
+      // await getDocs(q).then(async (project) => {
+      //   let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+      //   setProjects(projectData)
+      // }).catch((err) => {
+      //   console.log(err);
+      // })
     }
 
     getProjects()

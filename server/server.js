@@ -356,6 +356,8 @@ app.post('/sheetupdate', async function (req, res) {
        }
 
        for (var j = 0; j < floors[i].residentialArea.length; j++) {
+        console.log(' UNIT AREA: '+floors[i].residentialArea[j].residentialAreaSize)
+
            if (j == 0 && !isFirstRow) {
                isFirstRow = true
                await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Unit No. ' + floors[i].residentialArea[j].residentialAreaUnitType, Name: 'Unit Area:', Details: floors[i].residentialArea[j].residentialAreaSize })

@@ -1,13 +1,12 @@
 import { PDFDocument, rgb, StandardFonts, PDFField, PDFButton } from "pdf-lib";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, setDoc } from 'firebase/firestore'
+import { where, getDoc, collection, getDocs, addDoc, deleteDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, setDoc, increment } from 'firebase/firestore'
 
 export const addWorkload =
-    ({ name, deadline, project, desc, images, submitter, date, response }, setError) =>
+    ({ id }, setError) =>
         async (dispatch) => {
-            const storage = getStorage();
-
-
-
-
+            const database = getFirestore()
+            await updateDoc(doc(database, "users", id), {
+                tasks: increment(1)
+            })
         };

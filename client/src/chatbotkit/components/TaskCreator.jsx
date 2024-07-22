@@ -8,16 +8,23 @@ const TaskCreator = props => {
   const [displaySelector, toggleDisplaySelector] = useState(true);
   const [task, setTask] = useState('');
   const [deadline, setDeadline] = useState();
+  const [isCustom, setIsCustom] = useState(false);
 
   const handleChange = (e) => {
-    setTask(e.target.value);
+
+    if (e.target.value == 'Custom') {
+      setIsCustom(true)
+    } else {
+      setTask(e.target.value);
+    }
+
   };
 
   const handleSubmit = () => {
     setState((state) => ({
       ...state,
       taskName: task,
-      taskDeadline:deadline
+      taskDeadline: deadline
     }));
     toggleDisplaySelector((prevState) => !prevState);
     actionProvider.handleTaskRequirements();
@@ -30,14 +37,29 @@ const TaskCreator = props => {
           <>
             {" "}
             <h2 className="airport-selector-heading">Task Name</h2>
-            <input
-              type="text"
-              placeholder="Task Name.."
-              onChange={(e) => handleChange(e)}
-            />
+            {!isCustom && (
+              <select required  onChange={(event) => handleChange(event)}>
+                <option value="" disabled selected hidden>Select Task Name</option>
+                <option value="Custom">Custom</option>
+                <option value="Send Elevation Plan">Send Elevation Plan</option>
+                <option value="Send Section Plan">Send Section Plan</option>
+                <option value="Send Stair Plan">Send Stair Plan</option>
+                <option value="Send Hallway Plan">Send Hallway Plan</option>
+                <option value="Send Floor Plan">Send Floor Plan</option>
+                <option value="Send Ceiling Plan">Send Ceiling Plan</option>
+              </select>
+            )}
+            {isCustom && (
+              <input
+                type="text"
+                placeholder="Task Name.."
+                onChange={(e) => handleChange(e)}
+              />
+            )}
+
             <h2 className="airport-selector-heading">Deadline</h2>
 
-            <input type="date" id="myDateInput" name="myDate" onChange={(e)=>setDeadline(e.target.value)}/>
+            <input type="date" id="myDateInput" name="myDate" onChange={(e) => setDeadline(e.target.value)} />
             <button className="airport-button-confirm" onClick={handleSubmit}>
               Confirm
             </button>

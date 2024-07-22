@@ -65,11 +65,14 @@ const FolderComponent = () => {
   const [show2, setShow2] = useState(false);
   const [show3, setShow3] = useState(false);
   const [show4, setShow4] = useState(false);
+  const [show5, setShow5] = useState(false);
   const storage = getStorage();
   const [role, setRole] = useState()
+  const [note, setNote] = useState()
+
   const [projects, setProjects] = useState([])
   const [deleteFile, setDeleteFile] = useState()
-
+  const [rename, setRename] = useState('')
   const dispatch = useDispatch();
   const history = useHistory();
 
@@ -231,6 +234,22 @@ const FolderComponent = () => {
     setFileSelectedId(id)
   }
 
+  const handleRename = (data, id) => {
+    setShow5(true)
+    setFileSelected(data)
+    setFileSelectedId(id)
+  }
+
+  const handleRenameSubmit = async (e) => {
+    const filesRef = doc(db, "files", fileSelectedId);
+
+    await updateDoc(filesRef, {
+      name: rename
+    }).then(() => {
+      setShow5(false)
+      toast.success('File Renamed!')
+    })
+  }
   const handleUploadReq = async (e) => {
     e.preventDefault();
 
@@ -284,8 +303,7 @@ const FolderComponent = () => {
           await updateDoc(filesRef, {
             url: downloadURL,
             metadata: [metadocu],
-            name: file.name,
-            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName, url: downloadURL })
+            history: arrayUnion({ name: file.name, timestamp: new Date(), user: user.data.displayName, url: downloadURL, note: note })
           }).then(() => {
             setShow3(false)
             setShow2(false)
@@ -368,7 +386,27 @@ const FolderComponent = () => {
 
             </div>
             {currentFolder.data.createdBy !== "admin" && (
+              <>
+                {role != 'Requestor' && (
+                  <div className="ml-auto col-md-5 d-flex justify-content-end">
+
+                    <UploadFile currentFolder={currentFolder} />
+                    &nbsp;
+                    <CreateFile currentFolder={currentFolder} />
+                    &nbsp;
+                    <CreateFolder currentFolder={currentFolder} />
+                  </div>
+                )}</>
+
+
+            )}
+          </>
+        ) : (
+          <>
+            <p>Root</p>
+            {role != 'Requestor' && (
               <div className="ml-auto col-md-5 d-flex justify-content-end">
+
                 <UploadFile currentFolder={currentFolder} />
                 &nbsp;
                 <CreateFile currentFolder={currentFolder} />
@@ -376,17 +414,6 @@ const FolderComponent = () => {
                 <CreateFolder currentFolder={currentFolder} />
               </div>
             )}
-          </>
-        ) : (
-          <>
-            <p>Root</p>
-            <div className="ml-auto col-md-5 d-flex justify-content-end">
-              <UploadFile currentFolder={currentFolder} />
-              &nbsp;
-              <CreateFile currentFolder={currentFolder} />
-              &nbsp;
-              <CreateFolder currentFolder={currentFolder} />
-            </div>
           </>
         )}
       </Col>
@@ -466,6 +493,8 @@ const FolderComponent = () => {
                             <Dropdown.Item onClick={() => handleDeleteConfirm(docId)}>Delete</Dropdown.Item>
                             <Dropdown.Item onClick={() => handleVersionHistory(data, docId)}>Version History</Dropdown.Item>
                             <Dropdown.Item onClick={() => handleUpdate(data, docId)}>Update</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleRename(data, docId)}>Rename</Dropdown.Item>
+
                           </Dropdown.Menu>
                         </Dropdown>
                       </div>
@@ -495,6 +524,7 @@ const FolderComponent = () => {
                 <tr>
                   <th>File Name</th>
                   <th>Date Updated</th>
+                  <th>Note</th>
                   <th>User</th>
                 </tr>
               </thead>
@@ -503,6 +533,7 @@ const FolderComponent = () => {
                   <tr key={item}>
                     <td><a href={item.url}>{item.name}</a></td>
                     <td>{moment(item.timestamp.toDate()).format('l')}</td>
+                    <td>{item.note}</td>
                     <td>{item.user}</td>
                   </tr>
                 ))}
@@ -528,6 +559,10 @@ const FolderComponent = () => {
               <Form.Group controlId="formFile" className="mb-3">
                 <Form.Label>  Update the version of the file : {fileSelected.name}</Form.Label>
                 <Form.Control required type="file" onChange={(e) => handleUploadReq(e)} />
+                <p></p>
+                <Form.Label>  Add change notes </Form.Label>
+                <Form.Control required as="textarea" rows={2} placeholder="Notes" onChange={(e) => setNote(e.target.value)} />
+
               </Form.Group>
             </Form>
           </Modal.Body>
@@ -570,6 +605,21 @@ const FolderComponent = () => {
 
         </Modal.Footer>
       </Modal>
+
+      {fileSelected && (
+        <Modal show={show5} onHide={() => setShow5(false)}>
+          <Modal.Header>
+            <Modal.Title>Rename File: {fileSelected.name}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form.Control type="text" required placeholder="Section Plan" onChange={(e) => setRename(e.target.value)}></Form.Control>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShow4(false)}>Cancel</Button>
+            <Button variant="primary" onClick={() => handleRenameSubmit()}>Submit</Button>
+          </Modal.Footer>
+        </Modal>
+      )}
 
 
       {role && (

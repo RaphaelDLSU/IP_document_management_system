@@ -34,6 +34,8 @@ const Home = () => {
     const [show4, setShow4] = useState(false);
     const [show5, setShow5] = useState(false);
     const [show6, setShow6] = useState(false);
+    const [show7, setShow7] = useState(false);
+
     const handleClose2 = () => setShow2(false);
     const { path } = useRouteMatch();
     const [show3, setShow3] = useState(false);
@@ -257,7 +259,7 @@ const Home = () => {
 
                 const dateDeadline = new Date();
                 dateDeadline.setDate(dateDeadline.getDate() + 3);
-                dateDeadline.setHours(0,0,0,0)
+                dateDeadline.setHours(0, 0, 0, 0)
                 querySnapshot.forEach(async (user) => {
                     const setTasksRef = doc(database, 'tasks', statusTask[0].parentId)
                     const stageRef = doc(database, 'stages', statusTask[0].parentId)
@@ -393,7 +395,7 @@ const Home = () => {
                         }))
                         const dateDeadline = new Date();
                         dateDeadline.setDate(dateDeadline.getDate() + 3);
-                        dateDeadline.setHours(0,0,0,0)
+                        dateDeadline.setHours(0, 0, 0, 0)
                         await setDoc(setTasksRef, {
                             task: task1.name,
                             isChecked: false,
@@ -524,7 +526,7 @@ const Home = () => {
 
         const projectRef = collection(database, "projects")
 
-        await addDoc(projectRef, projectModel(projectName,projectAddress)).then(() => {
+        await addDoc(projectRef, projectModel(projectName, projectAddress)).then(() => {
             toast.success(projectName + ' created')
         })
     }
@@ -670,10 +672,11 @@ const Home = () => {
 
 
                                         <Accordion.Body>
-                                            {description}
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <p>{description}</p>
+                                                <Button size='sm' onClick={() => setShow7(true)}>View Legend</Button>
+                                            </div>
                                             <hr></hr>
-                                            Tasks:
-                                            <p></p>
 
                                             <Table striped bordered hover>
                                                 <thead>
@@ -878,7 +881,7 @@ const Home = () => {
                             />
                             <Form.Label>Project Address</Form.Label>
 
-                             <Form.Control
+                            <Form.Control
                                 type="text"
                                 placeholder='123 Main Street, Cityville, Stateville'
                                 rows={1}
@@ -927,6 +930,30 @@ const Home = () => {
                     </Modal.Footer>
 
 
+                </Modal>
+
+                <Modal show={show7} onHide={() => setShow7(false)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Legend</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+
+                        <div style={{ fontFamily: 'Arial, sans-serif', margin: '20px' }}>
+                            <ul style={{ listStyleType: 'none', padding: 0 }}>
+                                <li style={{ backgroundColor: '#C7DBD2', color: 'black', padding: '5px', marginBottom: '5px' }}>
+                                    Green Highlight: Ongoing Stage
+                                </li>
+                                <li style={{ color: 'blue', padding: '5px', marginBottom: '5px' }}>
+                                    Requirements Blue Text: Stage
+                                </li>
+                                <li style={{ color: 'black', padding: '5px', marginBottom: '5px' }}>
+                                    Requirements Black Text: Task
+                                </li>
+                            </ul>
+                        </div>                                            <p></p>
+
+                    </Modal.Body>
                 </Modal>
 
 

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react'
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc, or } from 'firebase/firestore'
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 
@@ -23,11 +23,19 @@ import Spinner from 'react-bootstrap/Spinner';
 import { createNotifs } from '../../../redux/notifs/createNotif';
 import { Dispatch } from 'react';
 import moment from 'moment';
+import { Chart as ChartJS } from 'chart.js/auto'
+import { Chart } from 'react-chartjs-2'
+
+import { Pie } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
+
 import { autoAssign } from '../../../redux/workload/autoAssign';
 import { toast } from 'react-toastify';
 
 const Home = () => {
     const [users, setUsers] = useState([]);
+    const [projects, setProjects] = useState([])
+    const [role, setRole] = useState()
 
     const [requestsCompletedInit, setRequestsCompletedInit] = useState();
     const [requestsPendingInit, setRequestsPendingInit] = useState();
@@ -39,11 +47,32 @@ const Home = () => {
     const [request, setRequest] = useState()
     const [employee, setEmployee] = useState()
     const database = getFirestore()
+    const collectionRef = collection(database, 'requests')
+
     const [employees, setEmployees] = useState([])
     const dispatch = useDispatch();
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const [isChecked, setIsChecked] = useState(false);
+    const [chartRequestsCompleted, setChartRequestsCompleted] = useState();
+    const [chartRequestsCompletedLate, setChartRequestsCompletedLate] = useState();
+    const [chartRequestsPending, setChartRequestsPending] = useState();
+    const [chartRequestsPendingLate, setChartRequestsPendingLate] = useState();
+
+    const [chartEmployee, setChartEmployee] = useState([]);
+    const [chartEmployeeRequestsCompleted, setChartEmployeeRequestsCompleted] = useState([]);
+    const [chartEmployeeRequestsPending, setChartEmployeeRequestsPending] = useState([]);
+
+    const [chartRequestsCompletedInit, setChartRequestsCompletedInit] = useState();
+    const [chartRequestsCompletedLateInit, setChartRequestsCompletedLateInit] = useState();
+    const [chartRequestsPendingInit, setChartRequestsPendingInit] = useState();
+    const [chartRequestsPendingLateInit, setChartRequestsPendingLateInit] = useState();
+
+    const [chartEmployeeInit, setChartEmployeeInit] = useState([]);
+    const [chartEmployeeRequestsCompletedInit, setChartEmployeeRequestsCompletedInit] = useState([]);
+    const [chartEmployeeRequestsPendingInit, setChartEmployeeRequestsPendingInit] = useState([]);
+
+
     const { isLoggedIn, user, userId } = useSelector(
         (state) => ({
             isLoggedIn: state.auth.isLoggedIn,
@@ -142,22 +171,67 @@ const Home = () => {
     }
 
     useEffect(async () => {
+        if (user) {
+            const s = query(collection(database, "users"), where("email", "==", user.data.uid));
+            const querySnapshot = await getDocs(s);
+            querySnapshot.forEach((doc) => {
+                setRole(doc.data().role)
+            });
+        }
+
         const q = query(collection(database, "requests"), where('status', '==', 'done'));
         const f = query(collection(database, "requests"), where('status', '!=', 'done'));
 
         await getDocs(q).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setRequestsPendingInit(requestsData)
+            setRequestsCompletedInit(requestsData)
             setRequestsDone(requestsData)
+
+            let notLate = 0
+            let late = 0
+            requestsData.forEach((task) => {
+                if (task.deadline.toDate() > task.completion.toDate())
+                    notLate++
+                else
+                    late++
+
+            })
+
+            setChartRequestsCompletedInit(notLate)
+            setChartRequestsCompletedLateInit(late)
+            setChartRequestsCompleted(notLate)
+            setChartRequestsCompletedLate(late)
         }).catch((err) => {
             console.log(err);
         })
 
         await getDocs(f).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setRequestsCompletedInit(requestsData)
+            setRequestsPendingInit(requestsData)
             setRequestsPending(requestsData)
             setLoading(false)
+
+            let notLate = 0
+            let late = 0
+
+            requestsData.forEach((task) => {
+                if (task.deadline.toDate() > new Date) {
+
+                    notLate++
+
+                }
+                else {
+                    console.log('LATE' + task.deadline + new Date)
+                    late++
+
+                }
+
+            })
+
+            setChartRequestsPendingInit(notLate)
+            setChartRequestsPendingLateInit(late)
+            setChartRequestsPending(notLate)
+            setChartRequestsPendingLate(late)
         }).catch((err) => {
             console.log(err);
         })
@@ -176,19 +250,113 @@ const Home = () => {
 
         const getUsers = async () => {
             // const q = query(collectionRef, orderBy('task', 'asc'))
-            const q = query(usersRef)
+            const q = query(usersRef, where('role', '==', 'Employee'))
             await getDocs(q).then((users) => {
                 let usersData = users.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+
+                usersData.forEach(async (user) => {
+                    setChartEmployee(prevItem => [...prevItem, user.name])
+                    setChartEmployeeInit(prevItem => [...prevItem, user.name])
+
+                    const q = query(collection(database, "requests"), or(where("submitterEmail", "==", user.email), where('origUser', '==', user.email)));
+
+                    const querySnapshot = await getDocs(q);
+
+                    let complete = 0
+                    let pending = 0
+                    querySnapshot.forEach((doc) => {
+                        if (doc.data().status == 'done') {
+
+                            console.log(user.name + '=' + doc.data().task)
+                            complete = complete + 1
+                        } else {
+                            pending = pending + 1
+                        }
+                    });
+                    setChartEmployeeRequestsCompleted(prevItem => [...prevItem, complete])
+                    setChartEmployeeRequestsPending(prevItem => [...prevItem, pending])
+                    setChartEmployeeRequestsCompletedInit(prevItem => [...prevItem, complete])
+                    setChartEmployeeRequestsPendingInit(prevItem => [...prevItem, pending])
+
+
+
+                })
                 setUsers(usersData)
+
+
             }).catch((err) => {
                 console.log(err);
             })
         }
         getUsers()
 
-
+        const getProjects = async () => {
+            const q = query(collection(database, 'projects'))
+            await getDocs(q).then((project) => {
+                let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                setProjects(projectData)
+            }).catch((err) => {
+                console.log(err);
+            })
+        }
+        getProjects()
     }, []);
+    const dataRequestsComplete = {
+        labels: chartEmployee,
+        datasets: [
+            {
+                label: '# of Requests Completed',
+                data: chartEmployeeRequestsCompleted,
+                backgroundColor: [
+                    'rgba(144, 238, 144, 1)',
 
+                ],
+                borderColor: [
+                    'rgba(144, 238, 144, 1)',
+
+                ],
+                borderWidth: 1,
+            },
+        ],
+    };
+
+    const dataRequestsPending = {
+        labels: chartEmployee,
+        datasets: [
+            {
+                label: '# of Requests Pending',
+                data: chartEmployeeRequestsPending,
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+
+                ],
+                borderWidth: 1,
+            },
+        ],
+    };
+
+    const dataProjectRequests = {
+        labels: ['Completed', 'Completed but late', 'Pending', 'Late'],
+        datasets: [
+            {
+                label: 'Status of Tasks',
+                data: [chartRequestsCompleted, chartRequestsCompletedLate, chartRequestsPending, chartRequestsPendingLate],
+                backgroundColor: [
+                    'rgba(0, 128, 0, 1)', 'rgba(255, 255, 0, 1)', 'rgba(255, 165, 0, 1)', 'rgba(255, 0, 0, 1)'
+
+                ],
+                borderColor: [
+                    'rgba(0, 128, 0, 1)', 'rgba(255, 255, 0, 1)', 'rgba(255, 165, 0, 1)', 'rgba(255, 0, 0, 1)'
+
+                ],
+                borderWidth: 1,
+            },
+        ],
+    };
 
     const autoAssignThis = (e) => {
         setIsChecked(e)
@@ -410,6 +578,109 @@ const Home = () => {
 
     }
 
+    const changeChartProject = async (project) => {
+
+        if (project == 'All') {
+
+            setChartRequestsPending(chartRequestsPendingInit)
+            setChartRequestsPendingLate(chartRequestsPendingLateInit)
+            setChartRequestsCompleted(chartRequestsCompletedInit)
+            setChartRequestsCompletedLate(chartRequestsCompletedLateInit)
+            setChartEmployee(chartEmployeeInit)
+            setChartEmployeeRequestsCompleted(chartEmployeeRequestsCompletedInit)
+            setChartEmployeeRequestsPending(chartEmployeeRequestsPendingInit)
+
+        } else {
+            setChartRequestsPending()
+            setChartRequestsPendingLate()
+            setChartRequestsCompleted()
+            setChartRequestsCompletedLate()
+            setChartEmployee([])
+            setChartEmployeeRequestsCompleted([])
+            setChartEmployeeRequestsPending([])
+            const q = query(usersRef, where('role', '==', 'Employee'))
+            await getDocs(q).then((users) => {
+                let usersData = users.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+
+                usersData.forEach(async (user) => {
+                    setChartEmployee(prevItems => [...prevItems, user.name]);
+                    const q = query(collection(database, "requests"), or(where("submitterEmail", "==", user.email), where('origUser', '==', user.email)));
+
+                    const querySnapshot = await getDocs(q);
+
+                    let complete = 0
+                    let pending = 0
+                    querySnapshot.forEach((doc) => {
+                        if (doc.data().project == project) {
+                            if (doc.data().status == 'done') {
+
+                                console.log(user.name + '=' + doc.data().task)
+                                complete = complete + 1
+                            } else {
+                                pending = pending + 1
+                            }
+                        }
+                    });
+                    setChartEmployeeRequestsCompleted(prevItem => [...prevItem, complete])
+                    setChartEmployeeRequestsPending(prevItem => [...prevItem, pending])
+
+                })
+
+
+            }).catch((err) => {
+                console.log(err);
+            })
+            const getTasks = async () => {
+                // const q = query(collectionRef, orderBy('task', 'asc'))
+                const q = query(collectionRef, where('status', '!=', 'done'), where('project', '==', project))
+                await getDocs(q).then((tasks) => {
+                    let notLate = 0
+                    let late = 0
+                    let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+
+                    tasksData.forEach((task) => {
+                        if (task.deadline.toDate() > new Date)
+                            notLate++
+                        else
+                            late++
+
+                    })
+                    setChartRequestsPending(notLate)
+                    setChartRequestsPendingLate(late)
+
+                }).catch((err) => {
+                    console.log(err);
+                })
+
+                const f = query(collectionRef, where('status', '==', 'done'), where('project', '==', project))
+                await getDocs(f).then((tasks) => {
+
+                    let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+                    let notLate = 0
+                    let late = 0
+                    tasksData.forEach((task) => {
+                        if (task.deadline.toDate() > task.completion.toDate())
+                            notLate++
+                        else
+                            late++
+
+                    })
+
+                    setChartRequestsCompleted(notLate)
+                    setChartRequestsCompletedLate(late)
+
+                }).catch((err) => {
+                    console.log(err);
+                }).then(() => {
+                    setLoading(false)
+                })
+            }
+
+            getTasks()
+        }
+
+    }
+
     if (loading) {
         return (
             <div className='loadingcontain'>
@@ -426,254 +697,299 @@ const Home = () => {
                     <div className='content' style={{ padding: '5px' }}>
                         <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Pending Requests</h5>
                         <RequestTasks></RequestTasks>
-                        <p></p><p></p>
-                        <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Requests Manager</h5>
-                        <Tabs
-                            defaultActiveKey="pending"
-                            id="uncontrolled-tab-example"
-                            className="mb-3"
-                        >
-                            <Tab eventKey="pending" title="Pending" >
-                                <Container style={{ maxWidth: "100%" }}>
-                                    <Row xs="auto">
-                                        <Col>
-                                            <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
-                                        </Col>
-                                        <Col>
-                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterPending(e.target.value)}>
-                                                <option value="" hidden>Sort By</option>
-                                                <option value="End Date Descending"> End Date Descending</option>
-                                                <option value="End Date Ascending"> End Date Ascending</option>
-                                                <option value="Start Date Ascending"> Start Date Ascending</option>
-                                                <option value="Start Date Descending"> Start Date Descending</option>
+                        {role == 'Manager' || role =='CEO' && (
+                            <>
+                                <p></p><p></p>
+                                <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Requests Manager</h5>
 
-                                            </Form.Select>
-                                        </Col>
-                                        <Col>
-                                            <Form.Control
-                                                type="text"
-                                                onChange={(e) => filterTaskPending(e.target.value)}
-                                                placeholder='Filter by Query'
-                                            />
-                                        </Col>
-                                        <Col>
-                                            <Form.Select onChange={(e) => filterEmployeePending(e.target.value)}>
-                                                <option value="" hidden>Sort By Employee</option>
-                                                {users.map((user, index) => (
-                                                    <>
+                                <Tabs
+                                    defaultActiveKey="advanced"
+                                    id="uncontrolled-tab-example"
+                                    className="mb-3"
+                                >
+                                    <Tab eventKey='standard' title='Standard'>
+                                        <Row xs='auto'>
+                                            <Col>
+                                                <Form.Select placeholder='Project' onChange={(e) => changeChartProject(e.target.value)}>
+                                                    <option value="All">All</option>
+                                                    {projects.map((project, index) => (
+                                                        <>
+                                                            <option value={project.name}>{project.name}</option>
+                                                        </>
 
-                                                        <option>{user.name}</option>
+                                                    ))}
+                                                </Form.Select>
+                                            </Col>
 
-                                                    </>
+                                        </Row>
+                                        <Row>
+                                            <Col>
+                                                <Bar data={dataRequestsComplete}></Bar>
+                                            </Col>
+                                            <Col>
+                                                <Bar data={dataRequestsPending}></Bar>
+                                            </Col>
+                                            <Col>
+                                                <Pie data={dataProjectRequests} width={"30%"}
+                                                    options={{ maintainAspectRatio: false }}></Pie>
+                                            </Col>
+                                        </Row>
 
-                                                ))}
-                                            </Form.Select>
+                                    </Tab>
+                                    <Tab eventKey='advanced' title='Advanced'>
+                                        <Tabs
+                                            defaultActiveKey="pending"
+                                            id="uncontrolled-tab-example"
+                                            className="mb-3"
+                                        >
+                                            <Tab eventKey="pending" title="Pending" >
+                                                <Container style={{ maxWidth: "100%" }}>
+                                                    <Row xs="auto">
+                                                        <Col>
+                                                            <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterPending(e.target.value)}>
+                                                                <option value="" hidden>Sort By</option>
+                                                                <option value="End Date Descending"> End Date Descending</option>
+                                                                <option value="End Date Ascending"> End Date Ascending</option>
+                                                                <option value="Start Date Ascending"> Start Date Ascending</option>
+                                                                <option value="Start Date Descending"> Start Date Descending</option>
 
-                                        </Col>
-                                        <Col>
-                                            <Form.Select onChange={(e) => filterStartPending(e.target.value)}>
-                                                <option value="" hidden>Filter Date Requested</option>
-                                                <option value='1 week'>1 week</option>
-                                                <option value='1 month'>1 Month</option>
-                                                <option value='3 months'>3 Months</option>
+                                                            </Form.Select>
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Control
+                                                                type="text"
+                                                                onChange={(e) => filterTaskPending(e.target.value)}
+                                                                placeholder='Filter by Query'
+                                                            />
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select onChange={(e) => filterEmployeePending(e.target.value)}>
+                                                                <option value="" hidden>Sort By Employee</option>
+                                                                {users.map((user, index) => (
+                                                                    <>
 
-                                            </Form.Select>
+                                                                        <option>{user.name}</option>
 
-                                        </Col>
-                                        <Col>
-                                            <Form.Select onChange={(e) => filterEndPending(e.target.value)}>
-                                                <option value="" hidden>Filter Deadline</option>
-                                                <option value='1 week'>1 week</option>
-                                                <option value='1 month'>1 Month</option>
-                                                <option value='3 months'>3 Months</option>
+                                                                    </>
 
-                                            </Form.Select>
+                                                                ))}
+                                                            </Form.Select>
 
-                                        </Col>
-                                        <Col>
-                                            <Button onClick={resetFilterPending}>Reset</Button>
-                                        </Col>
-                                    </Row>
-                                </Container>
-                                <p></p>
-                                <Table id='table-pending' striped bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>Reference</th>
-                                            <th>Project</th>
-                                            <th>Query</th>
-                                            <th>Date Requested</th>
-                                            <th>Deadline</th>
-                                            <th>Assigned to </th>
-                                            <th>Status </th>
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select onChange={(e) => filterStartPending(e.target.value)}>
+                                                                <option value="" hidden>Filter Date Requested</option>
+                                                                <option value='1 week'>1 week</option>
+                                                                <option value='1 month'>1 Month</option>
+                                                                <option value='3 months'>3 Months</option>
 
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {requestsPending.map(request => (
-                                            <tr key={request.id}>
-                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.identifier}</td>
-                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.project}</td>
-                                                {request.url ? (
-                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}><a href={request.url} target='_blank'>{request.desc}</a></td>
-                                                ) : (
-                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.desc}</td>
-                                                )}
+                                                            </Form.Select>
 
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select onChange={(e) => filterEndPending(e.target.value)}>
+                                                                <option value="" hidden>Filter Deadline</option>
+                                                                <option value='1 week'>1 week</option>
+                                                                <option value='1 month'>1 Month</option>
+                                                                <option value='3 months'>3 Months</option>
 
-                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.date.toDate()).format('l')}</td>
-                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.deadline.toDate()).format('l')}</td>
-                                                {request.submitter === '' ? (
-                                                    <>
-                                                        {user.data.uid === 'manager@gmail.com' ? (
-                                                            <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
+                                                            </Form.Select>
 
-                                                        ):(<td> *To be Assigned*</td>)}
-                                                    </>
-                                                )
-                                                    : (
-                                                        <td>{request.submitter}</td>
-                                                    )
-                                                }
-                                                {request.status != 'done' ? (
-                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
-                                                ) : (
-                                                    <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
-                                                )}
+                                                        </Col>
+                                                        <Col>
+                                                            <Button onClick={resetFilterPending}>Reset</Button>
+                                                        </Col>
+                                                    </Row>
+                                                </Container>
+                                                <p></p>
+                                                <Table id='table-pending' striped bordered hover>
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Reference</th>
+                                                            <th>Project</th>
+                                                            <th>Query</th>
+                                                            <th>Date Requested</th>
+                                                            <th>Deadline</th>
+                                                            <th>Assigned to </th>
+                                                            <th>Status </th>
 
-
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-
-                            </Tab>
-                            <Tab eventKey="completed" title="Completed" >
-                                <Container style={{ maxWidth: "100%" }}>
-                                    <Row xs="auto">
-                                        <Col>
-                                            <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
-                                        </Col>
-                                        <Col>
-                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterCompleted(e.target.value)}>
-                                                <option value="" hidden>Sort By</option>
-                                                <option value="End Date Descending"> End Date Descending</option>
-                                                <option value="End Date Ascending"> End Date Ascending</option>
-                                                <option value="Start Date Ascending"> Start Date Ascending</option>
-                                                <option value="Start Date Descending"> Start Date Descending</option>
-                                            </Form.Select>
-                                        </Col>
-                                        <Col>
-                                            <Form.Control
-                                                type="text"
-                                                onChange={(e) => filterTaskCompleted(e.target.value)}
-                                                placeholder='Filter by Query'
-                                            />
-                                        </Col>
-                                        <Col>
-                                            <Form.Select onChange={(e) => filterEmployeeCompleted(e.target.value)}>
-                                                <option value="" hidden>Sort By Employee</option>
-                                                {users.map((user, index) => (
-                                                    <>
-
-                                                        <option>{user.name}</option>
-
-                                                    </>
-
-                                                ))}
-                                            </Form.Select>
-
-                                        </Col>
-                                        <Col>
-                                            <Form.Select onChange={(e) => filterStartCompleted(e.target.value)}>
-                                                <option value="" hidden>Filter Date Requested</option>
-                                                <option value='1 week'>1 week</option>
-                                                <option value='1 month'>1 Month</option>
-                                                <option value='3 months'>3 Months</option>
-
-                                            </Form.Select>
-
-                                        </Col>
-                                        <Col>
-                                            <Form.Select onChange={(e) => filterEndCompleted(e.target.value)}>
-                                                <option value="" hidden>Filter Deadline</option>
-                                                <option value='1 week'>1 week</option>
-                                                <option value='1 month'>1 Month</option>
-                                                <option value='3 months'>3 Months</option>
-
-                                            </Form.Select>
-
-                                        </Col>
-                                        <Col>
-                                            <Button onClick={resetFilterCompleted}>Reset</Button>
-                                        </Col>
-                                    </Row>
-                                </Container>
-                                <p></p>
-                                <Table id='table-completed' striped bordered hover>
-                                    <thead>
-                                        <tr>
-                                            <th>Reference</th>
-                                            <th>Project</th>
-                                            <th>Query</th>
-                                            <th>Date Requested</th>
-                                            <th>Deadline</th>
-                                            <th>Date Responded</th>
-                                            <th>Assigned to </th>
-                                            <th>Status </th>
-
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {requestsDone.map(request => (
-                                            <tr key={request.id}>
-                                                <td>{request.identifier}</td>
-                                                <td>{request.project}</td>
-                                                {request.url ? (
-                                                    <td><a target='_blank' href={request.url}>{request.desc}</a></td>
-                                                ) : (
-                                                    <td>{request.desc}</td>
-                                                )}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {requestsPending.map(request => (
+                                                            <tr key={request.id}>
+                                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.identifier}</td>
+                                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.project}</td>
+                                                                {request.url ? (
+                                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}><a href={request.url} target='_blank'>{request.desc}</a></td>
+                                                                ) : (
+                                                                    <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{request.desc}</td>
+                                                                )}
 
 
-                                                <td>{moment(request.date.toDate()).format('l')}</td>
-                                                <td>{moment(request.deadline.toDate()).format('l')}</td>
-                                                <td>{moment(request.completion.toDate()).format('l')}</td>
-                                                {request.submitter === '' ? (
-                                                    <>
-                                                        {user.data.uid === 'manager@gmail.com' && (
-                                                            <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
+                                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.date.toDate()).format('l')}</td>
+                                                                <td style={{ color: request.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(request.deadline.toDate()).format('l')}</td>
+                                                                {request.submitter === '' ? (
+                                                                    <>
+                                                                        {user.data.uid === 'manager@gmail.com' ? (
+                                                                            <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
 
-                                                        )}
-                                                    </>
-                                                )
-                                                    : (
-                                                        <td>{request.submitter}</td>
-                                                    )
-                                                }
-                                                {request.status != 'done' ? (
-                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
-                                                ) : (
-                                                    <>
-                                                        {request.completion > request.deadline && (
-                                                            <td style={{ backgroundColor: 'yellow', color: 'black' }}>Completed (Late)</td>
-                                                        )}
-                                                        {request.completion < request.deadline && (
-                                                            <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
-                                                        )}
-                                                    </>
-
-                                                )}
+                                                                        ) : (<td> *To be Assigned*</td>)}
+                                                                    </>
+                                                                )
+                                                                    : (
+                                                                        <td>{request.submitter}</td>
+                                                                    )
+                                                                }
+                                                                {request.status != 'done' ? (
+                                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
+                                                                ) : (
+                                                                    <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
+                                                                )}
 
 
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
 
-                            </Tab>
+                                            </Tab>
+                                            <Tab eventKey="completed" title="Completed" >
+                                                <Container style={{ maxWidth: "100%" }}>
+                                                    <Row xs="auto">
+                                                        <Col>
+                                                            <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterCompleted(e.target.value)}>
+                                                                <option value="" hidden>Sort By</option>
+                                                                <option value="End Date Descending"> End Date Descending</option>
+                                                                <option value="End Date Ascending"> End Date Ascending</option>
+                                                                <option value="Start Date Ascending"> Start Date Ascending</option>
+                                                                <option value="Start Date Descending"> Start Date Descending</option>
+                                                            </Form.Select>
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Control
+                                                                type="text"
+                                                                onChange={(e) => filterTaskCompleted(e.target.value)}
+                                                                placeholder='Filter by Query'
+                                                            />
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select onChange={(e) => filterEmployeeCompleted(e.target.value)}>
+                                                                <option value="" hidden>Sort By Employee</option>
+                                                                {users.map((user, index) => (
+                                                                    <>
 
-                        </Tabs>
+                                                                        <option>{user.name}</option>
+
+                                                                    </>
+
+                                                                ))}
+                                                            </Form.Select>
+
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select onChange={(e) => filterStartCompleted(e.target.value)}>
+                                                                <option value="" hidden>Filter Date Requested</option>
+                                                                <option value='1 week'>1 week</option>
+                                                                <option value='1 month'>1 Month</option>
+                                                                <option value='3 months'>3 Months</option>
+
+                                                            </Form.Select>
+
+                                                        </Col>
+                                                        <Col>
+                                                            <Form.Select onChange={(e) => filterEndCompleted(e.target.value)}>
+                                                                <option value="" hidden>Filter Deadline</option>
+                                                                <option value='1 week'>1 week</option>
+                                                                <option value='1 month'>1 Month</option>
+                                                                <option value='3 months'>3 Months</option>
+
+                                                            </Form.Select>
+
+                                                        </Col>
+                                                        <Col>
+                                                            <Button onClick={resetFilterCompleted}>Reset</Button>
+                                                        </Col>
+                                                    </Row>
+                                                </Container>
+                                                <p></p>
+                                                <Table id='table-completed' striped bordered hover>
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Reference</th>
+                                                            <th>Project</th>
+                                                            <th>Query</th>
+                                                            <th>Date Requested</th>
+                                                            <th>Deadline</th>
+                                                            <th>Date Responded</th>
+                                                            <th>Assigned to </th>
+                                                            <th>Status </th>
+
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {requestsDone.map(request => (
+                                                            <tr key={request.id}>
+                                                                <td>{request.identifier}</td>
+                                                                <td>{request.project}</td>
+                                                                {request.url ? (
+                                                                    <td><a target='_blank' href={request.url}>{request.desc}</a></td>
+                                                                ) : (
+                                                                    <td>{request.desc}</td>
+                                                                )}
+
+
+                                                                <td>{moment(request.date.toDate()).format('l')}</td>
+                                                                <td>{moment(request.deadline.toDate()).format('l')}</td>
+                                                                <td>{moment(request.completion.toDate()).format('l')}</td>
+                                                                {request.submitter === '' ? (
+                                                                    <>
+                                                                        {user.data.uid === 'manager@gmail.com' && (
+                                                                            <td><Button size='sm' onClick={() => assignEmployee(request)}>Assign Employee</Button></td>
+
+                                                                        )}
+                                                                    </>
+                                                                )
+                                                                    : (
+                                                                        <td>{request.submitter}</td>
+                                                                    )
+                                                                }
+                                                                {request.status != 'done' ? (
+                                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
+                                                                ) : (
+                                                                    <>
+                                                                        {request.completion > request.deadline && (
+                                                                            <td style={{ backgroundColor: 'yellow', color: 'black' }}>Completed (Late)</td>
+                                                                        )}
+                                                                        {request.completion < request.deadline && (
+                                                                            <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
+                                                                        )}
+                                                                    </>
+
+                                                                )}
+
+
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+
+                                            </Tab>
+
+                                        </Tabs>
+
+                                    </Tab>
+                                </Tabs>
+                            </>
+                        )}
+
+
 
                     </div>
                 </div >

@@ -9,13 +9,15 @@ import { autoAssign } from '../../redux/workload/autoAssign';
 import { toast } from 'react-toastify';
 import { createNotifs } from '../../redux/notifs/createNotif';
 import { getEstimatedHours } from '../../redux/estimatedhours/getEstimatedHours';
+import { addWorkload } from '../../redux/workload/addWorkload';
 const TaskRequirement = props => {
   const { setState, actionProvider, taskName, project, taskDeadline } = props;
   const [displaySelector, toggleDisplaySelector] = useState(true);
   const [task, setTask] = useState('');
-  const [textBoxes, setTextBoxes] = useState(['']);
+  const [textBoxes, setTextBoxes] = useState([]);
   const database = getFirestore()
   const dispatch = useDispatch();
+  const [isCustom, setIsCustom] = useState([]);
 
   const { isLoggedIn, user, userId } = useSelector(
     (state) => ({
@@ -28,17 +30,25 @@ const TaskRequirement = props => {
 
   const addTextBox = () => {
     setTextBoxes([...textBoxes, '']);
+    setIsCustom([...isCustom, { custom: false }])
   };
 
   const handleTextBoxChange = (index, value) => {
 
+    if (value == 'Custom') {
+      const newInputs2 = [...isCustom];
+      newInputs2[index].custom = true;
+      setIsCustom(newInputs2)
+      const newInputs = [...textBoxes];
+      newInputs[index] = '';
+      setTextBoxes(newInputs);
 
-
-
-    const updatedTextBoxes = [...textBoxes];
-    updatedTextBoxes[index] = value;
-    setTextBoxes(updatedTextBoxes);
-    console.log('TEXTBOXES: ' + textBoxes)
+    } else {
+      const updatedTextBoxes = [...textBoxes];
+      updatedTextBoxes[index] = value;
+      setTextBoxes(updatedTextBoxes);
+      console.log('TEXTBOXES: ' + textBoxes)
+    }
   };
 
   const handleSubmit = async () => {
@@ -66,6 +76,7 @@ const TaskRequirement = props => {
 
       const employeeId = dispatch(autoAssign({}))
       employeeId.then(async (something) => {
+        dispatch(addWorkload({id:something}))
         const employeeRef = doc(database, "users", something)
         const employee = await getDoc(employeeRef)
 
@@ -116,6 +127,8 @@ const TaskRequirement = props => {
     const updatedTextBoxes = [...textBoxes];
     updatedTextBoxes.pop();
     setTextBoxes(updatedTextBoxes);
+    const newArray2 = isCustom.slice(0, isCustom.length - 1);
+    setIsCustom(newArray2)
   };
 
   return (
@@ -126,13 +139,30 @@ const TaskRequirement = props => {
           <>
             {textBoxes.map((value, index) => (
               <div key={index}>
-                <input
-                  required
-                  type="text"
-                  value={value}
-                  onChange={(e) => handleTextBoxChange(index, e.target.value)}
-                  placeholder="Type something..."
-                />
+
+                {!isCustom[index].custom && (
+                  <select required onChange={(e) => handleTextBoxChange(index, e.target.value)}>
+                    <option value="" disabled selected hidden>Select Requirement</option>
+                    <option value="Custom">Custom</option>
+                    <option value="Elevation Plan">Elevation Plan</option>
+                    <option value="Section Plan">Section Plan</option>
+                    <option value="Stair Plan">Stair Plan</option>
+                    <option value="Hallway Plan">Hallway Plan</option>
+                    <option value="Floor Plan">Floor Plan</option>
+                    <option value="Ceiling Plan">Ceiling Plan</option>
+                  </select>
+                )}
+                {isCustom[index].custom && (
+                  <input
+                    required
+                    type="text"
+                    value={value}
+                    onChange={(e) => handleTextBoxChange(index, e.target.value)}
+                    placeholder="Type something..."
+                  />
+                )}
+
+
               </div>
             ))}
 
