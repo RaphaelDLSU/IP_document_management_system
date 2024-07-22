@@ -374,9 +374,9 @@ const ManagerHome = () => {
                         <ListGroup>
                             {newNotifs ? (
                                 <>
-                                    {newNotifs.some(notif => notif.link === "/files") && <div>Files</div>}
+                                    {newNotifs.some(notif => notif.link === "/dashboard") && <div>Files</div>}
                                     {newNotifs
-                                        .filter(notif => notif.link === "/files")
+                                        .filter(notif => notif.link === "/dashboard")
                                         .map(notif => (
                                             <ListGroup.Item
                                                 action
