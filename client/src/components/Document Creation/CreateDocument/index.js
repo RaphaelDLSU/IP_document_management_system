@@ -353,23 +353,26 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
     const getProjects = async () => {
 
 
-      const k = query(collection(database, "users"), where("email", "==", user.data.uid));
+      if (user) {
+        const k = query(collection(database, "users"), where("email", "==", user.data.uid));
 
-      const querySnapshot = await getDocs(k);
-      querySnapshot.forEach((doc) => {
-        console.log('PROJECT ' + doc.data().project)
-        if (!doc.data().permission == []) {
-          setProjectsPermission(doc.data().permission)
-        }
+        const querySnapshot = await getDocs(k);
+        querySnapshot.forEach((doc) => {
+          console.log('PROJECT ' + doc.data().project)
+          if (!doc.data().permission == []) {
+            setProjectsPermission(doc.data().permission)
+          }
 
-      });
-      const q = query(collection(database, 'projects'))
-      await getDocs(q).then(async (project) => {
-        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        setProjects(projectData)
-      }).catch((err) => {
-        console.log(err);
-      })
+        });
+        const q = query(collection(database, 'projects'))
+        await getDocs(q).then(async (project) => {
+          let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+          setProjects(projectData)
+        }).catch((err) => {
+          console.log(err);
+        })
+      }
+
     }
 
     getProjects()
