@@ -331,10 +331,20 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
     const washingtonRef = doc(database, "users", employeeID);
 
+    const doc1 = await getDoc(washingtonRef)
+
+    if (doc1.data().permission.includes(projectPermission)) {
+      const newData = doc1.data().permission.filter(item => item !== projectPermission)
+      await updateDoc(washingtonRef, {
+        permission: newData
+      }).then(toast.error('Permission Removed'))
+    } else {
+      await updateDoc(washingtonRef, {
+        permission: arrayUnion(projectPermission)
+      }).then(toast.success('Permission Added'))
+    }
     // Set the "capital" field of the city 'DC'
-    await updateDoc(washingtonRef, {
-      permission: arrayUnion(projectPermission)
-    }).then(toast.success('Permission Added'))
+
   }
 
   //Gets projects from projects document
@@ -353,8 +363,6 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
         }
 
       });
-
-
       const q = query(collection(database, 'projects'))
       await getDocs(q).then(async (project) => {
         let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
@@ -502,7 +510,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
 
               <Form.Select placeholder='Select Project' onChange={(e) => setProjectPermission(e.target.value)}>
-              <option value="" hidden>Select ProjectF</option>
+                <option value="" hidden>Select ProjectF</option>
 
                 {projects.map((project, index) => (
                   <>
