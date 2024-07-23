@@ -1,24 +1,33 @@
 import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc, permission, FieldValue } from 'firebase/firestore'
 import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import { toast } from 'react-toastify';
 import { shallowEqual, useDispatch, useSelector } from "react-redux";
 
 //Bootstrap components
-import { Form, Button, Row, Col } from 'react-bootstrap';
+import { Form, Button, Row, Col, ListGroup } from 'react-bootstrap';
 
 const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleAddSaleableArea, handleRemoveSaleableArea }) => {
   const [projects, setProjects] = useState([])
+  const [projectsPermission, setProjectsPermission] = useState([])
+
   const database = getFirestore()
   const [project, setProject] = useState()
+
+  const [projectPermission, setProjectPermission] = useState()
   const [address, setAddress] = useState()
+  const [employees, setEmployees] = useState([])
+  const [employeeID, setEmployeeID] = useState()
+
   const [isCreated, setIsCreated] = useState()
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const [show, setShow] = useState(false);
+  const [show2, setShow2] = useState(false);
+
   const { isLoggedIn, user, userId } = useSelector(
     (state) => ({
       isLoggedIn: state.auth.isLoggedIn,
@@ -313,29 +322,61 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
 
   }
 
+  const managePermissions = () => {
+    setShow2(true)
+  }
+
+  const approvePermission = async () => {
+    setShow2(false)
+
+    const washingtonRef = doc(database, "users", employeeID);
+
+    // Set the "capital" field of the city 'DC'
+    await updateDoc(washingtonRef, {
+      permission: arrayUnion(projectPermission)
+    }).then(toast.success('Permission Added'))
+  }
+
   //Gets projects from projects document
   useEffect(() => {
 
     const getProjects = async () => {
 
 
-      const k = query(collection(database, "tasks"), where("employeeId", "==", user.data.uid),where('task','==','Submit Reviewed Building Permit Requirements'));
+      const k = query(collection(database, "users"), where("email", "==", user.data.uid));
 
       const querySnapshot = await getDocs(k);
       querySnapshot.forEach((doc) => {
-        console.log('PROJECT ' +doc.data().project)
-        setProjects([...projects, doc.data()])
+        console.log('PROJECT ' + doc.data().project)
+        if (!doc.data().permission == []) {
+          setProjectsPermission(doc.data().permission)
+        }
+
       });
-      // const q = query(collection(database, 'projects'))
-      // await getDocs(q).then(async (project) => {
-      //   let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-      //   setProjects(projectData)
-      // }).catch((err) => {
-      //   console.log(err);
-      // })
+
+
+      const q = query(collection(database, 'projects'))
+      await getDocs(q).then(async (project) => {
+        let projectData = project.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setProjects(projectData)
+      }).catch((err) => {
+        console.log(err);
+      })
     }
 
     getProjects()
+
+    const q = query(collection(database, "users"), where("role", "==", 'Employee'));
+
+    const getEmployees = async () => {
+      await getDocs(q).then((employees) => {
+        let employeeData = employees.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
+        setEmployees(employeeData)
+      }).catch((err) => {
+        console.log(err);
+      })
+    }
+    getEmployees()
     console.log(isCreated)
 
 
@@ -349,9 +390,9 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
       <Col md={2}>
         <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
           <option value="" hidden>Select project</option>
-          {projects.map((project, index) => (
+          {projectsPermission.map((project, index) => (
             <>
-              <option value={project.project}>{project.project}</option>
+              <option value={project}>{project}</option>
             </>
           ))}
         </Form.Select>
@@ -412,7 +453,13 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
           </Form>
         )}
 
-        <Button variant='primary' onClick={addFloor}>Add Floor</Button> &nbsp;
+        <Button variant='primary' onClick={addFloor}>Add Floor</Button> <p></p>
+
+        {user && user.data.uid == 'manager@gmail.com' && (
+          <Button variant='success' onClick={() => { managePermissions() }}> Manage Permissions</Button>
+        )}
+
+        &nbsp;
         {isCreated != undefined && (
           <>
             {!isCreated ? (
@@ -434,6 +481,48 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
         <Modal.Body>Creating Documents. Please wait...</Modal.Body>
 
       </Modal>
+
+      {employees && (
+        <Modal show={show2} onHide={() => setShow2(false)}>
+          <Modal.Header closeButton>
+            <Modal.Title>Manage Permissions on Document Creation</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <ListGroup style={{ maxHeight: '200px', overflow: 'scroll' }}>
+
+              <Form.Select placeholder='Select Employee' onChange={(e) => setEmployeeID(e.target.value)}>
+                <option value="" hidden>Select Employee</option>
+
+                {employees.map((employee, index) => (
+                  <>
+                    <option value={employee.id}>{employee.name}</option>
+                  </>
+                ))}
+              </Form.Select>
+
+
+              <Form.Select placeholder='Select Project' onChange={(e) => setProjectPermission(e.target.value)}>
+              <option value="" hidden>Select ProjectF</option>
+
+                {projects.map((project, index) => (
+                  <>
+                    <option value={project.name}>{project.name}</option>
+                  </>
+
+                ))}
+              </Form.Select>
+
+            </ListGroup>
+
+          </Modal.Body>
+
+          <Modal.Footer>
+            <Button variant="primary" onClick={() => { approvePermission() }}>Submit</Button>
+          </Modal.Footer>
+
+        </Modal>
+      )}
+
     </div>
 
 
