@@ -1,7 +1,7 @@
 import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc } from 'firebase/firestore'
+import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc, or,and } from 'firebase/firestore'
 import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import { toast } from 'react-toastify';
@@ -319,7 +319,13 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
     const getProjects = async () => {
 
       if (user) {
-        const k = query(collection(database, "tasks"), where("employeeId", "==", user.data.uid), where('task', '==', 'Submit Reviewed Building Permit Requirements'));
+        const k = query(collection(database, "tasks"), and(
+          where('task', '==', 'Submit Reviewed Building Permit Requirements'),
+          or(
+            where("employeeId", "==", user.data.uid),
+            where('origUser', '==', user.data.uid)
+          )
+        ));
 
         const querySnapshot = await getDocs(k);
         querySnapshot.forEach((doc) => {
