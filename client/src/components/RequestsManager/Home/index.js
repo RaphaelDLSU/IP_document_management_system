@@ -72,6 +72,12 @@ const Home = () => {
     const [chartEmployeeRequestsCompletedInit, setChartEmployeeRequestsCompletedInit] = useState([]);
     const [chartEmployeeRequestsPendingInit, setChartEmployeeRequestsPendingInit] = useState([]);
 
+    const [sortValue, setSortValue] = useState("")
+    const [projectValue, setProjectValue] = useState("")
+    const [taskValue, setTaskValue] = useState("")
+    const [employeeValue, setEmployeeValue] = useState("")
+    const [startValue, setStartValue] = useState("")
+    const [endValue, setEndValue] = useState("")
 
     const { isLoggedIn, user, userId } = useSelector(
         (state) => ({
@@ -370,8 +376,16 @@ const Home = () => {
 
     const resetFilterPending = () => {
         setRequestsPending(requestsPendingInit)
+        setSortValue("")
+        setProjectValue("")
+        setTaskValue("")
+        setEmployeeValue("")
+        setStartValue("")
+        setEndValue("")
+
     }
     const sortFilterPending = (sort) => {
+        setSortValue(sort)
 
         if (sort == 'End Date Descending') {
 
@@ -395,6 +409,7 @@ const Home = () => {
     }
 
     const filterTaskPending = (filter) => {
+        setTaskValue(filter)
 
         const filteredTasks = requestsPending.filter(data => data.desc.includes(filter))
 
@@ -403,6 +418,7 @@ const Home = () => {
     }
 
     const filterEmployeePending = (filter) => {
+        setEmployeeValue(filter)
 
         const filteredTasks = requestsPending.filter(data => data.submitter.includes(filter))
 
@@ -410,6 +426,8 @@ const Home = () => {
 
     }
     const filterStartPending = (filter) => {
+        setStartValue(filter)
+
         if (filter == '1 week') {
             const seventhDay = new Date();
             seventhDay.setDate(seventhDay.getDate() - 7);
@@ -440,6 +458,7 @@ const Home = () => {
         }
     }
     const filterEndPending = (filter) => {
+        setEndValue(filter)
 
         if (filter == '1 week') {
             const seventhDay = new Date();
@@ -474,8 +493,16 @@ const Home = () => {
 
     const resetFilterCompleted = () => {
         setRequestsDone(requestsCompletedInit)
+        setSortValue("")
+        setProjectValue("")
+        setTaskValue("")
+        setEmployeeValue("")
+        setStartValue("")
+        setEndValue("")
+
     }
     const sortFilterCompleted = (sort) => {
+        setSortValue(sort)
 
         if (sort == 'End Date Descending') {
 
@@ -500,7 +527,7 @@ const Home = () => {
     }
 
     const filterTaskCompleted = (filter) => {
-
+        setTaskValue(filter)
         const filteredTasks = requestsDone.filter(data => data.desc.includes(filter))
 
         setRequestsDone(filteredTasks)
@@ -508,6 +535,7 @@ const Home = () => {
     }
 
     const filterEmployeeCompleted = (filter) => {
+        setEmployeeValue(filter)
 
         const filteredTasks = requestsDone.filter(data => data.submitter.includes(filter))
 
@@ -515,6 +543,7 @@ const Home = () => {
 
     }
     const filterStartCompleted = (filter) => {
+        setStartValue(filter)
         if (filter == '1 week') {
             const seventhDay = new Date();
             seventhDay.setDate(seventhDay.getDate() - 7);
@@ -547,6 +576,7 @@ const Home = () => {
     }
     const filterEndCompleted = (filter) => {
 
+        setEndValue(filter)
         if (filter == '1 week') {
             const seventhDay = new Date();
             seventhDay.setDate(seventhDay.getDate() - 7);
@@ -697,7 +727,7 @@ const Home = () => {
                     <div className='content' style={{ padding: '5px' }}>
                         <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Pending Requests</h5>
                         <RequestTasks></RequestTasks>
-                        {role == 'Manager' || role =='CEO' && (
+                        {(role == 'Manager' || role == 'CEO') && (
                             <>
                                 <p></p><p></p>
                                 <h5 style={{ backgroundColor: '#146C43', color: 'white', padding: '15px', borderRadius: '5px' }}> Requests Manager</h5>
@@ -707,6 +737,7 @@ const Home = () => {
                                     id="uncontrolled-tab-example"
                                     className="mb-3"
                                 >
+
                                     <Tab eventKey='standard' title='Standard'>
                                         <Row xs='auto'>
                                             <Col>
@@ -749,7 +780,7 @@ const Home = () => {
                                                             <Button onClick={() => handleReport('#table-pending')}>Get Report</Button>
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterPending(e.target.value)}>
+                                                            <Form.Select value={sortValue} placeholder='Sort By' onChange={(e) => sortFilterPending(e.target.value)}>
                                                                 <option value="" hidden>Sort By</option>
                                                                 <option value="End Date Descending"> End Date Descending</option>
                                                                 <option value="End Date Ascending"> End Date Ascending</option>
@@ -760,18 +791,19 @@ const Home = () => {
                                                         </Col>
                                                         <Col>
                                                             <Form.Control
+                                                                value={taskValue}
                                                                 type="text"
                                                                 onChange={(e) => filterTaskPending(e.target.value)}
                                                                 placeholder='Filter by Query'
                                                             />
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select onChange={(e) => filterEmployeePending(e.target.value)}>
+                                                            <Form.Select value={employeeValue} onChange={(e) => filterEmployeePending(e.target.value)}>
                                                                 <option value="" hidden>Sort By Employee</option>
                                                                 {users.map((user, index) => (
                                                                     <>
 
-                                                                        <option>{user.name}</option>
+                                                                        <option value={user.name}>{user.name}</option>
 
                                                                     </>
 
@@ -780,7 +812,7 @@ const Home = () => {
 
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select onChange={(e) => filterStartPending(e.target.value)}>
+                                                            <Form.Select value={startValue} onChange={(e) => filterStartPending(e.target.value)}>
                                                                 <option value="" hidden>Filter Date Requested</option>
                                                                 <option value='1 week'>1 week</option>
                                                                 <option value='1 month'>1 Month</option>
@@ -790,7 +822,7 @@ const Home = () => {
 
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select onChange={(e) => filterEndPending(e.target.value)}>
+                                                            <Form.Select value={endValue} onChange={(e) => filterEndPending(e.target.value)}>
                                                                 <option value="" hidden>Filter Deadline</option>
                                                                 <option value='1 week'>1 week</option>
                                                                 <option value='1 month'>1 Month</option>
@@ -802,6 +834,10 @@ const Home = () => {
                                                         <Col>
                                                             <Button onClick={resetFilterPending}>Reset</Button>
                                                         </Col>
+                                                    </Row>
+                                                    <p></p>
+                                                    <Row>
+                                                        <p> Filters: {sortValue}  {taskValue} {employeeValue} {startValue} {endValue} </p>
                                                     </Row>
                                                 </Container>
                                                 <p></p>
@@ -864,7 +900,7 @@ const Home = () => {
                                                             <Button onClick={() => handleReport('#table-completed')}>Get Report</Button>
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select placeholder='Sort By' onChange={(e) => sortFilterCompleted(e.target.value)}>
+                                                            <Form.Select value={sortValue} placeholder='Sort By' onChange={(e) => sortFilterCompleted(e.target.value)}>
                                                                 <option value="" hidden>Sort By</option>
                                                                 <option value="End Date Descending"> End Date Descending</option>
                                                                 <option value="End Date Ascending"> End Date Ascending</option>
@@ -874,13 +910,15 @@ const Home = () => {
                                                         </Col>
                                                         <Col>
                                                             <Form.Control
+                                                                value={taskValue}
                                                                 type="text"
                                                                 onChange={(e) => filterTaskCompleted(e.target.value)}
                                                                 placeholder='Filter by Query'
                                                             />
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select onChange={(e) => filterEmployeeCompleted(e.target.value)}>
+                                                            <Form.Select value={employeeValue} onChange={(e) => filterEmployeeCompleted(e.target.value)}>
+
                                                                 <option value="" hidden>Sort By Employee</option>
                                                                 {users.map((user, index) => (
                                                                     <>
@@ -894,7 +932,7 @@ const Home = () => {
 
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select onChange={(e) => filterStartCompleted(e.target.value)}>
+                                                            <Form.Select value={startValue} onChange={(e) => filterStartCompleted(e.target.value)}>
                                                                 <option value="" hidden>Filter Date Requested</option>
                                                                 <option value='1 week'>1 week</option>
                                                                 <option value='1 month'>1 Month</option>
@@ -904,7 +942,7 @@ const Home = () => {
 
                                                         </Col>
                                                         <Col>
-                                                            <Form.Select onChange={(e) => filterEndCompleted(e.target.value)}>
+                                                            <Form.Select value={endValue} onChange={(e) => filterEndCompleted(e.target.value)}>
                                                                 <option value="" hidden>Filter Deadline</option>
                                                                 <option value='1 week'>1 week</option>
                                                                 <option value='1 month'>1 Month</option>
@@ -916,6 +954,10 @@ const Home = () => {
                                                         <Col>
                                                             <Button onClick={resetFilterCompleted}>Reset</Button>
                                                         </Col>
+                                                    </Row>
+<p></p>
+                                                    <Row>
+                                                        <p> Filters: {sortValue}  {taskValue} {employeeValue} {startValue} {endValue} </p>
                                                     </Row>
                                                 </Container>
                                                 <p></p>
