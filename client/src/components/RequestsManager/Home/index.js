@@ -408,6 +408,24 @@ const Home = () => {
         }
     }
 
+    const filterProjectPending = (filter) => {
+
+        setProjectValue(filter)
+
+        const filteredTasks = requestsPending.filter(data => data.project.includes(filter))
+
+        setRequestsPending(filteredTasks)
+    }
+
+    const filterProjectCompleted = (filter) => {
+
+        setProjectValue(filter)
+
+        const filteredTasks = requestsDone.filter(data => data.project.includes(filter))
+
+        setRequestsDone(filteredTasks)
+    }
+
     const filterTaskPending = (filter) => {
         setTaskValue(filter)
 
@@ -669,10 +687,14 @@ const Home = () => {
                     let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
 
                     tasksData.forEach((task) => {
-                        if (task.deadline.toDate() > new Date)
+                        console.log('NOT COMPLETED')
+                        if (task.deadline.toDate() > new Date) {
                             notLate++
-                        else
+
+                        }
+                        else {
                             late++
+                        }
 
                     })
                     setChartRequestsPending(notLate)
@@ -790,6 +812,18 @@ const Home = () => {
                                                             </Form.Select>
                                                         </Col>
                                                         <Col>
+                                                            <Form.Select value={projectValue} onChange={(e) => filterProjectPending(e.target.value)}>
+                                                                <option value="" hidden>Filter by Project</option>
+                                                                {projects.map((project, index) => (
+                                                                    <>
+                                                                        <option value={project.name}>{project.name}</option>
+                                                                    </>
+
+                                                                ))}
+                                                            </Form.Select>
+
+                                                        </Col>
+                                                        <Col>
                                                             <Form.Control
                                                                 value={taskValue}
                                                                 type="text"
@@ -837,7 +871,7 @@ const Home = () => {
                                                     </Row>
                                                     <p></p>
                                                     <Row>
-                                                        <p> Filters: {sortValue}  {taskValue} {employeeValue} {startValue} {endValue} </p>
+                                                        <p> Filters: {sortValue} {projectValue} {taskValue} {employeeValue} {startValue} {endValue} </p>
                                                     </Row>
                                                 </Container>
                                                 <p></p>
@@ -909,6 +943,18 @@ const Home = () => {
                                                             </Form.Select>
                                                         </Col>
                                                         <Col>
+                                                            <Form.Select value={projectValue} onChange={(e) => filterProjectCompleted(e.target.value)}>
+                                                                <option value="" hidden>Filter by Project</option>
+                                                                {projects.map((project, index) => (
+                                                                    <>
+                                                                        <option value={project.name}>{project.name}</option>
+                                                                    </>
+
+                                                                ))}
+                                                            </Form.Select>
+
+                                                        </Col>
+                                                        <Col>
                                                             <Form.Control
                                                                 value={taskValue}
                                                                 type="text"
@@ -955,9 +1001,9 @@ const Home = () => {
                                                             <Button onClick={resetFilterCompleted}>Reset</Button>
                                                         </Col>
                                                     </Row>
-<p></p>
+                                                    <p></p>
                                                     <Row>
-                                                        <p> Filters: {sortValue}  {taskValue} {employeeValue} {startValue} {endValue} </p>
+                                                        <p> Filters: {sortValue} {projectValue}  {taskValue} {employeeValue} {startValue} {endValue} </p>
                                                     </Row>
                                                 </Container>
                                                 <p></p>
