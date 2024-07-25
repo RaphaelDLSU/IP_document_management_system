@@ -190,8 +190,22 @@ const Home = () => {
 
         await getDocs(q).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setRequestsCompletedInit(requestsData)
-            setRequestsDone(requestsData)
+
+            let sortedTasksData = requestsData.sort((a, b) => {
+                let nameA = a.project.toUpperCase(); // Ignore case
+                let nameB = b.project.toUpperCase(); // Ignore case
+
+                if (nameA < nameB) {
+                    return -1; // a comes first
+                }
+                if (nameA > nameB) {
+                    return 1; // b comes first
+                }
+
+                return 0; // names are equal
+            });
+            setRequestsCompletedInit(sortedTasksData)
+            setRequestsDone(sortedTasksData)
 
             let notLate = 0
             let late = 0
@@ -213,8 +227,22 @@ const Home = () => {
 
         await getDocs(f).then((request) => {
             let requestsData = request.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-            setRequestsPendingInit(requestsData)
-            setRequestsPending(requestsData)
+
+            let sortedTasksData = requestsData.sort((a, b) => {
+                let nameA = a.project.toUpperCase(); // Ignore case
+                let nameB = b.project.toUpperCase(); // Ignore case
+
+                if (nameA < nameB) {
+                    return -1; // a comes first
+                }
+                if (nameA > nameB) {
+                    return 1; // b comes first
+                }
+
+                return 0; // names are equal
+            });
+            setRequestsPendingInit(sortedTasksData)
+            setRequestsPending(sortedTasksData)
             setLoading(false)
 
             let notLate = 0

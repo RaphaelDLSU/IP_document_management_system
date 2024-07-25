@@ -211,8 +211,22 @@ const TaskMonitoring = () => {
       await getDocs(q).then((tasks) => {
         let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
 
-        setTasksPendingInit(tasksData)
-        setTasksPending(tasksData)
+        let sortedTasksData = tasksData.sort((a, b) => {
+          let nameA = a.project.toUpperCase(); // Ignore case
+          let nameB = b.project.toUpperCase(); // Ignore case
+
+          if (nameA < nameB) {
+            return -1; // a comes first
+          }
+          if (nameA > nameB) {
+            return 1; // b comes first
+          }
+
+          return 0; // names are equal
+        });
+        setTasksPendingInit(sortedTasksData)
+        setTasksPending(sortedTasksData)
+
 
         let notLate = 0
         let late = 0
@@ -236,8 +250,22 @@ const TaskMonitoring = () => {
       const f = query(collectionRef, where('status', '==', 'done'))
       await getDocs(f).then((tasks) => {
         let tasksData = tasks.docs.map((doc) => ({ ...doc.data(), id: doc.id }))
-        setTasksCompletedInit(tasksData)
-        setTasksCompleted(tasksData)
+
+        let sortedTasksData = tasksData.sort((a, b) => {
+          let nameA = a.project.toUpperCase(); // Ignore case
+          let nameB = b.project.toUpperCase(); // Ignore case
+
+          if (nameA < nameB) {
+            return -1; // a comes first
+          }
+          if (nameA > nameB) {
+            return 1; // b comes first
+          }
+
+          return 0; // names are equal
+        });
+        setTasksCompletedInit(sortedTasksData)
+        setTasksCompleted(sortedTasksData)
 
         let notLate = 0
         let late = 0
