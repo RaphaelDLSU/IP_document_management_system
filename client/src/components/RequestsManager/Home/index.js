@@ -915,7 +915,17 @@ const Home = () => {
                                                                     )
                                                                 }
                                                                 {request.status != 'done' ? (
-                                                                    <td style={{ backgroundColor: 'red', color: 'white' }}>Pending</td>
+                                                                    <>
+                                                                        {request.deadline.toDate() < new Date() && (
+                                                                            <td style={{ backgroundColor: 'red', color: 'white' }}>Pending (Late)</td>
+
+                                                                        )}
+                                                                        {request.deadline.toDate() > new Date() && (
+                                                                            <td style={{ backgroundColor: 'orange', color: 'black' }}>Pending</td>
+
+                                                                        )}
+                                                                    </>
+
                                                                 ) : (
                                                                     <td style={{ backgroundColor: 'green', color: 'white' }}>Completed</td>
                                                                 )}

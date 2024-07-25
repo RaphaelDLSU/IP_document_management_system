@@ -955,14 +955,21 @@ const TaskMonitoring = () => {
                               <td style={{ color: task.deadline.toDate() < new Date() ? 'red' : 'black' }}>{moment(task.deadline.toDate()).format('l')}</td>
 
                             )}
-                            {task.status == 'for submission' && (
-                              <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
+                            {task.status == 'for submission' && task.deadline.toDate() < new Date() && (
+                              <td style={{ backgroundColor: "red", color: 'white' }}>Pending (Late)</td>
+                            )}
+                            {task.status == 'for submission' && task.deadline.toDate() > new Date() && (
+                              <td style={{ backgroundColor: "orange", color: 'black' }}>Pending</td>
                             )}
                             {task.status == 'done' && (
                               <td style={{ backgroundColor: "green", color: 'white' }}>Completed</td>
                             )}
-                            {task.status == 'for approval' && (
-                              <td style={{ backgroundColor: "red", color: 'white' }}>Pending</td>
+                            {task.status == 'for approval' && task.deadline.toDate() < new Date() && (
+                              <td style={{ backgroundColor: "red", color: 'white' }}>Pending (Late)</td>
+                            )}
+
+                            {task.status == 'for approval' && task.deadline.toDate() > new Date() && (
+                              <td style={{ backgroundColor: "orange", color: 'black' }}>Pending</td>
                             )}
 
 
