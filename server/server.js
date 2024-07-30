@@ -48,7 +48,12 @@ const auth = new JWT({
     scopes: SCOPES,
 });
 
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const day = String(today.getDate()).padStart(2, '0');
 
+const formattedDate = `${year}-${month}-${day}`;
 app.post("/summary", async function (req, res) {
     console.log('Hello Hre')
     let sampleFile;
@@ -182,15 +187,15 @@ app.post("/sheettest", async function (req, res) {
                 parkingNumber++
                 if (j == 0 && !isFirstRow) {
                     isFirstRow = true
-                    await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Parking Unit P-'+parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
+                    await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Parking Unit P-' + parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
                 } else {
-                    await sheet3.addRow({ 'Number': 'Parking Unit P-'+parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
+                    await sheet3.addRow({ 'Number': 'Parking Unit P-' + parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
                 }
-                await sheet3.addRow({ Name: 'Type: ', Details: 'Parking'})
+                await sheet3.addRow({ Name: 'Type: ', Details: 'Parking' })
                 await sheet3.addRow({ Name: 'Location: ', Details: floors[i].floorName + ', ' + req.body.address })
                 await sheet3.addRow({ Name: 'Owner/Developer: ', Details: ' Construction Company' })
             }
-        
+
         }
 
         for (var j = 0; j < floors[i].residentialArea.length; j++) {
@@ -217,13 +222,13 @@ app.post("/sheettest", async function (req, res) {
     const factSheetId = newDocFactSheet.spreadsheetId
     const doc3 = new GoogleSpreadsheet(factSheetId, auth);
     await newDocFactSheet.setPublicAccessLevel('writer');
-    const sheet2 = await doc3.addSheet({ title: 'Fact Sheet', headerValues: ['FLOOR LOCATION', 'UNIT NO.', 'Area (m²)', 'UNIT TYPE', 'REMARKS', 'PRICE/SQM', 'Unit Price', '12% VAT', 'MISC. FEES', 'TOTAL CONTRACT PRICE'] });
+    const sheet2 = await doc3.addSheet({ title: 'Fact Sheet', headerValues: ['HEADERS','FLOOR LOCATION', 'UNIT NO.', 'Area (m²)', 'UNIT TYPE', 'REMARKS', 'PRICE/SQM', 'Unit Price', '12% VAT', 'MISC. FEES', 'TOTAL CONTRACT PRICE'] });
 
     for (var i = 0; i < floors.length; i++) {
 
         for (var j = 0; j < floors[i].residentialArea.length; j++) {
             if (j == 0) {
-                await sheet2.addRow({ 'FLOOR LOCATION': floors[i].floorName, 'UNIT NO.': 'UNIT ' + floors[i].residentialArea[j].residentialAreaUnitType, 'UNIT TYPE': floors[i].residentialArea[j].residentialAreaNumberUnit, 'REMARKS': '', 'PRICE/SQM': '', 'Area (m²)': floors[i].residentialArea[j].residentialAreaSize })
+                await sheet2.addRow({ 'FLOOR LOCATION': floors[i].floorName, 'UNIT NO.': 'UNIT ' + floors[i].residentialArea[j].residentialAreaUnitType, 'UNIT TYPE': floors[i].residentialArea[j].residentialAreaNumberUnit, 'REMARKS': '', 'PRICE/SQM': '', 'Area (m²)': floors[i].residentialArea[j].residentialAreaSize, 'HEADERS': 'Project Name: ' + req.body.project + ' Address: ' + req.body.address + ' Date Issued: ' + formattedDate})
             } else {
                 await sheet2.addRow({ 'FLOOR LOCATION': '', 'UNIT NO.': 'UNIT ' + floors[i].residentialArea[j].residentialAreaUnitType, 'UNIT TYPE': floors[i].residentialArea[j].residentialAreaNumberUnit, 'REMARKS': '', 'PRICE/SQM': '', 'Area (m²)': floors[i].residentialArea[j].residentialAreaSize })
 
@@ -312,69 +317,69 @@ app.post('/sheetupdate', async function (req, res) {
     url = `https://docs.google.com/spreadsheets/d/${buildingSurfaceId}/edit#gid=0}`;
 
 
-   //create Technical Description
-   const newDocTechnicalDesc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Technical Description' });
-   const TechnicalDescId = newDocTechnicalDesc.spreadsheetId
-   const doc2 = new GoogleSpreadsheet(TechnicalDescId, auth);
+    //create Technical Description
+    const newDocTechnicalDesc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Technical Description' });
+    const TechnicalDescId = newDocTechnicalDesc.spreadsheetId
+    const doc2 = new GoogleSpreadsheet(TechnicalDescId, auth);
 
-   const sheet3 = await doc2.addSheet({ title: 'Technical Description', headerValues: ['Floor', 'Number', 'Name', 'Details', 'Annotations'] });
-   await newDocTechnicalDesc.setPublicAccessLevel('writer');
+    const sheet3 = await doc2.addSheet({ title: 'Technical Description', headerValues: ['Floor', 'Number', 'Name', 'Details', 'Annotations'] });
+    await newDocTechnicalDesc.setPublicAccessLevel('writer');
 
-   var parkingNumber = 0
+    var parkingNumber = 0
 
-   for (var i = 0; i < floors.length; i++) {
-       var isFirstRow = false
-       for (var j = 0; j < floors[i].saleableArea.length; j++) {
-           if (j == 0 && !isFirstRow) {
-               isFirstRow = true
-               await sheet3.addRow({ Floor: floors[i].floorName, 'Number': floors[i].saleableArea[j].saleableAreaUnitNumberTag, Name: 'Unit Area:', Details: floors[i].saleableArea[j].saleableAreaSize })
+    for (var i = 0; i < floors.length; i++) {
+        var isFirstRow = false
+        for (var j = 0; j < floors[i].saleableArea.length; j++) {
+            if (j == 0 && !isFirstRow) {
+                isFirstRow = true
+                await sheet3.addRow({ Floor: floors[i].floorName, 'Number': floors[i].saleableArea[j].saleableAreaUnitNumberTag, Name: 'Unit Area:', Details: floors[i].saleableArea[j].saleableAreaSize })
 
-           } else {
-               await sheet3.addRow({ 'Number': floors[i].saleableArea[j].saleableAreaUnitNumberTag, Name: 'Unit Area:', Details: floors[i].saleableArea[j].parkingSlotSize })
+            } else {
+                await sheet3.addRow({ 'Number': floors[i].saleableArea[j].saleableAreaUnitNumberTag, Name: 'Unit Area:', Details: floors[i].saleableArea[j].parkingSlotSize })
 
-           }
-           await sheet3.addRow({ Name: 'Type:', Details: floors[i].saleableArea[j].saleableAreaType })
-           await sheet3.addRow({ Name: 'Location:', Details: floors[i].floorName + ', ' + req.body.address })
-           await sheet3.addRow({ Name: 'Owner/Developer:', Details: ' Construction Company' })
-       }
+            }
+            await sheet3.addRow({ Name: 'Type:', Details: floors[i].saleableArea[j].saleableAreaType })
+            await sheet3.addRow({ Name: 'Location:', Details: floors[i].floorName + ', ' + req.body.address })
+            await sheet3.addRow({ Name: 'Owner/Developer:', Details: ' Construction Company' })
+        }
 
-       for (var j = 0; j < floors[i].parkingArea.length; j++) {
+        for (var j = 0; j < floors[i].parkingArea.length; j++) {
 
-           for (var p = 0; p < floors[i].parkingArea[0].numberOfParking; p++) {
-               parkingNumber++
-               if (j == 0 && !isFirstRow) {
-                   isFirstRow = true
-                   await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Parking Unit P-'+parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
-               } else {
-                   await sheet3.addRow({ 'Number': 'Parking Unit P-'+parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
-               }
-               await sheet3.addRow({ Name: 'Type: ', Details: 'Parking'})
-               await sheet3.addRow({ Name: 'Location: ', Details: floors[i].floorName + ', ' + req.body.address })
-               await sheet3.addRow({ Name: 'Owner/Developer: ', Details: ' Construction Company' })
-           }
-       
-       }
+            for (var p = 0; p < floors[i].parkingArea[0].numberOfParking; p++) {
+                parkingNumber++
+                if (j == 0 && !isFirstRow) {
+                    isFirstRow = true
+                    await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Parking Unit P-' + parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
+                } else {
+                    await sheet3.addRow({ 'Number': 'Parking Unit P-' + parkingNumber, Name: 'Unit Area:', Details: floors[i].parkingArea[0].parkingSlotSize })
+                }
+                await sheet3.addRow({ Name: 'Type: ', Details: 'Parking' })
+                await sheet3.addRow({ Name: 'Location: ', Details: floors[i].floorName + ', ' + req.body.address })
+                await sheet3.addRow({ Name: 'Owner/Developer: ', Details: ' Construction Company' })
+            }
 
-       for (var j = 0; j < floors[i].residentialArea.length; j++) {
-        console.log(' UNIT AREA: '+floors[i].residentialArea[j].residentialAreaSize)
+        }
 
-           if (j == 0 && !isFirstRow) {
-               isFirstRow = true
-               await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Unit No. ' + floors[i].residentialArea[j].residentialAreaUnitType, Name: 'Unit Area:', Details: floors[i].residentialArea[j].residentialAreaSize })
+        for (var j = 0; j < floors[i].residentialArea.length; j++) {
+            console.log(' UNIT AREA: ' + floors[i].residentialArea[j].residentialAreaSize)
 
-           } else {
-               await sheet3.addRow({ 'Number': 'Unit No. ' + floors[i].residentialArea[j].residentialAreaUnitType, Name: 'Unit Area:', Details: floors[i].residentialArea[j].residentialAreaSize })
+            if (j == 0 && !isFirstRow) {
+                isFirstRow = true
+                await sheet3.addRow({ Floor: floors[i].floorName, 'Number': 'Unit No. ' + floors[i].residentialArea[j].residentialAreaUnitType, Name: 'Unit Area:', Details: floors[i].residentialArea[j].residentialAreaSize })
 
-           }
-           await sheet3.addRow({ Name: 'Type:', Details: floors[i].residentialArea[j].residentialAreaNumberUnit })
-           await sheet3.addRow({ Name: 'Location:', Details: floors[i].floorName + ', ' + req.body.address })
-           await sheet3.addRow({ Name: 'Owner/Developer:', Details: ' Construction Company' })
-       }
-   }
+            } else {
+                await sheet3.addRow({ 'Number': 'Unit No. ' + floors[i].residentialArea[j].residentialAreaUnitType, Name: 'Unit Area:', Details: floors[i].residentialArea[j].residentialAreaSize })
 
-   console.log('Technical Description Id: ' + TechnicalDescId)
+            }
+            await sheet3.addRow({ Name: 'Type:', Details: floors[i].residentialArea[j].residentialAreaNumberUnit })
+            await sheet3.addRow({ Name: 'Location:', Details: floors[i].floorName + ', ' + req.body.address })
+            await sheet3.addRow({ Name: 'Owner/Developer:', Details: ' Construction Company' })
+        }
+    }
 
-   url2 = `https://docs.google.com/spreadsheets/d/${TechnicalDescId}/edit#gid=0}`;
+    console.log('Technical Description Id: ' + TechnicalDescId)
+
+    url2 = `https://docs.google.com/spreadsheets/d/${TechnicalDescId}/edit#gid=0}`;
 
     const arrayColumn = []
     for (var i = 0; i < floors.length; i++) {
@@ -402,10 +407,10 @@ app.post('/sheetupdate', async function (req, res) {
     console.log('Array Column :' + arrayColumn)
     const sheets = google.sheets('v4')
     sheets.spreadsheets.values.clear({
-        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!A2:D300"
+        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!B2:D300"
     })
     sheets.spreadsheets.values.update({
-        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!A2:D300", valueInputOption: 'USER_ENTERED', resource: {
+        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!B2:D300", valueInputOption: 'USER_ENTERED', resource: {
             values: arrayColumn
         }
     })
