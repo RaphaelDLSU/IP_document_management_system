@@ -23,7 +23,7 @@ import Spinner from 'react-bootstrap/Spinner';
 import { createNotifs } from '../../../redux/notifs/createNotif';
 import { Dispatch } from 'react';
 import moment from 'moment';
-import { Chart as ChartJS } from 'chart.js/auto'
+import { Chart as ChartJS, scales } from 'chart.js/auto'
 import { Chart } from 'react-chartjs-2'
 
 import { Pie } from 'react-chartjs-2';
@@ -654,6 +654,25 @@ const Home = () => {
 
     }
 
+    const options = {
+        scales:{
+            x: {
+                title:{
+                    display: true,
+                    text: 'Employee Name',
+                    color: 'black'
+                }
+            },
+            y:{
+                title:{
+                    display: true,
+                    text: 'Number of Requests',
+                    color: 'black'
+                } 
+            }
+        }
+    }
+
     const changeChartProject = async (project) => {
 
         if (project == 'All') {
@@ -805,10 +824,16 @@ const Home = () => {
                                         </Row>
                                         <Row>
                                             <Col>
-                                                <Bar data={dataRequestsComplete}></Bar>
+                                                <Bar 
+                                                    data={dataRequestsComplete}
+                                                    options={options}
+                                                ></Bar>
                                             </Col>
                                             <Col>
-                                                <Bar data={dataRequestsPending}></Bar>
+                                                <Bar 
+                                                    data={dataRequestsPending}
+                                                    options={options}
+                                                ></Bar>
                                             </Col>
                                             <Col>
                                                 <Pie data={dataProjectRequests} width={"30%"}

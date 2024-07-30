@@ -787,6 +787,25 @@ const TaskMonitoring = () => {
 
   }
 
+  const options = {
+    scales:{
+        x: {
+            title:{
+                display: true,
+                text: 'Employee Name',
+                color: 'black'
+            }
+        },
+        y:{
+            title:{
+                display: true,
+                text: 'Number of Tasks',
+                color: 'black'
+            } 
+        }
+    }
+}
+
   if (loading) {
     return (
       <div className='loadingcontain'>
@@ -829,10 +848,14 @@ const TaskMonitoring = () => {
                 <div id='charts' ref={chartsRef}>
                   <Row>
                     <Col>
-                      <Bar data={dataTasksComplete}></Bar>
+                      <Bar data={dataTasksComplete}
+                       options={options}
+                      ></Bar>
                     </Col>
                     <Col>
-                      <Bar data={dataTasksPending}></Bar>
+                      <Bar data={dataTasksPending}
+                       options={options}
+                      ></Bar>
                     </Col>
                     <Col>
                       <Pie data={dataProjectTasks} width={"30%"}
