@@ -28,7 +28,7 @@ import { Chart } from 'react-chartjs-2'
 
 import { Pie } from 'react-chartjs-2';
 import { Bar } from 'react-chartjs-2';
-
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { autoAssign } from '../../../redux/workload/autoAssign';
 import { toast } from 'react-toastify';
 
@@ -654,23 +654,114 @@ const Home = () => {
 
     }
 
-    const options = {
+    const optionsBar1 = {
         scales:{
             x: {
                 title:{
                     display: true,
                     text: 'Employee Name',
-                    color: 'black'
+                    color: 'black',
+                    font:{
+                      size: 14,
+                  }
                 }
             },
             y:{
                 title:{
                     display: true,
-                    text: 'Number of Requests',
-                    color: 'black'
+                    text: 'Number of Tasks',
+                    color: 'black',
+                    font:{
+                      size: 14,
+                  }
                 } 
             }
+          
+        },
+        plugins: {
+                title: {
+                    display: true,
+                    text: 'Requests Completed per Employee',
+                    color: 'black',
+                    font:{
+                      weight: 'bold',
+                      size: 14,
+                }
+            }
+    }
+      }
+    
+    const optionsBar2 = {
+      scales:{
+          x: {
+              title:{
+                  display: true,
+                  text: 'Employee Name',
+                  color: 'black',
+                  font:{
+                    size: 14,
+                }
+              }
+          },
+          y:{
+              title:{
+                  display: true,
+                  text: 'Number of Tasks',
+                  color: 'black',
+                  font:{
+                    size: 14,
+                }
+              } 
+          }
+        
+      },
+      plugins: {
+              title: {
+                  display: true,
+                  text: 'Reqeusts Pending per Employee',
+                  color: 'black',
+                  font:{
+                    weight: 'bold',
+                    size: 14,
+                }
+              }
+          }
+    }
+    
+    const optionsPie = {
+       maintainAspectRatio: false,
+       plugins:{
+          title: {
+          display: true,
+          text: 'Request Status Breakdown',
+          color: 'black',
+          font:{
+            weight: 'bold',
+            size: 14,
         }
+      },
+          datalabels: {
+            display: function(context) {
+              return context.dataset.data[context.dataIndex] !== 0; // or >= 1 or ...
+           },
+          color: "black",
+          font: {
+            weight: 'bold',
+            size: 12,
+            
+          },
+          formatter: (value, ctx) => {
+            let sum = 0;
+            let dataArr = ctx.chart.data.datasets[0].data;
+            dataArr.map(data => {
+                sum += data;
+            });
+            let percentage = (value*100 / sum).toFixed(2)+"%";
+            return percentage;
+          }
+        }
+       }
+        
     }
 
     const changeChartProject = async (project) => {
@@ -826,18 +917,19 @@ const Home = () => {
                                             <Col>
                                                 <Bar 
                                                     data={dataRequestsComplete}
-                                                    options={options}
+                                                    options={optionsBar1}
                                                 ></Bar>
                                             </Col>
                                             <Col>
                                                 <Bar 
                                                     data={dataRequestsPending}
-                                                    options={options}
+                                                    options={optionsBar2}
                                                 ></Bar>
                                             </Col>
                                             <Col>
                                                 <Pie data={dataProjectRequests} width={"30%"}
-                                                    options={{ maintainAspectRatio: false }}></Pie>
+                                                    options={optionsPie}
+                                                    plugins={[ChartDataLabels]}></Pie>
                                             </Col>
                                         </Row>
 
