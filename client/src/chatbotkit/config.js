@@ -15,6 +15,7 @@ import RFAImages from "./components/RFAImages";
 const botName = "FileWhiz";
 
 const config = {
+  botName: "FileWhiz",
   initialMessages: [
     createChatBotMessage(`Hello my name is ${botName} `),
     createChatBotMessage(
