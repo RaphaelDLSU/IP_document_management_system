@@ -621,7 +621,6 @@ const FolderComponent = () => {
         </Modal>
       )}
 
-
       {role && (
         <>
           {role == 'Requestor' && (

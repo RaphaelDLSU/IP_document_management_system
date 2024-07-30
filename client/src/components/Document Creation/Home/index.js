@@ -122,7 +122,7 @@ function Home() {
     }
 
     return (
-      <div className="App">
+      <div className="App" style={{ padding: '20px', maxWidth: '70%', margin: 'auto', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderTop: '0px', borderColor: '#959595', borderWidth: '2px' }}>
         <Tabs
         defaultActiveKey="create"
         id="uncontrolled-tab-example"

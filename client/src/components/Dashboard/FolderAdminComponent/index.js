@@ -45,43 +45,45 @@ const FolderAdminComponent = () => {
   }
   return (
     <>
-      <SubNav currentFolder={currentFolder} />
-      <Row>
-        <Col md="12">
-          <p className="border-bottom py-2">Created Files</p>
-          <div style={{ height: "150px" }} className="pt-2 pb-4 px-5">
-            {!files ? (
-              <h1 className="text-center">Fetching Files....</h1>
-            ) : (
-              adminFiles.map(({ data, docId }) => (
-                <Col
-                  onClick={(e) => {
-                    if (e.currentTarget.classList.contains("text-white")) {
-                      e.currentTarget.style.background = "#fff";
-                      e.currentTarget.classList.remove("text-white");
-                      e.currentTarget.classList.remove("shadow-sm");
-                    } else {
-                      e.currentTarget.style.background = "#017bf562";
-                      e.currentTarget.classList.add("text-white");
-                      e.currentTarget.classList.add("shadow-sm");
-                    }
-                  }}
-                  key={docId}
-                  md={2}
-                  className="border h-100 mr-2 d-flex align-items-center justify-content-around flex-column py-1 rounded-2"
-                >
-                  <FontAwesomeIcon
-                    icon={faFile}
-                    className="mt-3"
-                    style={{ fontSize: "3rem" }}
-                  />
-                  <p className="mt-3">{data.name}</p>
-                </Col>
-              ))
-            )}
-          </div>
-        </Col>
-      </Row>
+      <div style={{ maxWidth: '70%', padding: '30px', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderColor: '#959595', borderWidth: '2px' }}>
+        <SubNav currentFolder={currentFolder} />
+        <Row>
+          <Col md="12">
+            <p className="border-bottom py-2">Created Files</p>
+            <div style={{ height: "150px" }} className="pt-2 pb-4 px-5">
+              {!files ? (
+                <h1 className="text-center">Fetching Files....</h1>
+              ) : (
+                adminFiles.map(({ data, docId }) => (
+                  <Col
+                    onClick={(e) => {
+                      if (e.currentTarget.classList.contains("text-white")) {
+                        e.currentTarget.style.background = "#fff";
+                        e.currentTarget.classList.remove("text-white");
+                        e.currentTarget.classList.remove("shadow-sm");
+                      } else {
+                        e.currentTarget.style.background = "#017bf562";
+                        e.currentTarget.classList.add("text-white");
+                        e.currentTarget.classList.add("shadow-sm");
+                      }
+                    }}
+                    key={docId}
+                    md={2}
+                    className="border h-100 mr-2 d-flex align-items-center justify-content-around flex-column py-1 rounded-2"
+                  >
+                    <FontAwesomeIcon
+                      icon={faFile}
+                      className="mt-3"
+                      style={{ fontSize: "3rem" }}
+                    />
+                    <p className="mt-3">{data.name}</p>
+                  </Col>
+                ))
+              )}
+            </div>
+          </Col>
+        </Row>
+      </div>
     </>
   );
 };

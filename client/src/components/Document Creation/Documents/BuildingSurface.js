@@ -161,17 +161,17 @@ const BuildingSurface = ({ onHandleExport }) => {
             {project && isCreated ? (
                 <>
                     <p></p>
-                    <Form.Label>Building Surface</Form.Label>
+                    <Form.Label>Building Surface &nbsp;</Form.Label>
                     <Button variant="primary" onClick={() => window.open(surfURL, '_blank')}>View</Button>
                     <p></p>
                     <p></p>
 
-                    <Form.Label>Technical Description</Form.Label>
+                    <Form.Label>Technical Description &nbsp;</Form.Label>
 
                     <Button variant="primary" onClick={() => window.open(techURL, '_blank')}>View</Button>
                     <p></p>
                     <p></p>
-                    <Form.Label>Fact Sheet</Form.Label>
+                    <Form.Label>Fact Sheet &nbsp;</Form.Label>
 
 
                     <Button variant="primary" onClick={() => window.open(factURL, '_blank')}>View</Button>

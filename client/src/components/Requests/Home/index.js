@@ -115,7 +115,7 @@ const Home = () => {
                 )}
 
 
-                <div className='head' style={{ padding: '20px' }}>
+                <div className='head' style={{ maxWidth: '70%', padding: '30px', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderColor: '#959595', borderWidth: '2px', margin: 'auto' }}>
                     <h2>Requests</h2>
                     <hr></hr>
                     <div className='content' style={{ padding: '5px' }}>

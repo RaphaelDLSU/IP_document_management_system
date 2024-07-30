@@ -1365,7 +1365,7 @@ const Home = () => {
     } else {
         return (
             <>
-                <div className='head' style={{ padding: '20px' }}>
+                <div className='head' style={{ padding: '20px', maxWidth: '70%', margin: 'auto', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderTop: '0px', borderColor: '#959595', borderWidth: '2px' }}>
 
                     {role && role == 'Manager' ? (
                         <>

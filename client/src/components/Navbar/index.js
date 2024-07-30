@@ -277,18 +277,12 @@ const NavbarComponent = () => {
             to="/"
             style={{ marginRight: "auto" }}
           >
-            Document Management System
+            <strong style={{ fontSize: '32px'}}>SolidBuild DMS</strong>
           </Navbar.Brand>
 
           <Nav style={{ marginRight: "60px" }}>
             {isLoggedIn ? (
               <>
-                <Nav.Link
-                  className="text-white d-flex align-items-center justify-content-between"
-                  style={{ pointerEvents: "unset", cursor: "text" }}
-                >
-                  Welcome,
-                </Nav.Link>
                 <Nav.Link
                   className="text-white d-flex align-items-center justify-content-between"
                   as={Link}
@@ -297,7 +291,12 @@ const NavbarComponent = () => {
                 >
                   <strong>{user.data.displayName}</strong>
                 </Nav.Link>
-
+                <Nav.Link
+                  className="text-white d-flex align-items-center justify-content-between"
+                  style={{ pointerEvents: "unset", cursor: "text" }}
+                >
+                  role
+                </Nav.Link>
                 <Navbar.Brand onClick={() => logout()}>
                   <IoLogOut style={{ cursor: 'pointer', width: '35px', height: '35px' }} />
                 </Navbar.Brand>
