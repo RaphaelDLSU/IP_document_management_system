@@ -200,7 +200,8 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
         const docRef = await setDoc(doc(database, 'buildingSurface', project), {
           floors: floors,
           project: project,
-          address: address
+          address: address,
+          createdBy:user.data.displayName
         }).then(async () => {
           const q = doc(database, 'buildingSurface', project)
           const docSnap = await getDoc(q).then(async (doc) => {

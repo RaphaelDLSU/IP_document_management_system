@@ -95,7 +95,7 @@ app.post("/sheettest", async function (req, res) {
     let factSheetID = req.body.factSheetID
     console.log('Creating Sheet..')
     //create Building Surface
-    const newDocBuildingSurface = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Building Surface' });
+    const newDocBuildingSurface = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Building Surface - ' + req.body.project });
     const buildingSurfaceId = newDocBuildingSurface.spreadsheetId
     const doc = new GoogleSpreadsheet(buildingSurfaceId, auth);
     // await newDocBuildingSurface.share('presidentmeth@gmail.com');
@@ -149,6 +149,10 @@ app.post("/sheettest", async function (req, res) {
                 await sheet.addRow({ Type: floors[i].amenitiesArea[j].amenitiesAreaType, Area: floors[i].amenitiesArea[j].amenitiesAreaSize })
             }
         }
+        await sheet.addRow({ 'Type': '', 'Area': '' })
+        await sheet.addRow({ 'Type': 'Headers', 'Area': 'Project Name: ' + req.body.project })
+        await sheet.addRow({ 'Area': 'Generated in: ' + formattedDate })
+        await sheet.addRow({ 'Area': 'Author: ' + req.body.createdBy })
 
 
     }
@@ -156,7 +160,7 @@ app.post("/sheettest", async function (req, res) {
     url = `https://docs.google.com/spreadsheets/d/${buildingSurfaceId}/edit#gid=0}`;
 
     //create Technical Description
-    const newDocTechnicalDesc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Technical Description' });
+    const newDocTechnicalDesc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Technical Description - ' + req.body.project });
     const TechnicalDescId = newDocTechnicalDesc.spreadsheetId
     const doc2 = new GoogleSpreadsheet(TechnicalDescId, auth);
 
@@ -212,25 +216,36 @@ app.post("/sheettest", async function (req, res) {
             await sheet3.addRow({ Name: 'Owner/Developer:', Details: ' Construction Company' })
         }
     }
-
+    await sheet3.addRow({ Floor: '', Number: '' })
+    await sheet3.addRow({ Floor: '', Number: '' })
+    await sheet3.addRow({ Floor: 'Headers', Number: 'Project Name: ' + req.body.project })
+    await sheet3.addRow({ Number: 'Generated in: ' + formattedDate })
+    await sheet3.addRow({ Number: 'Author: ' + req.body.createdBy })
     console.log('Technical Description Id: ' + TechnicalDescId)
 
     url2 = `https://docs.google.com/spreadsheets/d/${TechnicalDescId}/edit#gid=0}`;
 
     //create Fact Sheet
-    const newDocFactSheet = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Fact Sheet' });
+    const newDocFactSheet = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Fact Sheet - ' + req.body.project });
     const factSheetId = newDocFactSheet.spreadsheetId
     const doc3 = new GoogleSpreadsheet(factSheetId, auth);
     await newDocFactSheet.setPublicAccessLevel('writer');
-    const sheet2 = await doc3.addSheet({ title: 'Fact Sheet', headerValues: ['HEADERS','FLOOR LOCATION', 'UNIT NO.', 'Area (m²)', 'UNIT TYPE', 'REMARKS', 'PRICE/SQM', 'Unit Price', '12% VAT', 'MISC. FEES', 'TOTAL CONTRACT PRICE'] });
+    const sheet2 = await doc3.addSheet({ title: 'Fact Sheet', headerValues: [ 'FLOOR LOCATION', 'UNIT NO.', 'Area (m²)', 'UNIT TYPE', 'REMARKS', 'PRICE/SQM', 'Unit Price', '12% VAT', 'MISC. FEES', 'TOTAL CONTRACT PRICE'] });
 
     for (var i = 0; i < floors.length; i++) {
 
         for (var j = 0; j < floors[i].residentialArea.length; j++) {
             if (j == 0) {
-                await sheet2.addRow({ 'FLOOR LOCATION': floors[i].floorName, 'UNIT NO.': 'UNIT ' + floors[i].residentialArea[j].residentialAreaUnitType, 'UNIT TYPE': floors[i].residentialArea[j].residentialAreaNumberUnit, 'REMARKS': '', 'PRICE/SQM': '', 'Area (m²)': floors[i].residentialArea[j].residentialAreaSize, 'HEADERS': 'Project Name: ' + req.body.project + ' Address: ' + req.body.address + ' Date Issued: ' + formattedDate})
+                await sheet2.addRow({ 'FLOOR LOCATION': floors[i].floorName, 'UNIT NO.': 'UNIT ' + floors[i].residentialArea[j].residentialAreaUnitType, 'UNIT TYPE': floors[i].residentialArea[j].residentialAreaNumberUnit, 'REMARKS': '', 'PRICE/SQM': '', 'Area (m²)': floors[i].residentialArea[j].residentialAreaSize })
             } else {
                 await sheet2.addRow({ 'FLOOR LOCATION': '', 'UNIT NO.': 'UNIT ' + floors[i].residentialArea[j].residentialAreaUnitType, 'UNIT TYPE': floors[i].residentialArea[j].residentialAreaNumberUnit, 'REMARKS': '', 'PRICE/SQM': '', 'Area (m²)': floors[i].residentialArea[j].residentialAreaSize })
+
+            }
+
+            if (i == floors.length - 1) {
+
+                await sheet2.addRow({ 'FLOOR LOCATION': ' '})
+                await sheet2.addRow({ 'TOTAL CONTRACT PRICE': ' HEADERS '+"\n"+ 'Project Name: ' + req.body.project +"\n"+ ' Address: ' + req.body.address +"\n"+' Date Issued: ' + formattedDate })
 
             }
         }
@@ -256,7 +271,7 @@ app.post('/sheetupdate', async function (req, res) {
     let factSheetID = req.body.factSheetID
     const existingFactSheetURL = req.body.factSheetURL
 
-    const newDocBuildingSurface = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Building Surface' });
+    const newDocBuildingSurface = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Building Surface - ' + project });
     const buildingSurfaceId = newDocBuildingSurface.spreadsheetId
     const doc = new GoogleSpreadsheet(buildingSurfaceId, auth);
     // await newDocBuildingSurface.share('presidentmeth@gmail.com');
@@ -310,15 +325,19 @@ app.post('/sheetupdate', async function (req, res) {
                 await sheet.addRow({ Type: floors[i].amenitiesArea[j].amenitiesAreaType, Area: floors[i].amenitiesArea[j].amenitiesAreaSize })
             }
         }
-
-
+        await sheet.addRow({ 'Type': '', 'Area': '' })
+        await sheet.addRow({ 'Type': 'Headers', 'Area': 'Project Name: ' + req.body.project })
+        await sheet.addRow({ 'Area': 'Generated in: ' + formattedDate })
+        await sheet.addRow({ 'Area': 'Author: ' + req.body.createdBy })
     }
+
+
     console.log('Building Surface Id: ' + buildingSurfaceId)
     url = `https://docs.google.com/spreadsheets/d/${buildingSurfaceId}/edit#gid=0}`;
 
 
     //create Technical Description
-    const newDocTechnicalDesc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Technical Description' });
+    const newDocTechnicalDesc = await GoogleSpreadsheet.createNewSpreadsheetDocument(auth, { title: 'Technical Description - ' + project });
     const TechnicalDescId = newDocTechnicalDesc.spreadsheetId
     const doc2 = new GoogleSpreadsheet(TechnicalDescId, auth);
 
@@ -376,6 +395,10 @@ app.post('/sheetupdate', async function (req, res) {
             await sheet3.addRow({ Name: 'Owner/Developer:', Details: ' Construction Company' })
         }
     }
+    await sheet3.addRow({ Floor: '', Number: '' })
+    await sheet3.addRow({ Floor: 'Headers', Number: 'Project Name: ' + req.body.project })
+    await sheet3.addRow({ Number: 'Generated in: ' + formattedDate })
+    await sheet3.addRow({ Number: 'Author: ' + req.body.createdBy })
 
     console.log('Technical Description Id: ' + TechnicalDescId)
 
@@ -407,10 +430,10 @@ app.post('/sheetupdate', async function (req, res) {
     console.log('Array Column :' + arrayColumn)
     const sheets = google.sheets('v4')
     sheets.spreadsheets.values.clear({
-        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!B2:D300"
+        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!A2:D300"
     })
     sheets.spreadsheets.values.update({
-        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!B2:D300", valueInputOption: 'USER_ENTERED', resource: {
+        auth: auth, spreadsheetId: factSheetID, range: "Fact Sheet!A2:D300", valueInputOption: 'USER_ENTERED', resource: {
             values: arrayColumn
         }
     })
