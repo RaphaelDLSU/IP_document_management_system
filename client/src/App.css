@@ -1,3 +1,7 @@
+.App {
+    background-color: #FFFFFF;
+}
+
 .app-chatbot-container {
     margin: 40px 0;
     display: flex;

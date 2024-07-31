@@ -1,4 +1,4 @@
-
+import logo from '../../../assets/img/SolidBuild.jpg';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -123,7 +123,7 @@ const ManagerHome = () => {
         <Popover id="popover-basic">
             <Popover.Header as="h3">System Guide</Popover.Header>
             <Popover.Body>
-                <strong>Homepage</strong><p></p>
+                <strong>Home</strong><p></p>
                 Click on a listed notification or task/request to go to the appropriate page <p></p>
                 <strong>Workflows</strong><p></p>
                 View ongoing project workflows/processes <p></p>
@@ -145,9 +145,12 @@ const ManagerHome = () => {
         </Popover>
     );
     const Example = () => (
+        <h2>
+        Home &nbsp;
         <OverlayTrigger placement="right" overlay={popover}>
             <Button variant="success">Get Started</Button>
         </OverlayTrigger>
+        </h2>
     );
     if (loading) {
         return (
@@ -159,9 +162,13 @@ const ManagerHome = () => {
     else {
         return (
             <>
-                <Container style={{ maxWidth: '95%', marginTop: '30px', borderRadius: '5px' }}>
+                <div style={{ maxWidth: '70%', height: '170px', backgroundColor: '#FAFAFC', margin: 'auto', borderStyle: 'solid', borderBottom: '0px', borderTop: '0px', borderColor: '#959595', borderWidth: '2px' }}>
+                    <img style={{ display: 'block', marginLeft: 'auto', marginRight: 'auto', maxWidth: '100%', maxHeight: '100%'}} src={logo} />
+                </div>
+                <Container style={{ maxWidth: '70%', padding: '30px', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderColor: '#959595', borderWidth: '2px' }}>
                     <Example />
                     <p></p>
+                    <hr></hr>
                     <Row style={{ height: '45vh', overflow: 'scroll' }}>
                         <Col >
 
@@ -181,17 +188,13 @@ const ManagerHome = () => {
                                                     {moment(notif.date.toDate()).format('LLL')}
                                                 </Badge>
                                             </ListGroup.Item>
-
                                         ))}
                                     </>
                                 ) : (
                                     <> None </>
                                 )}
-
                             </ListGroup>
-
                         </Col>
-
                     </Row>
                     <Row style={{ height: '45vh' }}>
                         <Col>
