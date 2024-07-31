@@ -24,6 +24,7 @@ const NavbarComponent = () => {
   const dispatch = useDispatch();
   const database = getFirestore()
   const [sidebarData1, setSidebarData1] = useState([])
+  const [role,setRole] = useState()
   const { isLoggedIn, user } = useSelector(
     (state) => ({
       isLoggedIn: state.auth.isLoggedIn,
@@ -57,6 +58,7 @@ const NavbarComponent = () => {
       querySnapshot.forEach((doc) => {
 
         role = doc.data().role
+        setRole(role)
       });
 
       console.log('USER DATA' + role)
@@ -289,13 +291,13 @@ const NavbarComponent = () => {
                   style={{ marginRight: "10px", marginLeft: "-10px" }}
                   to="/dashboard/profile"
                 >
-                  <strong>{user.data.displayName}</strong>
+                  <strong>{user.data.displayName} ({role})</strong>
                 </Nav.Link>
                 <Nav.Link
                   className="text-white d-flex align-items-center justify-content-between"
                   style={{ pointerEvents: "unset", cursor: "text" }}
                 >
-                  role
+                  
                 </Nav.Link>
                 <Navbar.Brand onClick={() => logout()}>
                   <IoLogOut style={{ cursor: 'pointer', width: '35px', height: '35px' }} />
