@@ -150,7 +150,7 @@ app.post("/sheettest", async function (req, res) {
             }
         }
         await sheet.addRow({ 'Type': '', 'Area': '' })
-        await sheet.addRow({ 'Type': 'Headers', 'Area': 'Project Name: ' + req.body.project })
+        await sheet.addRow({ 'Type': 'Project Details', 'Area': 'Project Name: ' + req.body.project })
         await sheet.addRow({ 'Area': 'Generated in: ' + formattedDate })
         await sheet.addRow({ 'Area': 'Author: ' + req.body.createdBy })
 
@@ -218,9 +218,9 @@ app.post("/sheettest", async function (req, res) {
     }
     await sheet3.addRow({ Floor: '', Number: '' })
     await sheet3.addRow({ Floor: '', Number: '' })
-    await sheet3.addRow({ Floor: 'Headers', Number: 'Project Name: ' + req.body.project })
-    await sheet3.addRow({ Number: 'Generated in: ' + formattedDate })
-    await sheet3.addRow({ Number: 'Author: ' + req.body.createdBy })
+    await sheet3.addRow({ Details: 'Project Details', Annotations: 'Project Name: ' + req.body.project })
+    await sheet3.addRow({ Annotations: 'Generated in: ' + formattedDate })
+    await sheet3.addRow({ Annotations: 'Author: ' + req.body.createdBy })
     console.log('Technical Description Id: ' + TechnicalDescId)
 
     url2 = `https://docs.google.com/spreadsheets/d/${TechnicalDescId}/edit#gid=0}`;
@@ -245,7 +245,7 @@ app.post("/sheettest", async function (req, res) {
             if (i == floors.length - 1) {
 
                 await sheet2.addRow({ 'FLOOR LOCATION': ' '})
-                await sheet2.addRow({ 'TOTAL CONTRACT PRICE': ' HEADERS '+"\n"+ 'Project Name: ' + req.body.project +"\n"+ ' Address: ' + req.body.address +"\n"+' Date Issued: ' + formattedDate })
+                await sheet2.addRow({ 'TOTAL CONTRACT PRICE': ' Project Details '+"\n"+ 'Project Name: ' + req.body.project +"\n"+ ' Address: ' + req.body.address +"\n"+' Date Issued: ' + formattedDate })
 
             }
         }
@@ -326,7 +326,7 @@ app.post('/sheetupdate', async function (req, res) {
             }
         }
         await sheet.addRow({ 'Type': '', 'Area': '' })
-        await sheet.addRow({ 'Type': 'Headers', 'Area': 'Project Name: ' + req.body.project })
+        await sheet.addRow({ 'Type': 'Project Details', 'Area': 'Project Name: ' + req.body.project })
         await sheet.addRow({ 'Area': 'Generated in: ' + formattedDate })
         await sheet.addRow({ 'Area': 'Author: ' + req.body.createdBy })
     }
@@ -396,9 +396,9 @@ app.post('/sheetupdate', async function (req, res) {
         }
     }
     await sheet3.addRow({ Floor: '', Number: '' })
-    await sheet3.addRow({ Floor: 'Headers', Number: 'Project Name: ' + req.body.project })
-    await sheet3.addRow({ Number: 'Generated in: ' + formattedDate })
-    await sheet3.addRow({ Number: 'Author: ' + req.body.createdBy })
+    await sheet3.addRow({ Details: 'Project Details', Annotations: 'Project Name: ' + req.body.project })
+    await sheet3.addRow({ Annotations: 'Generated in: ' + formattedDate })
+    await sheet3.addRow({ Annotations: 'Author: ' + req.body.createdBy })
 
     console.log('Technical Description Id: ' + TechnicalDescId)
 

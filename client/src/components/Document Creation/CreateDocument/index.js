@@ -1,7 +1,7 @@
 import { useState, Fragment, useEffect } from 'react';
 import Floor from '../Floor'
 import { v4 as uuidv4 } from 'uuid';
-import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc, or,and } from 'firebase/firestore'
+import { where, collection, getDocs, addDoc, doc, runTransaction, orderBy, query, serverTimestamp, getFirestore, updateDoc, arrayUnion, getDoc, deleteDoc, setDoc, or, and } from 'firebase/firestore'
 import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import { toast } from 'react-toastify';
@@ -201,7 +201,7 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
           floors: floors,
           project: project,
           address: address,
-          createdBy:user.data.displayName
+          createdBy: user.data.displayName
         }).then(async () => {
           const q = doc(database, 'buildingSurface', project)
           const docSnap = await getDoc(q).then(async (doc) => {
@@ -260,6 +260,41 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
       } else {
         toast.info('No existing project documents')
         console.log('No existing project documents')
+
+        handleShow()
+
+        try {
+          const docRef = await setDoc(doc(database, 'buildingSurface', project), {
+            floors: floors,
+            project: project,
+            address: address,
+            createdBy: user.data.displayName
+          }).then(async () => {
+            const q = doc(database, 'buildingSurface', project)
+            const docSnap = await getDoc(q).then(async (doc) => {
+
+              try {
+                const { data: res } = await axios.post("http://localhost:5000/sheettest", doc.data())
+                window.open(res.url, '_blank')
+                window.open(res.url2, '_blank')
+                window.open(res.url3, '_blank')
+                console.log('RESPONSE: ' + res.url)
+                await updateDoc(q, {
+                  buildingSurfaceURL: res.url,
+                  technicalDescriptionURL: res.url2,
+                  factSheetURL: res.url3,
+                  factSheetID: res.factSheetID
+                });
+              } catch (error) {
+                console.log(error);
+              }
+              handleClose()
+
+            })
+          })
+        } catch (e) {
+          console.error('Error adding document: ', e);
+        }
       }
       console.log(PRIVATE_KEY)
     })
@@ -355,6 +390,8 @@ const DocumentCreation = ({ floors, setFloors, handleSaleableAreaChange, handleA
     <div className='head' style={{ padding: '20px' }}>
       <h2>Document Creation</h2>
       <p>Input Building Surface Document data to create other documents</p>
+      <p>Note: Column Width should be manually adjusted after generation of documents</p>
+
       <hr></hr>
       <Col md={2}>
         <Form.Select placeholder='Select Project' onChange={(e) => getProject(e.target.value)}>
