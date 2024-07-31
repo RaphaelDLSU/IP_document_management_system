@@ -395,6 +395,7 @@ const Home = () => {
 
   return (
     <>
+      <div style={{ maxWidth: '70%', padding: '30px', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderColor: '#959595', borderWidth: '2px', margin: 'auto' }}>
       <div className="app-chatbot-container">
         <ConditionallyRender
           ifTrue={showChatbot}
@@ -684,7 +685,7 @@ const Home = () => {
         </Modal>
       )}
 
-
+    </div>
 
     </>
 

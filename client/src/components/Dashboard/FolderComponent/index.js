@@ -360,6 +360,7 @@ const FolderComponent = () => {
   // }
   return (
     <>
+    <div style={{ maxWidth: '70%', padding: '30px', backgroundColor: '#FFFFFF', borderStyle: 'solid', borderColor: '#959595', borderWidth: '2px', margin: 'auto' }}>
       <SubNav currentFolder={currentFolder} />
       <Col
         md={12}
@@ -633,6 +634,7 @@ const FolderComponent = () => {
           )}
         </>
       )}
+    </div>
     </>
   );
 };
