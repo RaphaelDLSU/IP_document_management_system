@@ -230,7 +230,7 @@ app.post("/sheettest", async function (req, res) {
     const factSheetId = newDocFactSheet.spreadsheetId
     const doc3 = new GoogleSpreadsheet(factSheetId, auth);
     await newDocFactSheet.setPublicAccessLevel('writer');
-    const sheet2 = await doc3.addSheet({ title: 'Fact Sheet', headerValues: [ 'FLOOR LOCATION', 'UNIT NO.', 'Area (m²)', 'UNIT TYPE', 'REMARKS', 'PRICE/SQM', 'Unit Price', '12% VAT', 'MISC. FEES', 'TOTAL CONTRACT PRICE'] });
+    const sheet2 = await doc3.addSheet({ title: 'Fact Sheet', headerValues: ['FLOOR LOCATION', 'UNIT NO.', 'Area (m²)', 'UNIT TYPE', 'REMARKS', 'PRICE/SQM', 'Unit Price', '12% VAT', 'MISC. FEES', 'TOTAL CONTRACT PRICE'] });
 
     for (var i = 0; i < floors.length; i++) {
 
@@ -242,14 +242,11 @@ app.post("/sheettest", async function (req, res) {
 
             }
 
-            if (i == floors.length - 1) {
-
-                await sheet2.addRow({ 'FLOOR LOCATION': ' '})
-                await sheet2.addRow({ 'TOTAL CONTRACT PRICE': ' Project Details '+"\n"+ 'Project Name: ' + req.body.project +"\n"+ ' Address: ' + req.body.address +"\n"+' Date Issued: ' + formattedDate })
-
-            }
         }
     }
+
+    await sheet2.addRow({ 'TOTAL CONTRACT PRICE': ' Project Details ' + "\n" + 'Project Name: ' + req.body.project + "\n" + ' Address: ' + req.body.address + "\n" + ' Date Issued: ' + formattedDate })
+
     console.log('Fact Sheet Id: ' + factSheetId)
     factSheetID = factSheetId
     url3 = `https://docs.google.com/spreadsheets/d/${factSheetId}/edit#gid=0}`;
